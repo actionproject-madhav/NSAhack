@@ -63,6 +63,20 @@ backend/.pytest_cache/
 ehthumbs.db
 Thumbs.db
 
+# Screenshots and sensitive images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.webp
+creds.*
+Screenshot*
+
+# Claude Code configuration
+CLAUDE.md
+
 # Logs
 logs/
 *.log

@@ -1,17 +1,39 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import cv2
-import numpy as np
-from PIL import Image, ImageEnhance
-import pytesseract
 import re
 import io
 from datetime import datetime
 from database import ReceiptDatabase
 import uuid
+import os
+from auth import auth_bp
+
+# Optional imports for OCR functionality
+try:
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageEnhance
+    import pytesseract
+    OCR_AVAILABLE = True
+except ImportError as e:
+    print(f"OCR packages not available: {e}")
+    OCR_AVAILABLE = False
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, 
+     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000"],
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# Configure session for development
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-this')
+app.config['SESSION_COOKIE_SECURE'] = False  # False for HTTP in development
+app.config['SESSION_COOKIE_HTTPONLY'] = False  # Allow JavaScript access in development
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Lax for development
+
+# Register auth blueprint
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Initialize database
 db = ReceiptDatabase()
@@ -397,6 +419,12 @@ def find_total_amount(text):
 
 @app.route('/api/scan-receipt', methods=['POST'])
 def scan_receipt():
+    if not OCR_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'OCR functionality not available. Please install opencv-python, Pillow, pytesseract, and numpy packages.'
+        }), 503
+    
     try:
         if 'receipt' not in request.files:
             return jsonify({'error': 'No file uploaded', 'success': False}), 400
@@ -663,6 +691,14 @@ def health():
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({'message': 'Enhanced Receipt Scanner API with Popular Company Detection'})
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """Get public configuration for frontend"""
+    return jsonify({
+        'google_client_id': os.getenv('GOOGLE_CLIENT_ID'),
+        'api_base_url': request.url_root.rstrip('/')
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

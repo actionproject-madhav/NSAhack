@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import Logo from '../components/Logo'
+import authService from '../services/authService'
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,6 +15,7 @@ const AuthPage = () => {
     confirmPassword: ''
   })
   const navigate = useNavigate()
+  const googleButtonRef = useRef<HTMLDivElement>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -28,10 +31,47 @@ const AuthPage = () => {
     navigate('/onboarding')
   }
 
+  useEffect(() => {
+    // Initialize Google Sign-In when component mounts
+    const initializeGoogle = async () => {
+      try {
+        // Small delay to ensure DOM is ready
+        setTimeout(async () => {
+          try {
+            await authService.renderGoogleButton('google-signin-button')
+          } catch (error) {
+            console.error('Failed to render Google button:', error)
+          }
+        }, 500)
+      } catch (error) {
+        console.error('Failed to initialize Google Sign-In:', error)
+      }
+    }
+    
+    initializeGoogle()
+  }, [])
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true)
+    try {
+      await authService.signInWithGoogle()
+      // The callback will handle navigation to onboarding
+    } catch (error) {
+      console.error('Google login error:', error)
+      alert('Google authentication failed')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSocialLogin = (provider: string) => {
-    // Mock social login - always succeed and navigate to onboarding
-    console.log(`Mock ${provider} authentication successful`)
-    navigate('/onboarding')
+    if (provider === 'Google') {
+      handleGoogleLogin()
+    } else {
+      // Mock social login for other providers
+      console.log(`Mock ${provider} authentication successful`)
+      navigate('/onboarding')
+    }
   }
 
 
@@ -195,19 +235,26 @@ const AuthPage = () => {
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <button 
-                onClick={() => handleSocialLogin('Google')}
-                className="w-full inline-flex justify-center items-center py-2 px-3 border border-gray-300 rounded-lg bg-white text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                <Logo 
-                  company="Google" 
-                  fallback="G" 
-                  size={16} 
-                  className="mr-1"
-                />
-                <span>Google</span>
-              </button>
+            <div className="mt-3 space-y-2">
+              {/* Google Sign-In Button Container */}
+              <div className="w-full flex justify-center">
+                <div id="google-signin-button" ref={googleButtonRef} className="min-h-[44px] w-full max-w-xs">
+                  {/* Fallback button if Google Sign-In doesn't load */}
+                  <button 
+                    onClick={() => handleGoogleLogin()}
+                    disabled={isLoading}
+                    className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    <Logo 
+                      company="Google" 
+                      fallback="G" 
+                      size={18} 
+                      className="mr-2"
+                    />
+                    <span>{isLoading ? 'Signing in...' : 'Sign in with Google'}</span>
+                  </button>
+                </div>
+              </div>
 
               <button 
                 onClick={() => handleSocialLogin('Facebook')}
