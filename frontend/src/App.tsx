@@ -5,6 +5,8 @@ import OnboardingFlow from './pages/OnboardingFlow'
 import Dashboard from './pages/Dashboard'
 import TradePage from './pages/TradePage'
 import EducationHub from './pages/EducationHub'
+import PortfolioPage from './pages/PortfolioPage'
+import WalletPage from './pages/WalletPage'
 import { UserProvider } from './context/UserContext'
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/onboarding" element={<OnboardingFlow />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/wallet" element={<WalletPage />} />
               <Route path="/trade" element={<TradePage />} />
               <Route path="/learn" element={<EducationHub />} />
             </Routes>

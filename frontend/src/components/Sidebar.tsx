@@ -7,10 +7,11 @@ const Sidebar = () => {
   const navigate = useNavigate()
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', active: true },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Briefcase, label: 'Portfolio', path: '/portfolio' },
-    { icon: TrendingUp, label: 'Transaction', path: '/wallet' },
- 
+    { icon: CreditCard, label: 'Wallet', path: '/wallet' },
+    { icon: TrendingUp, label: 'Trade', path: '/trade' },
+    { icon: BookOpen, label: 'Learn', path: '/learn' },
   ]
 
   return (
@@ -28,22 +29,25 @@ const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 px-3 lg:px-4 py-4 overflow-y-auto">
         <div className="space-y-1">
-          {menuItems.map((item, index) => (
-            <motion.button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${
-                item.active || location.pathname === item.path
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <item.icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
-              <span className="text-xs lg:text-sm truncate">{item.label}</span>
-            </motion.button>
-          ))}
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path
+            return (
+              <motion.button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700 font-semibold'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <item.icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+                <span className="text-xs lg:text-sm truncate">{item.label}</span>
+              </motion.button>
+            )
+          })}
         </div>
       </nav>
 
