@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Clock, Trophy, ChevronRight, Check, X, Play, FileText, Video, Users, Star } from 'lucide-react'
+import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon } from 'lucide-react'
 import Navigation from '../components/Navigation'
 import EnhancedChatWidget from '../components/ChatWidget'
 
@@ -59,25 +59,25 @@ interface ModuleContentProps {
   PortfolioBuilder: React.FC;
 }
 
-const ModuleContent: React.FC<ModuleContentProps> = ({ 
-  course, 
-  moduleId, 
-  onBack, 
-  currentQuiz, 
-  selectedAnswer, 
-  showExplanation, 
-  onAnswerSelect, 
+const ModuleContent: React.FC<ModuleContentProps> = ({
+  course,
+  moduleId,
+  onBack,
+  currentQuiz,
+  selectedAnswer,
+  showExplanation,
+  onAnswerSelect,
   onNextQuestion,
   portfolioBuilder,
   setPortfolioBuilder,
   PortfolioBuilder
 }) => {
   const module = course.modules.find(m => m.id === moduleId)
-  
+
   if (!module) {
     return <div>Module not found</div>
   }
-  
+
   const quiz = module.content?.quiz || []
   const hasQuiz = quiz.length > 0
 
@@ -108,7 +108,7 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
       {hasQuiz && (
         <div className="border-t pt-8">
           <h2 className="text-2xl font-bold mb-6">Knowledge Check 🧠</h2>
-          
+
           <div className="bg-gray-50 rounded-2xl p-6">
             <div className="mb-4">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
@@ -116,7 +116,7 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
                 <span>{Math.round(((currentQuiz + 1) / quiz.length) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <motion.div 
+                <motion.div
                   className="bg-primary-600 h-2 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${((currentQuiz + 1) / quiz.length) * 100}%` }}
@@ -126,24 +126,23 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
             </div>
 
             <h3 className="text-xl font-semibold mb-6">{quiz[currentQuiz].question}</h3>
-            
+
             <div className="space-y-3 mb-6">
               {quiz[currentQuiz].options.map((option, index) => (
                 <motion.button
                   key={index}
                   onClick={() => !showExplanation && onAnswerSelect(index)}
                   disabled={showExplanation}
-                  className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
-                    showExplanation
-                      ? index === quiz[currentQuiz].correct
-                        ? 'border-green-500 bg-green-50 text-green-800'
-                        : selectedAnswer === index
+                  className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${showExplanation
+                    ? index === quiz[currentQuiz].correct
+                      ? 'border-green-500 bg-green-50 text-green-800'
+                      : selectedAnswer === index
                         ? 'border-red-500 bg-red-50 text-red-800'
                         : 'border-gray-200 bg-gray-50'
-                      : selectedAnswer === index
+                    : selectedAnswer === index
                       ? 'border-primary-500 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
+                    }`}
                   whileHover={!showExplanation ? { scale: 1.02 } : {}}
                 >
                   {option}
@@ -185,7 +184,7 @@ const EducationHub: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState<number>(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showExplanation, setShowExplanation] = useState<boolean>(false)
-  const [completedCourses, setCompletedCourses] = useState<number[]>([])
+  const [completedCourses] = useState<number[]>([])
   const [completedModules, setCompletedModules] = useState<number[]>([])
   const [portfolioBuilder, setPortfolioBuilder] = useState<PortfolioAllocation>({
     stocks: 70,
@@ -197,7 +196,7 @@ const EducationHub: React.FC = () => {
     <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border">
       <h3 className="text-xl font-bold mb-4">🎨 Interactive Portfolio Builder</h3>
       <p className="text-gray-600 mb-6">Adjust the sliders to see how different allocations affect your portfolio!</p>
-      
+
       <div className="space-y-4">
         {Object.entries(portfolioBuilder).map(([key, value]) => (
           <div key={key} className="space-y-2">
@@ -222,15 +221,14 @@ const EducationHub: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-6 p-4 bg-white rounded-xl">
         <div className="flex justify-between text-sm">
           <span>Total Allocation:</span>
-          <span className={`font-bold ${
-            Object.values(portfolioBuilder).reduce((a: number, b: number) => a + b, 0) === 100 
-              ? 'text-green-600' 
-              : 'text-red-600'
-          }`}>
+          <span className={`font-bold ${Object.values(portfolioBuilder).reduce((a: number, b: number) => a + b, 0) === 100
+            ? 'text-green-600'
+            : 'text-red-600'
+            }`}>
             {Object.values(portfolioBuilder).reduce((a: number, b: number) => a + b, 0)}%
           </span>
         </div>
@@ -246,7 +244,7 @@ const EducationHub: React.FC = () => {
   const nextQuestion = (): void => {
     const currentModule = selectedCourse?.modules.find(m => m.id === selectedModule)
     const quiz = currentModule?.content?.quiz || []
-    
+
     if (currentQuiz < quiz.length - 1) {
       setCurrentQuiz(currentQuiz + 1)
       setSelectedAnswer(null)
@@ -278,47 +276,26 @@ const EducationHub: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            Investment Academy 🎓
-          </h1>
-          <p className="text-gray-600 text-lg">Master investing through interactive courses and AI-powered guidance</p>
-        </motion.div>
 
-        {/* Stats Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
-        >
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-2xl">
-            <Trophy className="w-8 h-8 mb-2" />
-            <div className="text-2xl font-bold">{completedCourses.length}</div>
-            <div className="text-blue-100">Courses Completed</div>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Investment Academy 
+            </h1>
+            <p className="text-gray-600">Master investing through interactive courses and AI-powered guidance</p>
           </div>
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-2xl">
-            <Clock className="w-8 h-8 mb-2" />
-            <div className="text-2xl font-bold">{completedModules.length * 15}</div>
-            <div className="text-green-100">Minutes Learned</div>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">All courses</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Stocks</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">ETFs</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Options</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Crypto</button>
           </div>
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl">
-            <Users className="w-8 h-8 mb-2" />
-            <div className="text-2xl font-bold">1+</div>
-            <div className="text-purple-100">Fellow Students</div>
-          </div>
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-2xl">
-            <Star className="w-8 h-8 mb-2" />
-            <div className="text-2xl font-bold">4.8</div>
-            <div className="text-orange-100">Average Rating</div>
-          </div>
-        </motion.div>
+        </div>
+
+
 
         <AnimatePresence mode="wait">
           {!selectedCourse ? (
@@ -330,80 +307,137 @@ const EducationHub: React.FC = () => {
               exit={{ opacity: 0 }}
               className="space-y-8"
             >
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {COMPREHENSIVE_COURSES.map((course, index) => {
-                  const isCompleted = completedCourses.includes(course.id)
-                  const isLocked = !course.unlocked && !isCompleted
-                  
-                  return (
-                    <motion.div
-                      key={course.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-200 ${
-                        isLocked 
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : 'hover:shadow-xl hover:scale-105 cursor-pointer'
-                      }`}
-                      onClick={() => !isLocked && startCourse(course.id)}
-                    >
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="text-4xl">{course.emoji}</div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            course.level === 'beginner' ? 'bg-green-100 text-green-700' :
-                            course.level === 'intermediate' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
+              {/* My Courses Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">My courses</h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {COMPREHENSIVE_COURSES.slice(0, 3).map((course, index) => {
+                    const isCompleted = completedCourses.includes(course.id)
+                    const progress = Math.floor(Math.random() * 100) // Mock progress
+                    const lessonsCount = course.modules.length
+
+                    return (
+                      <motion.div
+                        key={course.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`relative rounded-3xl p-6 text-white cursor-pointer transition-all duration-200 hover:scale-105 ${index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
+                          index === 1 ? 'bg-gradient-to-br from-red-500 to-orange-500' :
+                            'bg-gradient-to-br from-gray-800 to-gray-900'
+                          }`}
+                        onClick={() => startCourse(course.id)}
+                      >
+                        <div className="absolute top-4 right-4">
+                          <BookmarkIcon className="w-6 h-6" />
+                        </div>
+
+                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${index === 0 ? 'bg-blue-700' :
+                          index === 1 ? 'bg-red-700' :
+                            'bg-gray-700'
                           }`}>
-                            {course.level}
-                          </div>
+                          {course.level}
                         </div>
-                        
+
                         <h3 className="text-xl font-bold mb-2">{course.title}</h3>
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {course.duration}
+                        <p className="text-sm opacity-90 mb-4">{course.description.slice(0, 60)}...</p>
+
+                        <div className="mb-4">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span>Progress</span>
+                            <span>{progress}/24 lessons</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-500" />
-                            {course.rating}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {course.students.toLocaleString()}
+                          <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
+                            <div
+                              className="bg-white h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
                           </div>
                         </div>
-                        
-                        <div className="flex justify-between items-center">
-                          {isCompleted && (
-                            <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
-                              <Check className="w-4 h-4" />
-                              Completed
-                            </div>
-                          )}
-                          
-                          {isLocked && (
-                            <div className="text-gray-500 text-sm">
-                              🔒 Complete prerequisites
-                            </div>
-                          )}
-                          
-                          {!isLocked && !isCompleted && (
-                            <div className="flex items-center gap-2 text-primary-600 font-medium">
-                              <Play className="w-4 h-4" />
-                              Start Learning
-                            </div>
-                          )}
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex -space-x-2">
+                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs">+{Math.floor(Math.random() * 200) + 100}</div>
+                          </div>
+                          <button className="bg-lime-400 text-gray-900 px-4 py-2 rounded-xl font-medium text-sm hover:bg-lime-300 transition-colors">
+                            Continue
+                          </button>
                         </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
+                      </motion.div>
+                    )
+                  })}
+                </div>
               </div>
+
+              {/* My Next Lessons */}
+              <div className="grid lg:grid-cols-3 gap-8 mb-8">
+                <div className="lg:col-span-2">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">All Courses</h2>
+                    <button className="text-red-500 hover:text-red-600 font-medium">View all courses</button>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div className="space-y-4">
+                      {COMPREHENSIVE_COURSES.map((course, index) => {
+                        const isCompleted = completedCourses.includes(course.id)
+                        const isLocked = !course.unlocked && !isCompleted
+
+                        return (
+                          <div key={course.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => !isLocked && startCourse(course.id)}>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                              <p className="text-sm text-gray-600">{course.description}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">{course.emoji}</div>
+                              <div className="text-right">
+                                <div className="text-sm font-medium text-gray-900">{course.level}</div>
+                                <div className="text-xs text-gray-500">{course.duration}</div>
+                              </div>
+                              {isCompleted && (
+                                <Check className="w-5 h-5 text-green-600" />
+                              )}
+                              {isLocked && (
+                                <div className="text-gray-400 text-sm">🔒</div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* New Course Recommendation */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">New course matching your interests</h3>
+                  <div className="bg-gradient-to-br from-lime-400 to-lime-500 rounded-3xl p-6 text-gray-900">
+                    <div className="inline-block px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-medium mb-4">
+                      Design
+                    </div>
+
+                    <h3 className="text-2xl font-bold mb-2">Advanced Option Trading</h3>
+
+                    <div className="flex items-center gap-2 mb-6">
+                      <span className="text-sm">They are already studying</span>
+                      <div className="flex -space-x-2">
+                        <div className="w-6 h-6 bg-gray-800 rounded-full"></div>
+                        <div className="w-6 h-6 bg-gray-700 rounded-full"></div>
+                        <div className="w-6 h-6 bg-gray-600 rounded-full"></div>
+                        <span className="text-sm font-medium">+100</span>
+                      </div>
+                    </div>
+
+                    <button className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors">
+                      More details
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* All Courses Grid */}
+            
             </motion.div>
           ) : !selectedModule ? (
             /* Course Modules */
@@ -421,7 +455,7 @@ const EducationHub: React.FC = () => {
                 >
                   ← Back to Courses
                 </button>
-                
+
                 <div className="flex items-start gap-6 mb-8">
                   <div className="text-6xl">{selectedCourse.emoji}</div>
                   <div className="flex-1">
@@ -456,8 +490,8 @@ const EducationHub: React.FC = () => {
                     >
                       <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
                         {module.type === 'lesson' ? <FileText className="w-6 h-6 text-primary-600" /> :
-                         module.type === 'video' ? <Video className="w-6 h-6 text-primary-600" /> :
-                         <Play className="w-6 h-6 text-primary-600" />}
+                          module.type === 'video' ? <Video className="w-6 h-6 text-primary-600" /> :
+                            <Play className="w-6 h-6 text-primary-600" />}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">{module.title}</h3>
@@ -481,7 +515,7 @@ const EducationHub: React.FC = () => {
               exit={{ opacity: 0 }}
               className="max-w-4xl mx-auto"
             >
-              <ModuleContent 
+              <ModuleContent
                 course={selectedCourse}
                 moduleId={selectedModule}
                 onBack={() => setSelectedModule(null)}
@@ -500,7 +534,7 @@ const EducationHub: React.FC = () => {
       </div>
 
       {/* Enhanced Chat Widget with Course Context */}
-      <EnhancedChatWidget 
+      <EnhancedChatWidget
         currentCourse={selectedCourse?.title}
         currentModule={selectedCourse?.modules.find(m => m.id === selectedModule)?.title}
       />
