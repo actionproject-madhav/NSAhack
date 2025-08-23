@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, MoreHorizontal, Plus, ArrowUpRight, ArrowDown
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
+import Logo from '../components/Logo'
 
 interface HoldingItem {
   ticker: string
@@ -236,8 +237,12 @@ const PortfolioPage = () => {
                 onClick={() => navigate(`/trade?symbol=${holding.ticker}`)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl">
-                    {holding.logo}
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <Logo 
+                      company={holding.company.replace(' Inc.', '').replace(' Corp.', '')} 
+                      fallback={holding.logo} 
+                      size={32}
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{holding.ticker}</h3>

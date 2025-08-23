@@ -1,6 +1,7 @@
 import React from 'react';
 import svgPaths from "./imports/svg-wvh7o9wvzx";
 import { StockQuote } from '../services/alphaVantageApi';
+import Logo from './Logo';
 
 interface StockCardProps {
   symbol: string;
@@ -14,66 +15,7 @@ interface StockCardProps {
   quote?: StockQuote;
 }
 
-// Nvidia Stock Card Components
-function NvidiaIcon() {
-  return (
-    <div className="relative shrink-0 size-6">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 18">
-        <g>
-          <path d={svgPaths.p3c540d00} fill="#2C2C2C" />
-          <path d={svgPaths.p2b9efa80} fill="#2C2C2C" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function MetaIcon() {
-  return (
-    <div className="relative shrink-0 size-6">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 12">
-        <g>
-          <path d={svgPaths.p128d4200} fill="white" />
-          <path d={svgPaths.p12ed5b40} fill="white" />
-          <path d={svgPaths.p1a7ce980} fill="white" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function TeslaIcon() {
-  return (
-    <div className="relative shrink-0 size-6">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 17 17">
-        <g>
-          <path d={svgPaths.p3fc61a00} fill="#2C2C2C" />
-          <path d={svgPaths.p1893aa30} fill="#2C2C2C" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <div className="relative shrink-0 size-6">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" fill="#2C2C2C"/>
-      </svg>
-    </div>
-  );
-}
-
-function AMDIcon() {
-  return (
-    <div className="relative shrink-0 size-6">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
-        <path d={svgPaths.p29e18300} fill="#2C2C2C" />
-      </svg>
-    </div>
-  );
-}
+// Company logos are now handled by the Logo component using logo.dev API
 
 function MiniChart({ paths, strokeColor, fillColor, isPositive }: { 
   paths: string; 
@@ -128,14 +70,26 @@ function StockCard({
   quote 
 }: StockCardProps) {
   const getIcon = () => {
-    switch (symbol) {
-      case 'NVDA': return <NvidiaIcon />;
-      case 'META': return <MetaIcon />;
-      case 'TSLA': return <TeslaIcon />;
-      case 'AAPL': return <AppleIcon />;
-      case 'AMD': return <AMDIcon />;
-      default: return <div className="w-6 h-6 bg-gray-300 rounded" />;
+    const companyMap: Record<string, { name: string; fallback: string }> = {
+      'NVDA': { name: 'Nvidia', fallback: '🔥' },
+      'META': { name: 'Meta', fallback: '📱' },
+      'TSLA': { name: 'Tesla', fallback: '🚗' },
+      'AAPL': { name: 'Apple', fallback: '🍎' },
+      'AMD': { name: 'AMD', fallback: '💻' }
+    };
+
+    const companyInfo = companyMap[symbol];
+    if (companyInfo) {
+      return (
+        <Logo 
+          company={companyInfo.name} 
+          fallback={companyInfo.fallback} 
+          size={24}
+        />
+      );
     }
+    
+    return <div className="w-6 h-6 bg-gray-300 rounded" />;
   };
 
   const isPositive = changeValue.startsWith('+');
