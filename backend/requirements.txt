@@ -1,0 +1,56 @@
+# Core Flask dependencies
+Flask>=3.0.0
+flask-cors>=4.0.0
+
+# Database (MongoDB)
+pymongo>=4.5.0
+
+# Image processing and computer vision
+opencv-python-headless>=4.8.0
+Pillow>=9.0.0
+
+# Numerical computing (install first to avoid conflicts)
+numpy>=1.21.0,<1.26.0
+pandas>=2.0.0,<2.1.0
+
+# OCR (Optical Character Recognition)
+pytesseract>=0.3.9
+
+# Development dependencies
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Optional: More advanced OCR alternatives
+# easyocr==1.7.0  # Alternative to pytesseract
+# paddleocr==2.7.3  # Another OCR alternative
+
+# Optional: Machine learning for better text extraction
+# tensorflow==2.15.0  # If you want to add ML-based improvements
+# torch==2.1.1  # Alternative to TensorFlow
+# transformers==4.36.0  # For NLP-based company name extraction
+
+# Optional: Enhanced receipt parsing
+# fuzzywuzzy==0.18.0  # Fuzzy string matching for company names
+# python-Levenshtein==0.23.0  # Faster fuzzy matching
+
+# Optional: API documentation
+# flask-restx==1.3.0  # For API documentation with Swagger
+
+# Optional: Enhanced error handling and logging
+# flask-limiter==3.5.0  # Rate limiting
+# gunicorn==21.2.0  # Production WSGI server
+
+# Optional: Cloud storage (if storing images)
+# boto3==1.34.0  # AWS S3 integration
+# google-cloud-storage==2.10.0  # Google Cloud Storage
+
+# Security (recommended for production)
+# cryptography==41.0.8
+# flask-talisman==1.1.0  # Security headersFlask==2.3.3
+flask-cors==4.0.0
+pymongo==4.5.0
+python-dotenv==1.0.0
+opencv-python==4.8.1.78
+Pillow==10.0.1
+pytesseract==0.3.10
+numpy==1.25.2
