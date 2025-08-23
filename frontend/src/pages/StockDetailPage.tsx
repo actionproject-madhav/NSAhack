@@ -1,7 +1,9 @@
-import { useParams } from 'react-router-dom';
-import TradingViewWidget from '../components/TradingViewWidget';
-import Navigation from '../components/Navigation';
-import { cn } from '../utils/cn';
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import TradingViewWidget from '../components/TradingViewWidget'
+import Navigation from '../components/Navigation'
+import StockAnalysisChat from '../components/StockAnalysisChat'
+import { cn } from '../utils/cn'
 
 // Mock stock data - replace with real API calls
 const mockStockData = {
@@ -50,8 +52,77 @@ const mockStockData = {
     industry: "Semiconductors",
     employees: 29600,
     website: "https://www.nvidia.com",
+  },
+  META: {
+    symbol: "META",
+    shortName: "Meta Platforms Inc.",
+    fullExchangeName: "NASDAQ",
+    regularMarketPrice: 485.20,
+    regularMarketChange: 8.40,
+    regularMarketChangePercent: 1.76,
+    currency: "USD",
+    marketCap: 1230000000000,
+    volume: 18500000,
+    peRatio: 24.8,
+    open: 482.10,
+    high: 487.90,
+    low: 480.50,
+    divYield: 0.41,
+    beta: 1.3,
+    eps: 19.56,
+    description: "Meta Platforms, Inc. develops products that enable people to connect and share with friends and family through mobile devices, personal computers, virtual reality headsets, and wearables worldwide.",
+    sector: "Technology",
+    industry: "Internet Content & Information",
+    employees: 77805,
+    website: "https://www.meta.com",
+  },
+  TSLA: {
+    symbol: "TSLA",
+    shortName: "Tesla, Inc.",
+    fullExchangeName: "NASDAQ",
+    regularMarketPrice: 248.50,
+    regularMarketChange: -2.30,
+    regularMarketChangePercent: -0.92,
+    currency: "USD",
+    marketCap: 790000000000,
+    volume: 89000000,
+    peRatio: 62.3,
+    open: 251.20,
+    high: 253.80,
+    low: 246.10,
+    divYield: 0.00,
+    beta: 2.3,
+    eps: 3.99,
+    description: "Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems in the United States, China, and internationally.",
+    sector: "Consumer Cyclical",
+    industry: "Auto Manufacturers",
+    employees: 140473,
+    website: "https://www.tesla.com",
+  },
+  AMD: {
+    symbol: "AMD",
+    shortName: "Advanced Micro Devices, Inc.",
+    fullExchangeName: "NASDAQ",
+    regularMarketPrice: 142.75,
+    regularMarketChange: 2.85,
+    regularMarketChangePercent: 2.04,
+    currency: "USD",
+    marketCap: 230000000000,
+    volume: 35000000,
+    peRatio: 47.2,
+    open: 140.50,
+    high: 144.20,
+    low: 139.80,
+    divYield: 0.00,
+    beta: 1.8,
+    eps: 3.02,
+    description: "Advanced Micro Devices, Inc. operates as a semiconductor company worldwide. It operates in two segments, Computing and Graphics; and Enterprise, Embedded and Semi-Custom.",
+    sector: "Technology",
+    industry: "Semiconductors",
+    employees: 26000,
+    website: "https://www.amd.com",
   }
-};
+}
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -73,6 +144,7 @@ const formatLargeNumber = (value: number) => {
 
 export default function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
+  const [isAnalysisChatOpen, setIsAnalysisChatOpen] = useState(false)
   
   if (!symbol || !mockStockData[symbol as keyof typeof mockStockData]) {
     return (
@@ -93,14 +165,13 @@ export default function StockDetailPage() {
 
   // Mock data for components
   const orderBookData = [
-    { price: 190.50, amount: 500, total: 95250 },
-    { price: 190.45, amount: 1200, total: 228540 },
-    { price: 190.40, amount: 1800, total: 342720 },
-    { price: 190.35, amount: 750, total: 142762.50 },
-    { price: 190.30, amount: 1000, total: 190300 },
-    { price: 190.25, amount: 1500, total: 285375 },
-    { price: 190.20, amount: 2200, total: 418440 },
-    { price: 190.20, amount: 2200, total: 418440 },
+    { price: stock.regularMarketPrice + 0.10, amount: 500, total: (stock.regularMarketPrice + 0.10) * 500 },
+    { price: stock.regularMarketPrice + 0.05, amount: 1200, total: (stock.regularMarketPrice + 0.05) * 1200 },
+    { price: stock.regularMarketPrice, amount: 1800, total: stock.regularMarketPrice * 1800 },
+    { price: stock.regularMarketPrice - 0.05, amount: 750, total: (stock.regularMarketPrice - 0.05) * 750 },
+    { price: stock.regularMarketPrice - 0.10, amount: 1000, total: (stock.regularMarketPrice - 0.10) * 1000 },
+    { price: stock.regularMarketPrice - 0.15, amount: 1500, total: (stock.regularMarketPrice - 0.15) * 1500 },
+    { price: stock.regularMarketPrice - 0.20, amount: 2200, total: (stock.regularMarketPrice - 0.20) * 2200 },
   ];
 
   const newsData = [
@@ -128,8 +199,12 @@ export default function StockDetailPage() {
     { symbol: 'TSLA', name: 'Tesla', growth: '+8.40%', change: '+1.24%', color: 'red' },
     { symbol: 'RIVN', name: 'Rivian', growth: '+12.30%', change: '+2.15%', color: 'orange' },
     { symbol: 'NVDA', name: 'NVIDIA', growth: '+4.85%', change: '+0.85%', color: 'green' },
-    { symbol: 'ABM', name: 'ABM Industries', growth: '+6.75%', change: '+0.95%', color: 'blue' }
+    { symbol: 'AMD', name: 'AMD', growth: '+6.75%', change: '+0.95%', color: 'blue' }
   ];
+
+  const handleAnalyzeClick = () => {
+    setIsAnalysisChatOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -147,7 +222,13 @@ export default function StockDetailPage() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center">
-                  <span className="text-white text-xs">🍎</span>
+                  <span className="text-white text-xs">
+                    {stock.symbol === 'AAPL' ? '' : 
+                     stock.symbol === 'NVDA' ? '' : 
+                     stock.symbol === 'META' ? '' :
+                     stock.symbol === 'TSLA' ? '' :
+                     stock.symbol === 'AMD' ? '' : ''}
+                  </span>
                 </div>
                 <span className="font-medium">{stock.symbol}</span>
                 <span className="text-gray-500 text-sm">{formatCurrency(stock.regularMarketPrice)}</span>
@@ -164,7 +245,10 @@ export default function StockDetailPage() {
                 <button className="text-sm text-gray-400 hover:text-gray-600 pb-1">Financials</button>
                 <button className="text-sm text-gray-400 hover:text-gray-600 pb-1">Peer</button>
               </nav>
-              <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+              <button 
+                onClick={handleAnalyzeClick}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -187,7 +271,7 @@ export default function StockDetailPage() {
           <div className="col-span-8">
             {/* Stock Price Header */}
             <div className="mb-6">
-              <div className="text-sm text-gray-500 mb-1">Nasdaq • {stock.shortName}</div>
+              <div className="text-sm text-gray-500 mb-1">{stock.fullExchangeName} • {stock.shortName}</div>
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl font-bold">{formatCurrency(stock.regularMarketPrice)}</span>
                 <span className={cn(
@@ -299,7 +383,7 @@ export default function StockDetailPage() {
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-500">Investment Total</span>
-                    <span className="font-medium">$1902.50</span>
+                    <span className="font-medium">{formatCurrency(stock.regularMarketPrice * 10)}</span>
                   </div>
                 </div>
 
@@ -308,7 +392,7 @@ export default function StockDetailPage() {
                     <span className="text-sm text-gray-500">Buy Price</span>
                     <div className="flex items-center gap-2">
                       <button className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500">−</button>
-                      <span className="font-medium">$190.25</span>
+                      <span className="font-medium">{formatCurrency(stock.regularMarketPrice)}</span>
                       <button className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500">+</button>
                     </div>
                   </div>
@@ -328,7 +412,7 @@ export default function StockDetailPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between mb-2">
                     <span className="font-medium">Total</span>
-                    <span className="font-bold">$1902.50</span>
+                    <span className="font-bold">{formatCurrency(stock.regularMarketPrice * 10)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500 mb-4">
                     <span>Transaction Fee</span>
@@ -394,7 +478,7 @@ export default function StockDetailPage() {
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <span className="text-gray-600">Net Liability</span>
                   </div>
-                  <span className="font-medium">-120.55B</span>
+                  <span className="font-medium">-{formatLargeNumber(stock.marketCap * 0.04)}</span>
                 </div>
                 
                 <div className="flex justify-between">
@@ -402,12 +486,12 @@ export default function StockDetailPage() {
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                     <span className="text-gray-600">Market Cap</span>
                   </div>
-                  <span className="font-medium">2.93T</span>
+                  <span className="font-medium">{formatLargeNumber(stock.marketCap)}</span>
                 </div>
                 
                 <div className="flex justify-between font-medium border-t pt-2">
                   <span>= Total Enterprise Value (TEV)</span>
-                  <span>2.81T</span>
+                  <span>{formatLargeNumber(stock.marketCap * 0.96)}</span>
                 </div>
                 
                 <div className="flex justify-between">
@@ -415,7 +499,7 @@ export default function StockDetailPage() {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-gray-600">Common Equity</span>
                   </div>
-                  <span className="font-medium">62.63B</span>
+                  <span className="font-medium">{formatLargeNumber(stock.marketCap * 0.02)}</span>
                 </div>
                 
                 <div className="flex justify-between">
@@ -423,18 +507,25 @@ export default function StockDetailPage() {
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-600">Total Liability</span>
                   </div>
-                  <span className="font-medium">120.55B</span>
+                  <span className="font-medium">{formatLargeNumber(stock.marketCap * 0.04)}</span>
                 </div>
                 
                 <div className="flex justify-between font-medium border-t pt-2">
                   <span>= Total Capital</span>
-                  <span>183.18B</span>
+                  <span>{formatLargeNumber(stock.marketCap * 0.06)}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Stock Analysis Chat Modal */}
+      <StockAnalysisChat 
+        isOpen={isAnalysisChatOpen}
+        onClose={() => setIsAnalysisChatOpen(false)}
+        stockData={stock}
+      />
     </div>
   );
 }
