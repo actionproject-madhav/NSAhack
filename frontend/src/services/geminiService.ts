@@ -40,7 +40,7 @@ class GeminiService {
   async generateContent(prompt: string, context: Context = {}): Promise<string> {
     try {
       const { currentCourse, currentModule, userLevel = 'beginner' } = context;
-      
+
       const systemPrompt = this.buildSystemPrompt(currentCourse, currentModule, userLevel);
       const fullPrompt = `${systemPrompt}\n\nUser Question: ${prompt}`;
 
@@ -83,7 +83,7 @@ class GeminiService {
       }
 
       const data: GeminiResponse = await response.json();
-      
+
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
         return data.candidates[0].content.parts?.[0]?.text || 'No response generated';
       } else {
@@ -96,34 +96,60 @@ class GeminiService {
   }
 
   private buildSystemPrompt(
-    currentCourse?: string, 
-    currentModule?: string, 
+    currentCourse?: string,
+    currentModule?: string,
     userLevel: 'beginner' | 'intermediate' | 'advanced' = 'beginner'
-  ): string {
-    let prompt = `You are an expert AI investment tutor specializing in teaching students about investing and financial markets. Your role is to:
-
-1. Provide clear, educational explanations tailored for ${userLevel} level students
-2. Use practical examples and analogies to make complex concepts understandable
-3. Be encouraging and supportive in your responses
-4. Use appropriate emojis to make learning engaging (but don't overuse them)
-5. Always relate answers back to practical applications for students
-
-Key guidelines:
-- Keep explanations simple but accurate
-- Use real-world examples when possible
-- Encourage questions and curiosity
-- Provide actionable advice when appropriate
-- Mention relevant risks and considerations
-- Stay focused on educational value`;
+  ):  string {
+    let prompt = `You are **FinTutor AI** — an expert AI investment tutor built for international students (Gen-Z) in the U.S. Your mission is to make investing easy, safe, and engaging.
+  
+  ## Your Teaching Role:
+  1. **Adapt to Student Level**: Explanations must match the user's level (${userLevel}). 
+     - Beginner → simple terms, analogies, lots of examples.  
+     - Intermediate → include some technical details and small formulas.  
+     - Advanced → dive deeper into analysis, strategy, and risks.  
+  
+  2. **Explain with Structure**: Always break your answer into:
+     -**Concept** (clear definition in 2–3 lines)  
+     -**Example** (real-world or relatable to Gen-Z: brands, apps, campus life, etc.)  
+     -**Risks/Considerations** (especially relevant to intl students in the U.S.)  
+     -**Actionable Tip** (small, practical next step student can take)  
+  
+  3. **Engagement Rules**:
+     - Use emojis *sparingly* (1–3 per answer, only to highlight key points).  
+     - Use analogies from Gen-Z life (Netflix, gaming, food delivery, shopping at Walmart, etc.).  
+     - Be supportive and encouraging — treat the student like a peer who is curious.  
+  
+  4. **Intl Student Context**:
+     - Whenever rules, taxes, or trading limitations come up, mention if there are special considerations for international students on visas (e.g., F-1 visa, tax treaties, pattern day trading limits).  
+     - If unsure, advise them to check with an advisor — but always give a simplified explanation first.  
+  
+  5. **Consistency**:
+     - Always keep answers concise (3–6 short paragraphs).  
+     - Never overwhelm with jargon — explain complex terms step by step.  
+     - Encourage curiosity: suggest what they could ask or learn next.  
+  
+  ---
+  
+  ## Output Format:
+  Your response **must always** follow this format:
+  
+  **Concept**: [2–3 sentence definition]  
+  **Example**: [Relatable analogy / real company / campus life example]  
+  **Risks**: [Mention at least one risk or limitation, especially if intl student-specific]  
+  **Tip**: [Encouraging next step or practical advice]  
+  
+  ---
+  
+  `;
 
     if (currentCourse) {
       prompt += `\n\nCURRENT LEARNING CONTEXT:
 Course: "${currentCourse}"`;
-      
+
       if (currentModule) {
         prompt += `\nModule: "${currentModule}"`;
       }
-      
+
       prompt += `\n\nWhen answering, consider the student's current learning context. Reference concepts from their current course/module when relevant, and build upon what they're currently studying.`;
     }
 
@@ -146,7 +172,7 @@ Course: "${currentCourse}"`;
         - Asset classes (stocks, bonds, ETFs)
         - Dollar-cost averaging
         - Investment goals and planning`,
-      
+
       "Stock Market Mastery": `
         Focus on stock market concepts like:
         - Stock analysis fundamentals
@@ -156,7 +182,7 @@ Course: "${currentCourse}"`;
         - Market psychology
         - Trading vs investing
         - Risk management`,
-      
+
       "ETF Investment Strategy": `
         Focus on ETF concepts like:
         - ETF structure and benefits
@@ -166,7 +192,7 @@ Course: "${currentCourse}"`;
         - Popular ETF categories
         - ETF vs mutual funds
         - Building ETF portfolios`,
-      
+
       "Crypto & Alternative Investments": `
         Focus on alternative investments like:
         - Cryptocurrency basics
@@ -176,7 +202,7 @@ Course: "${currentCourse}"`;
         - Alternative investment risks
         - Portfolio allocation
         - Regulatory considerations`,
-      
+
       "Tax-Efficient Investing": `
         Focus on tax efficiency like:
         - Tax-advantaged accounts
