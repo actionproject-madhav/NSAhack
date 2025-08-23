@@ -1,11 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import authService from '../services/authService'
 
 interface User {
   id: string
   email: string
-  goal: 'save' | 'grow' | 'learn' | 'options'
-  language: string
-  lifestyle: string[]
+  name: string
+  picture?: string
+  goal?: 'save' | 'grow' | 'learn' | 'options'
+  language?: string
+  lifestyle?: string[]
   portfolio: PortfolioItem[]
   totalValue: number
 }
@@ -38,6 +41,18 @@ export const useUser = () => {
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    // Check for authenticated user on app start
+    const currentUser = authService.getCurrentUser()
+    if (currentUser) {
+      setUser({
+        ...currentUser,
+        portfolio: [],
+        totalValue: 0
+      })
+    }
+  }, [])
 
   const updatePortfolio = (item: PortfolioItem) => {
     if (!user) return

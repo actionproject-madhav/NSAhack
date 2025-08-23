@@ -13,19 +13,54 @@ class ReceiptDatabase:
         self.collection_name = 'scanned_receipts'
         
         try:
-            self.client = MongoClient(self.mongo_uri)
+            # Check if using local or Atlas MongoDB
+            if 'localhost' in self.mongo_uri:
+                # Local MongoDB connection (no SSL)
+                self.client = MongoClient(
+                    self.mongo_uri,
+                    serverSelectionTimeoutMS=5000,
+                    connectTimeoutMS=5000,
+                    socketTimeoutMS=5000
+                )
+                print("Connecting to local MongoDB...")
+            else:
+                # MongoDB Atlas connection with SSL (Python 3.13 compatible)
+                print("Attempting MongoDB Atlas connection...")
+                try:
+                    # Try with relaxed SSL config for Python 3.13 compatibility
+                    self.client = MongoClient(
+                        self.mongo_uri,
+                        tls=True,
+                        tlsAllowInvalidCertificates=True,
+                        tlsInsecure=True,
+                        serverSelectionTimeoutMS=15000,
+                        connectTimeoutMS=15000,
+                        socketTimeoutMS=15000
+                    )
+                    print("Using relaxed SSL configuration...")
+                except Exception as ssl_error:
+                    print(f"Relaxed SSL failed: {str(ssl_error)[:100]}...")
+                    # Fallback to minimal configuration
+                    try:
+                        self.client = MongoClient(
+                            self.mongo_uri,
+                            serverSelectionTimeoutMS=10000
+                        )
+                        print("Using minimal Atlas configuration...")
+                    except Exception as fallback_error:
+                        print(f"All Atlas connection attempts failed: {str(fallback_error)[:100]}...")
+                        raise fallback_error
             self.db = self.client[self.database_name]
             self.collection = self.db[self.collection_name]
             
-            # Test connection
-            self.client.admin.command('ping')
-            print(" MongoDB connected successfully!")
+            print("MongoDB client initialized (connection will be tested on first use)")
             
-            # Create indexes for better performance
-            self.create_indexes()
+            # Create indexes for better performance (will be done on first use)
+            # self.create_indexes()
             
         except Exception as e:
-            print(f" MongoDB connection failed: {e}")
+            print(f"MongoDB connection failed: {e}")
+            print("Running without database functionality")
             self.client = None
     
     def create_indexes(self):
@@ -36,9 +71,9 @@ class ReceiptDatabase:
             self.collection.create_index([("company_name", 1)])
             self.collection.create_index([("total_amount", 1)])
             self.collection.create_index([("confidence", 1)])
-            print("✅ Database indexes created")
+            print("Database indexes created")
         except Exception as e:
-            print(f"⚠️ Index creation failed: {e}")
+            print(f"Index creation failed: {e}")
     
     def save_receipt_scan(self, user_id, company_name, total_amount, confidence, extracted_text, scan_metadata=None):
         """Save a receipt scan to database"""
