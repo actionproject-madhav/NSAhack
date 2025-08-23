@@ -74,6 +74,9 @@ Thumbs.db
 creds.*
 Screenshot*
 
+# Claude Code configuration
+CLAUDE.md
+
 # Logs
 logs/
 *.log
