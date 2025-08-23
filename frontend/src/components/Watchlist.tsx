@@ -12,7 +12,7 @@ const Watchlist = () => {
   ]
 
   return (
-    <div className="bg-white rounded-2xl p-6">
+    <div className="bg-white rounded-2xl p-6 h-[320px] flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">Watchlist</h3>
         <motion.button
@@ -24,7 +24,7 @@ const Watchlist = () => {
         </motion.button>
       </div>
 
-      <div className="space-y-4 max-h-80 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' }}>
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f9fafb' }}>
         {watchlistItems.map((item, index) => (
           <motion.div
             key={item.symbol}

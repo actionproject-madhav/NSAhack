@@ -13,6 +13,7 @@ import SnapshotCard from '../components/SnapshotCard'
 import { StockSearch } from '../components/StockSearch'
 import { SearchResult } from '../services/alphaVantageApi'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
+import SectorPerformance from '../components/SectorPerformance'
 
 const Dashboard = () => {
   const { user } = useUser()
@@ -37,7 +38,8 @@ const Dashboard = () => {
 
   const handleStockSearch = (stock: SearchResult) => {
     console.log('Selected stock:', stock)
-    // TODO: Add stock to watchlist or portfolio
+    // Navigate to stock detail page
+    navigate(`/stock/${stock.symbol}`)
   }
 
   return (
@@ -116,6 +118,14 @@ const Dashboard = () => {
                   <p className="text-base font-medium">Coming Soon</p>
                   <p className="text-sm mt-1 text-gray-500">New feature in development</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Sector Performance */}
+            <div className="mb-6">
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-lg font-jakarta font-medium text-gray-900 mb-4">Sector Performance</h2>
+                <SectorPerformance />
               </div>
             </div>
 

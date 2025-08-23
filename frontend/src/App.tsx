@@ -8,6 +8,8 @@ import TradePage from './pages/TradePage'
 import EducationHub from './pages/EducationHub'
 import PortfolioPage from './pages/PortfolioPage'
 import WalletPage from './pages/WalletPage'
+import ScreenerPage from './pages/ScreenerPage'
+import StockDetailPage from './pages/StockDetailPage'
 import { UserProvider } from './context/UserContext'
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/trade" element={<TradePage />} />
               <Route path="/learn" element={<EducationHub />} />
+              <Route path="/screener" element={<ScreenerPage />} />
+              <Route path="/stock/:symbol" element={<StockDetailPage />} />
             </Routes>
           </AnimatePresence>
         </div>
