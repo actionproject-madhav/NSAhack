@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, MOCK_PRICES, generatePortfolioReason } from '../utils/mockData'
+import Logo from '../components/Logo'
 
 const OnboardingFlow = () => {
   const [step, setStep] = useState(1)
@@ -13,8 +14,8 @@ const OnboardingFlow = () => {
   const navigate = useNavigate()
 
   const handleBrandToggle = (brandName: string) => {
-    setSelectedBrands(prev => 
-      prev.includes(brandName) 
+    setSelectedBrands(prev =>
+      prev.includes(brandName)
         ? prev.filter(b => b !== brandName)
         : [...prev, brandName]
     )
@@ -25,7 +26,7 @@ const OnboardingFlow = () => {
       const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)!
       const currentPrice = MOCK_PRICES[brand.ticker]
       const quantity = Math.floor(1000 / currentPrice) // $1000 investment per stock
-      
+
       return {
         ticker: brand.ticker,
         company: brand.name,
@@ -33,7 +34,7 @@ const OnboardingFlow = () => {
         avgPrice: currentPrice,
         currentPrice,
         reason: generatePortfolioReason(brand.name, selectedGoal),
-        logo: brand.logo
+        logo: brand.logo // Keep fallback emoji for now, components will use Logo component
       }
     })
 
@@ -71,154 +72,218 @@ const OnboardingFlow = () => {
     }
   }
 
+  const getStepTitle = () => {
+    switch (step) {
+      case 1: return 'Choose Your Brands'
+      case 2: return 'Investment Goals'
+      case 3: return 'Select Language'
+      default: return 'Getting Started'
+    }
+  }
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 1: return 'Select brands you use regularly. We\'ll help you invest in companies you know.'
+      case 2: return 'Choose your primary investment objective to personalize your experience.'
+      case 3: return 'Select your preferred language for the platform interface.'
+      default: return 'Let\'s personalize your investment journey.'
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-gray-700 font-medium text-sm">Step {step} of 3</span>
-            <span className="text-gray-500 text-sm">{Math.round((step / 3) * 100)}% Complete</span>
+    <div className="min-h-screen flex">
+      {/* Left Side - Background Image with Content */}
+      <div className="hidden lg:flex lg:w-1/2 relative">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/onboarding.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        <div className="absolute inset-0 bg-gray-900/40" />
+
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">F</span>
+            </div>
+            <span className="text-white font-semibold text-xl">FinLit</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${(step / 3) * 100}%` }}
-            />
+
+          {/* Main Content */}
+          <div className="space-y-6">
+            <div className="text-sm text-white/80 uppercase tracking-wide">
+              GET STARTED
+            </div>
+            <h1 className="text-4xl font-bold leading-tight">
+              Welcome!
+            </h1>
+            <p className="text-lg text-white/90 leading-relaxed">
+              Your gateway to smarter, faster, and more profitable investment decisions.
+            </p>
+          </div>
+
+          {/* Testimonial */}
+          <div className="space-y-4">
+            <blockquote className="text-white/90 italic leading-relaxed">
+              "Investing in what you know and use daily is the foundation of smart wealth building. FinLit makes it simple to turn your lifestyle choices into investment opportunities."
+            </blockquote>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">W</span>
+              </div>
+              <div>
+                <div className="font-semibold text-white">Warren Buffett</div>
+                <div className="text-sm text-white/70">Investment Philosophy</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Links */}
+          <div className="flex space-x-6 text-sm text-white/60">
+            <a href="#" className="hover:text-white/80 transition-colors">Terms</a>
+            <a href="#" className="hover:text-white/80 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white/80 transition-colors">Support</a>
           </div>
         </div>
+      </div>
 
-        {/* Step 1: Lifestyle Brands */}
-        {step === 1 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-3">Choose Your Brands</h2>
-              <p className="text-gray-600">
-                Select brands you use regularly. We'll help you invest in companies you know.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-              {LIFESTYLE_BRANDS.map((brand) => (
-                <button
-                  key={brand.name}
-                  onClick={() => handleBrandToggle(brand.name)}
-                  className={`p-4 rounded-lg border transition-all duration-200 ${
-                    selectedBrands.includes(brand.name)
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{brand.logo}</div>
-                  <div className="font-medium text-sm text-gray-900">{brand.name}</div>
-                  <div className="text-xs text-gray-500">{brand.ticker}</div>
-                  {selectedBrands.includes(brand.name) && (
-                    <Check className="w-4 h-4 text-blue-600 mx-auto mt-2" />
-                  )}
-                </button>
+      {/* Right Side - Form Content */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white">
+        <div className="w-full max-w-lg">
+          {/* Progress Indicator */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex space-x-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-blue-600' : i < step ? 'bg-blue-300' : 'bg-gray-200'
+                    }`}
+                />
               ))}
             </div>
-
-            <div className="text-center text-sm text-gray-500">
-              Select at least 2 brands to continue
-            </div>
           </div>
-        )}
 
-        {/* Step 2: Investment Goal */}
-        {step === 2 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-3">Investment Goal</h2>
-              <p className="text-gray-600">
-                Choose your primary investment objective.
+          {/* Step Content */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{getStepTitle()}</h2>
+            <p className="text-gray-600 text-sm">{getStepDescription()}</p>
+          </div>
+
+          {/* Step 1: Lifestyle Brands */}
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-3">
+                {LIFESTYLE_BRANDS.slice(0, 9).map((brand) => (
+                  <button
+                    key={brand.name}
+                    onClick={() => handleBrandToggle(brand.name)}
+                    className={`h-20 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center ${selectedBrands.includes(brand.name)
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                  >
+                    <div className="mb-1">
+                      <Logo
+                        company={brand.name}
+                        fallback={brand.logo}
+                        size={24}
+                      />
+                    </div>
+                    <div className={`font-medium text-xs ${selectedBrands.includes(brand.name) ? 'text-white' : 'text-gray-900'
+                      }`}>
+                      {brand.name}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-center text-sm text-gray-500">
+                Select at least 2 brands to continue
               </p>
             </div>
+          )}
 
+          {/* Step 2: Investment Goal */}
+          {step === 2 && (
             <div className="space-y-3">
               {INVESTMENT_GOALS.map((goal) => (
                 <button
                   key={goal.id}
                   onClick={() => setSelectedGoal(goal.id)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${
-                    selectedGoal === goal.id
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${selectedGoal === goal.id
+                    ? 'border-blue-500 bg-blue-500 text-white'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="text-2xl">{goal.emoji}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-xl">{goal.emoji}</div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">{goal.title}</h3>
-                      <p className="text-gray-600 text-sm">{goal.description}</p>
+                      <h3 className={`font-semibold mb-1 ${selectedGoal === goal.id ? 'text-white' : 'text-gray-900'
+                        }`}>
+                        {goal.title}
+                      </h3>
+                      <p className={`text-sm ${selectedGoal === goal.id ? 'text-blue-100' : 'text-gray-600'
+                        }`}>
+                        {goal.description}
+                      </p>
                     </div>
-                    {selectedGoal === goal.id && (
-                      <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                    )}
                   </div>
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step 3: Language */}
-        {step === 3 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-3">Select Language</h2>
-              <p className="text-gray-600">
-                Choose your preferred language for the platform.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* Step 3: Language */}
+          {step === 3 && (
+            <div className="grid grid-cols-2 gap-3">
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => setSelectedLanguage(lang.code)}
-                  className={`p-4 rounded-lg border transition-all duration-200 ${
-                    selectedLanguage === lang.code
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`h-20 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center ${selectedLanguage === lang.code
+                    ? 'border-blue-500 bg-blue-500 text-white'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
                 >
-                  <div className="text-2xl mb-2">{lang.flag}</div>
-                  <div className="font-medium text-sm text-gray-900">{lang.name}</div>
-                  {selectedLanguage === lang.code && (
-                    <Check className="w-4 h-4 text-blue-600 mx-auto mt-2" />
-                  )}
+                  <div className="text-xl mb-1">{lang.flag}</div>
+                  <div className={`font-medium text-sm ${selectedLanguage === lang.code ? 'text-white' : 'text-gray-900'
+                    }`}>
+                    {lang.name}
+                  </div>
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={prevStep}
-            disabled={step === 1}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-              step === 1 
-                ? 'text-gray-400 cursor-not-allowed' 
+          {/* Navigation */}
+          <div className="flex justify-between items-center mt-6">
+            <button
+              onClick={prevStep}
+              disabled={step === 1}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${step === 1
+                ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
+                }`}
+            >
+              Back
+            </button>
 
-          <button
-            onClick={nextStep}
-            disabled={!canProceed()}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-              canProceed()
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+            <button
+              onClick={nextStep}
+              disabled={!canProceed()}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${canProceed()
+                ? 'bg-black text-white hover:bg-gray-800'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {step === 3 ? 'Create Portfolio' : 'Next'} <ArrowRight className="w-4 h-4" />
-          </button>
+                }`}
+            >
+              {step === 3 ? 'Create Portfolio' : 'Continue'}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

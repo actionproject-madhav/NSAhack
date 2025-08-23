@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import LandingPage from './pages/LandingPage'
+import AuthPage from './pages/AuthPage'
 import OnboardingFlow from './pages/OnboardingFlow'
 import Dashboard from './pages/Dashboard'
 import TradePage from './pages/TradePage'
@@ -17,6 +18,7 @@ function App() {
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route path="/onboarding" element={<OnboardingFlow />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/portfolio" element={<PortfolioPage />} />

@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
+import Logo from './Logo'
 
 const Watchlist = () => {
   const watchlistItems = [
-    { symbol: 'AMZN', company: 'Amazon.com, Inc.', price: '$102.21', change: '+3.67', positive: true },
-    { symbol: 'KO', company: 'Coca-Cola Co', price: '$60.49', change: '+0.72', positive: true },
-    { symbol: 'BMW', company: 'Bayerische Motoren Werke AG', price: '$92.94', change: '-0.68', positive: false },
-    { symbol: 'MSFT', company: 'Microsoft Corp', price: '$248.16', change: '+0.10', positive: true },
-    { symbol: 'UPS', company: 'United Parcel Service, Inc.', price: '$182.09', change: '-7.39', positive: false }
+    { symbol: 'AMZN', company: 'Amazon', price: '$102.21', change: '+3.67', positive: true, fallback: '📦' },
+    { symbol: 'KO', company: 'Coca-Cola', price: '$60.49', change: '+0.72', positive: true, fallback: '🥤' },
+    { symbol: 'BMW', company: 'BMW', price: '$92.94', change: '-0.68', positive: false, fallback: '🚗' },
+    { symbol: 'MSFT', company: 'Microsoft', price: '$248.16', change: '+0.10', positive: true, fallback: '💻' },
+    { symbol: 'UPS', company: 'UPS', price: '$182.09', change: '-7.39', positive: false, fallback: '📮' }
   ]
 
   return (
@@ -33,7 +34,7 @@ const Watchlist = () => {
             className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
           >
             {/* Company Icon */}
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold text-white"
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center"
                  style={{
                    backgroundColor: 
                      item.symbol === 'AMZN' ? '#ff9900' :
@@ -42,11 +43,11 @@ const Watchlist = () => {
                      item.symbol === 'MSFT' ? '#00a1f1' :
                      '#8b4513'
                  }}>
-              {item.symbol === 'AMZN' && '📦'}
-              {item.symbol === 'KO' && '🥤'}
-              {item.symbol === 'BMW' && '🚗'}
-              {item.symbol === 'MSFT' && '💻'}
-              {item.symbol === 'UPS' && '📮'}
+              <Logo 
+                company={item.company} 
+                fallback={item.fallback} 
+                size={24}
+              />
             </div>
 
             {/* Company Info */}
@@ -56,7 +57,7 @@ const Watchlist = () => {
                 <p className="font-semibold text-gray-900 text-sm">{item.price}</p>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500 truncate">{item.company}</p>
+                <p className="text-xs text-gray-500 truncate">{item.company === 'Coca-Cola' ? 'Coca-Cola Co' : item.company === 'BMW' ? 'Bayerische Motoren Werke AG' : item.company === 'UPS' ? 'United Parcel Service, Inc.' : item.company + '.com, Inc.'}</p>
                 <p className={`text-xs font-medium ${
                   item.positive ? 'text-green-600' : 'text-red-600'
                 }`}>
