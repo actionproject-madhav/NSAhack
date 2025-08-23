@@ -16,6 +16,130 @@ CORS(app)
 # Initialize database
 db = ReceiptDatabase()
 
+# Hardcoded popular companies with their variations and stock tickers
+POPULAR_COMPANIES = {
+    'starbucks': {
+        'name': 'Starbucks Corporation',
+        'ticker': 'SBUX',
+        'variations': ['starbucks', 'sbux', 'star bucks', 'starbu'],
+        'logo': '☕'
+    },
+    'target': {
+        'name': 'Target Corporation',
+        'ticker': 'TGT',
+        'variations': ['target', 'tgt', 'target corp'],
+        'logo': '🎯'
+    },
+    'walmart': {
+        'name': 'Walmart Inc',
+        'ticker': 'WMT',
+        'variations': ['walmart', 'wal mart', 'wal-mart', 'wmt'],
+        'logo': '🛒'
+    },
+    'nike': {
+        'name': 'Nike Inc',
+        'ticker': 'NKE',
+        'variations': ['nike', 'nke', 'nike inc'],
+        'logo': '👟'
+    },
+    'apple': {
+        'name': 'Apple Inc',
+        'ticker': 'AAPL',
+        'variations': ['apple', 'aapl', 'apple inc', 'apple store'],
+        'logo': '🍎'
+    },
+    'amazon': {
+        'name': 'Amazon.com Inc',
+        'ticker': 'AMZN',
+        'variations': ['amazon', 'amzn', 'amazon.com', 'amazon fresh', 'whole foods'],
+        'logo': '📦'
+    },
+    'mcdonalds': {
+        'name': 'McDonald\'s Corporation',
+        'ticker': 'MCD',
+        'variations': ['mcdonalds', 'mcd', 'mcdonald\'s', 'mc donalds'],
+        'logo': '🍟'
+    },
+    'cocacola': {
+        'name': 'The Coca-Cola Company',
+        'ticker': 'KO',
+        'variations': ['coca cola', 'coke', 'coca-cola', 'ko'],
+        'logo': '🥤'
+    },
+    'tesla': {
+        'name': 'Tesla Inc',
+        'ticker': 'TSLA',
+        'variations': ['tesla', 'tsla', 'tesla motors'],
+        'logo': '🚗'
+    },
+    'microsoft': {
+        'name': 'Microsoft Corporation',
+        'ticker': 'MSFT',
+        'variations': ['microsoft', 'msft', 'xbox'],
+        'logo': '💻'
+    },
+    'netflix': {
+        'name': 'Netflix Inc',
+        'ticker': 'NFLX',
+        'variations': ['netflix', 'nflx'],
+        'logo': '📺'
+    },
+    'uber': {
+        'name': 'Uber Technologies Inc',
+        'ticker': 'UBER',
+        'variations': ['uber', 'uber eats'],
+        'logo': '🚕'
+    },
+    'spotify': {
+        'name': 'Spotify Technology SA',
+        'ticker': 'SPOT',
+        'variations': ['spotify', 'spot'],
+        'logo': '🎵'
+    },
+    'meta': {
+        'name': 'Meta Platforms Inc',
+        'ticker': 'META',
+        'variations': ['meta', 'facebook', 'fb', 'instagram', 'whatsapp'],
+        'logo': '📱'
+    },
+    'disney': {
+        'name': 'The Walt Disney Company',
+        'ticker': 'DIS',
+        'variations': ['disney', 'dis', 'walt disney', 'disneyland', 'disney world'],
+        'logo': '🏰'
+    },
+    'costco': {
+        'name': 'Costco Wholesale Corporation',
+        'ticker': 'COST',
+        'variations': ['costco', 'cost', 'costco wholesale'],
+        'logo': '🏪'
+    },
+    'homedepot': {
+        'name': 'The Home Depot Inc',
+        'ticker': 'HD',
+        'variations': ['home depot', 'hd', 'homedepot'],
+        'logo': '🔨'
+    },
+    'cvs': {
+        'name': 'CVS Health Corporation',
+        'ticker': 'CVS',
+        'variations': ['cvs', 'cvs pharmacy', 'cvs health'],
+        'logo': '💊'
+    },
+    'walgreens': {
+        'name': 'Walgreens Boots Alliance Inc',
+        'ticker': 'WBA',
+        'variations': ['walgreens', 'wba', 'walgreen'],
+        'logo': '💊'
+    },
+    'chipotle': {
+        'name': 'Chipotle Mexican Grill Inc',
+        'ticker': 'CMG',
+        'variations': ['chipotle', 'cmg'],
+        'logo': '🌯'
+    }
+}
+
 def enhance_receipt_image(image):
     """Enhanced preprocessing for better OCR"""
     # Convert to OpenCV
@@ -87,8 +211,54 @@ def extract_text_robust(processed_img):
     print(f"Best OCR: OEM {best_result['oem']}, PSM {best_result['psm']}, Length: {best_result['length']}")
     return best_result['text']
 
+def detect_popular_company(text):
+    """Detect popular companies from OCR text using fuzzy matching"""
+    text_lower = text.lower()
+    
+    # First, try exact matches and variations
+    for company_key, company_data in POPULAR_COMPANIES.items():
+        for variation in company_data['variations']:
+            if variation.lower() in text_lower:
+                print(f"Found company variation '{variation}' for {company_data['name']}")
+                return {
+                    'name': company_data['name'],
+                    'ticker': company_data['ticker'],
+                    'logo': company_data['logo'],
+                    'confidence': 'high',
+                    'matched_text': variation
+                }
+    
+    # If no exact match, try partial matching for common words
+    words = re.findall(r'\b\w+\b', text_lower)
+    
+    for company_key, company_data in POPULAR_COMPANIES.items():
+        for variation in company_data['variations']:
+            variation_words = variation.split()
+            if len(variation_words) == 1:
+                # Single word company names
+                for word in words:
+                    if word in variation or variation in word:
+                        if len(word) >= 3:  # Avoid very short matches
+                            print(f"Found partial match '{word}' for {company_data['name']}")
+                            return {
+                                'name': company_data['name'],
+                                'ticker': company_data['ticker'],
+                                'logo': company_data['logo'],
+                                'confidence': 'medium',
+                                'matched_text': word
+                            }
+    
+    return None
+
 def find_company_name(text):
-    """Find company name with improved logic"""
+    """Find company name with enhanced popular company detection"""
+    
+    # First, try to detect popular companies
+    popular_company = detect_popular_company(text)
+    if popular_company:
+        return popular_company['name']
+    
+    # Fallback to original logic for unknown companies
     lines = [line.strip() for line in text.split('\n') if line.strip()]
     
     # Patterns to skip
@@ -235,7 +405,7 @@ def scan_receipt():
         if not file or file.filename == '':
             return jsonify({'error': 'No file selected', 'success': False}), 400
 
-        # Get user_id from request (you can modify this based on your auth system)
+        # Get user_id from request
         user_id = request.form.get('user_id', 'anonymous_user')
         
         # Process image
@@ -264,12 +434,25 @@ def scan_receipt():
                 'extracted_text': extracted_text
             }), 400
         
-        # Parse results
-        company_name = find_company_name(extracted_text)
+        # Detect popular company first
+        popular_company = detect_popular_company(extracted_text)
+        
+        if popular_company:
+            company_name = popular_company['name']
+            ticker = popular_company['ticker']
+            logo = popular_company['logo']
+            confidence_boost = 30  # Boost confidence for known companies
+            print(f"Detected popular company: {company_name} ({ticker})")
+        else:
+            company_name = find_company_name(extracted_text)
+            ticker = None
+            logo = '🏪'
+            confidence_boost = 0
+        
         total_amount = find_total_amount(extracted_text)
         
-        # Calculate confidence
-        confidence_score = 100
+        # Calculate confidence with boost for popular companies
+        confidence_score = 100 + confidence_boost
         
         if company_name == "Unknown Store":
             confidence_score -= 40
@@ -278,6 +461,9 @@ def scan_receipt():
         if len(extracted_text.strip()) < 100:
             confidence_score -= 20
             
+        # Cap confidence at 100
+        confidence_score = min(confidence_score, 100)
+            
         if confidence_score >= 80:
             confidence = "high"
         elif confidence_score >= 50:
@@ -285,13 +471,16 @@ def scan_receipt():
         else:
             confidence = "low"
         
-        print(f"Results: Company='{company_name}', Amount=${total_amount}, Confidence={confidence}")
+        print(f"Results: Company='{company_name}', Amount=${total_amount}, Confidence={confidence}, Ticker={ticker}")
         
         # Save to database
         scan_metadata = {
             'file_name': file.filename,
             'file_size': len(image_bytes),
-            'processing_time': datetime.now().isoformat()
+            'processing_time': datetime.now().isoformat(),
+            'detected_company': popular_company is not None,
+            'ticker': ticker,
+            'logo': logo
         }
         
         receipt_id = db.save_receipt_scan(
@@ -308,7 +497,10 @@ def scan_receipt():
             'company_name': company_name,
             'total_amount': total_amount,
             'confidence': confidence,
-            'extracted_text': extracted_text
+            'extracted_text': extracted_text,
+            'ticker': ticker,
+            'logo': logo,
+            'is_popular_company': popular_company is not None
         }
         
         if receipt_id:
@@ -323,7 +515,7 @@ def scan_receipt():
             'error': f'Processing error: {str(e)}'
         }), 500
 
-# Dashboard API endpoints
+# Dashboard API endpoints (keeping existing endpoints)
 @app.route('/api/dashboard/receipts/<user_id>', methods=['GET'])
 def get_user_receipts(user_id):
     """Get all receipts for a user"""
@@ -470,7 +662,7 @@ def health():
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({'message': 'Receipt Scanner API with MongoDB is running'})
+    return jsonify({'message': 'Enhanced Receipt Scanner API with Popular Company Detection'})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
