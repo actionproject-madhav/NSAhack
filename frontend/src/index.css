@@ -41,4 +41,26 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Hide TradingView logo and attribution */
+  .tradingview-widget-container a,
+  .tradingview-widget-container__widget a,
+  .tradingview-widget-copyright,
+  .tv-embed-widget-wrapper__header,
+  .tv-embed-widget-wrapper__footer,
+  .tradingview-widget-container .tradingview-widget-copyright,
+  iframe[src*="tradingview"] + div,
+  .tv-widget-logo,
+  .tv-widget-logo__link,
+  .tv-widget-logo__text,
+  .tv-embed__logo,
+  .tv-embed__link {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
 }
