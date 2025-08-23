@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import { Home, TrendingUp, BookOpen, User, Menu, X } from 'lucide-react'
+import { Home, TrendingUp, BookOpen, User, Menu, X, Search } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import CommandMenu from './CommandMenu'
 
 const Navigation = () => {
   const navigate = useNavigate()
@@ -11,6 +12,7 @@ const Navigation = () => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/trade', icon: TrendingUp, label: 'Trade' },
+    { path: '/screener', icon: Search, label: 'Screener' },
     { path: '/learn', icon: BookOpen, label: 'Learn' },
   ]
 
@@ -55,8 +57,9 @@ const Navigation = () => {
               ))}
             </div>
 
-            {/* Profile */}
+            {/* Search and Profile */}
             <div className="hidden md:flex items-center gap-4">
+              <CommandMenu />
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <User className="w-5 h-5" />
               </button>

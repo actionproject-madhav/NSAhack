@@ -310,7 +310,7 @@ const EducationHub: React.FC = () => {
           </div>
           <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl">
             <Users className="w-8 h-8 mb-2" />
-            <div className="text-2xl font-bold">12K+</div>
+            <div className="text-2xl font-bold">1+</div>
             <div className="text-purple-100">Fellow Students</div>
           </div>
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-2xl">

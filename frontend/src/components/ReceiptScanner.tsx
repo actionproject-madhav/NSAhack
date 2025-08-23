@@ -460,7 +460,7 @@ const ReceiptScanner = () => {
                           </button>
                           <p className="text-xs text-center text-gray-500">
                             {scannedReceipt.is_popular_company 
-                              ? 'Instantly recognized company - seamless investing!' 
+                              ? 'Invest on what you spend' 
                               : 'Turn your spending into investing'
                             }
                           </p>
