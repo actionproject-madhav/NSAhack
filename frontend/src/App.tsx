@@ -6,7 +6,6 @@ import OnboardingFlow from './pages/OnboardingFlow'
 import Dashboard from './pages/Dashboard'
 import TradePage from './pages/TradePage'
 import EducationHub from './pages/EducationHub'
-import AIHub from './pages/AIHub'
 import PortfolioPage from './pages/PortfolioPage'
 import WalletPage from './pages/WalletPage'
 import ScreenerPage from './pages/ScreenerPage'
@@ -28,7 +27,6 @@ function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/trade" element={<TradePage />} />
               <Route path="/learn" element={<EducationHub />} />
-              <Route path="/ai-hub" element={<AIHub />} />
               <Route path="/screener" element={<ScreenerPage />} />
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
             </Routes>
