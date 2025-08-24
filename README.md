@@ -125,14 +125,13 @@ python scanner.py  # Production mode via environment variables
 - **Google Gemini** - AI-powered features
 - **Google Sign-In** - Authentication
 
-##  Team Members and Roles
+##  Team Members
 
-*Note: Please update this section with your actual team information*
 
-- **[Your Name]** - Full Stack Developer & Project Lead
-- **[Team Member 2]** - Frontend Developer
-- **[Team Member 3]** - Backend Developer  
-- **[Team Member 4]** - UI/UX Designer
+- **[Arman Amatya]**
+- **[Madhav Khanal]**
+- **[Koshish Shrestha]**
+
 
 ##  Architecture Overview
 
