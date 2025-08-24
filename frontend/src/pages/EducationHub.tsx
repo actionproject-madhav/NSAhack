@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon } from 'lucide-react'
+import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon, Shield, FileCheck, CreditCard, Smartphone, GraduationCap, Globe, DollarSign, Building } from 'lucide-react'
 import Navigation from '../components/Navigation'
 import EnhancedChatWidget from '../components/ChatWidget'
 
@@ -11,12 +11,14 @@ interface Quiz {
   explanation: string;
 }
 
+
 interface ModuleContent {
   text: string;
   video?: string;
   quiz?: Quiz[];
   interactive?: boolean;
 }
+
 
 interface Module {
   id: number;
@@ -28,7 +30,7 @@ interface Module {
 interface Course {
   id: number;
   title: string;
-  emoji: string;
+  emoji: string | React.ReactNode;
   description: string;
   duration: string;
   level: 'beginner' | 'intermediate' | 'advanced';
@@ -81,6 +83,77 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
   const quiz = module.content?.quiz || []
   const hasQuiz = quiz.length > 0
 
+  // Enhanced markdown parser function
+  function parseMarkdown(text: string) {
+    // First, split into blocks to handle lists properly
+    const lines = text.split('\n');
+    const blocks: Array<{ type: 'text' | 'list'; content?: string; items?: string[] }> = [];
+    let currentBlock = '';
+    let inList = false;
+    let listItems: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Check if line is a list item
+      if (line.startsWith('- ')) {
+        if (!inList) {
+          // Starting a new list
+          if (currentBlock.trim()) {
+            blocks.push({ type: 'text', content: currentBlock.trim() });
+            currentBlock = '';
+          }
+          inList = true;
+          listItems = [];
+        }
+        listItems.push(line.substring(2)); // Remove "- "
+      } else {
+        if (inList) {
+          // End of list
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+        }
+        currentBlock += line + '\n';
+      }
+    }
+    
+    // Handle any remaining content
+    if (inList) {
+      blocks.push({ type: 'list', items: listItems });
+    } else if (currentBlock.trim()) {
+      blocks.push({ type: 'text', content: currentBlock.trim() });
+    }
+    
+    // Convert blocks to HTML
+    let html = blocks.map(block => {
+      if (block.type === 'list' && block.items) {
+        const items = block.items.map(item => 
+          `<li class="mb-1">${item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`
+        ).join('');
+        return `<ul class="list-disc ml-6 mb-4 space-y-1">${items}</ul>`;
+      } else if (block.type === 'text' && block.content) {
+        return block.content
+          // Headers
+          .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mb-3 mt-6 text-gray-900">$1</h3>')
+          .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mb-4 mt-8 text-gray-900">$1</h2>')
+          .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mb-6 mt-8 text-gray-900">$1</h1>')
+          
+          // Bold text
+          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
+          
+          // Paragraphs (non-empty lines that aren't headers)
+          .replace(/^(?!<[h123]|$)(.*$)/gim, '<p class="mb-4 text-gray-700 leading-relaxed">$1</p>')
+          
+          // Clean up empty paragraphs
+          .replace(/<p class="[^"]*">\s*<\/p>/g, '');
+      }
+      return '';
+    }).join('');
+    
+    return html;
+  }
+
   return (
     <div className="bg-white rounded-2xl p-8 shadow-lg">
       <button
@@ -94,7 +167,7 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
 
       {/* Content */}
       <div className="prose prose-lg max-w-none mb-8">
-        <div dangerouslySetInnerHTML={{ __html: module.content.text.replace(/\n/g, '<br>') }} />
+        <div dangerouslySetInnerHTML={{ __html: parseMarkdown(module.content.text) }} />
       </div>
 
       {/* Interactive Portfolio Builder */}
@@ -107,7 +180,7 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
       {/* Quiz Section */}
       {hasQuiz && (
         <div className="border-t pt-8">
-          <h2 className="text-2xl font-bold mb-6">Knowledge Check 🧠</h2>
+          <h2 className="text-2xl font-bold mb-6">Knowledge Check</h2>
 
           <div className="bg-gray-50 rounded-2xl p-6">
             <div className="mb-4">
@@ -194,8 +267,8 @@ const EducationHub: React.FC = () => {
 
   const PortfolioBuilder: React.FC = () => (
     <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border">
-      <h3 className="text-xl font-bold mb-4">🎨 Interactive Portfolio Builder</h3>
-      <p className="text-gray-600 mb-6">Adjust the sliders to see how different allocations affect your portfolio!</p>
+      <h3 className="text-xl font-bold mb-4">Interactive Portfolio Builder</h3>
+      <p className="text-gray-600 mb-6">Adjust the sliders to see how different allocations affect your portfolio</p>
 
       <div className="space-y-4">
         {Object.entries(portfolioBuilder).map(([key, value]) => (
@@ -262,7 +335,7 @@ const EducationHub: React.FC = () => {
   }
 
   const startCourse = (courseId: number): void => {
-    const course = COMPREHENSIVE_COURSES.find(c => c.id === courseId)
+    const course = INTERNATIONAL_STUDENT_COURSES.find(c => c.id === courseId)
     if (course) {
       setSelectedCourse(course)
     }
@@ -282,24 +355,20 @@ const EducationHub: React.FC = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Investment Academy 
+              Investment Learning Hub
             </h1>
-            <p className="text-gray-600">Master investing through interactive courses and AI-powered guidance</p>
+            <p className="text-gray-600">Investment education tailored for international students</p>
           </div>
           <div className="flex gap-2">
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">All courses</button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Stocks</button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">ETFs</button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Options</button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Crypto</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Visa Safe</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Tax Aware</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Banking</button>
           </div>
         </div>
 
-
-
         <AnimatePresence mode="wait">
           {!selectedCourse ? (
-            /* Courses Grid */
             <motion.div
               key="courses"
               initial={{ opacity: 0 }}
@@ -307,14 +376,13 @@ const EducationHub: React.FC = () => {
               exit={{ opacity: 0 }}
               className="space-y-8"
             >
-              {/* My Courses Section */}
+              {/* Featured Courses for International Students */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">My courses</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for You</h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {COMPREHENSIVE_COURSES.slice(0, 3).map((course, index) => {
+                  {INTERNATIONAL_STUDENT_COURSES.slice(0, 3).map((course, index) => {
                     const isCompleted = completedCourses.includes(course.id)
-                    const progress = Math.floor(Math.random() * 100) // Mock progress
-                    const lessonsCount = course.modules.length
+                    const progress = Math.floor(Math.random() * 100)
 
                     return (
                       <motion.div
@@ -322,30 +390,32 @@ const EducationHub: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`relative rounded-3xl p-6 text-white cursor-pointer transition-all duration-200 hover:scale-105 ${index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
-                          index === 1 ? 'bg-gradient-to-br from-red-500 to-orange-500' :
-                            'bg-gradient-to-br from-gray-800 to-gray-900'
-                          }`}
+                        className={`relative rounded-3xl p-6 text-white cursor-pointer transition-all duration-200 hover:scale-105 ${
+                          index === 0 ? 'bg-gradient-to-br from-green-500 to-green-600' :
+                          index === 1 ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
+                          'bg-gradient-to-br from-purple-500 to-purple-600'
+                        }`}
                         onClick={() => startCourse(course.id)}
                       >
                         <div className="absolute top-4 right-4">
                           <BookmarkIcon className="w-6 h-6" />
                         </div>
 
-                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${index === 0 ? 'bg-blue-700' :
-                          index === 1 ? 'bg-red-700' :
-                            'bg-gray-700'
-                          }`}>
+                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${
+                          index === 0 ? 'bg-green-700' :
+                          index === 1 ? 'bg-blue-700' :
+                          'bg-purple-700'
+                        }`}>
                           {course.level}
                         </div>
 
                         <h3 className="text-xl font-bold mb-2">{course.title}</h3>
-                        <p className="text-sm opacity-90 mb-4">{course.description.slice(0, 60)}...</p>
+                        <p className="text-sm opacity-90 mb-4">{course.description.slice(0, 80)}...</p>
 
                         <div className="mb-4">
                           <div className="flex justify-between text-sm mb-2">
                             <span>Progress</span>
-                            <span>{progress}/24 lessons</span>
+                            <span>{progress}% complete</span>
                           </div>
                           <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
                             <div
@@ -356,11 +426,12 @@ const EducationHub: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="flex -space-x-2">
-                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs">+{Math.floor(Math.random() * 200) + 100}</div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="w-4 h-4" />
+                            {course.duration}
                           </div>
-                          <button className="bg-lime-400 text-gray-900 px-4 py-2 rounded-xl font-medium text-sm hover:bg-lime-300 transition-colors">
-                            Continue
+                          <button className="bg-white text-gray-900 px-4 py-2 rounded-xl font-medium text-sm hover:bg-gray-100 transition-colors">
+                            Start Learning
                           </button>
                         </div>
                       </motion.div>
@@ -369,38 +440,43 @@ const EducationHub: React.FC = () => {
                 </div>
               </div>
 
-              {/* My Next Lessons */}
-              <div className="grid lg:grid-cols-3 gap-8 mb-8">
+              {/* All Courses */}
+              <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900">All Courses</h2>
-                    <button className="text-red-500 hover:text-red-600 font-medium">View all courses</button>
+                    <button className="text-blue-600 hover:text-blue-700 font-medium">View all</button>
                   </div>
 
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                     <div className="space-y-4">
-                      {COMPREHENSIVE_COURSES.map((course, index) => {
+                      {INTERNATIONAL_STUDENT_COURSES.map((course) => {
                         const isCompleted = completedCourses.includes(course.id)
                         const isLocked = !course.unlocked && !isCompleted
 
                         return (
-                          <div key={course.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => !isLocked && startCourse(course.id)}>
+                          <div 
+                            key={course.id} 
+                            className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" 
+                            onClick={() => !isLocked && startCourse(course.id)}
+                          >
+                            <div className="flex items-center justify-center">{course.emoji}</div>
                             <div className="flex-1">
                               <h4 className="font-semibold text-gray-900">{course.title}</h4>
                               <p className="text-sm text-gray-600">{course.description}</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <div className="text-2xl">{course.emoji}</div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium text-gray-900">{course.level}</div>
-                                <div className="text-xs text-gray-500">{course.duration}</div>
+                              <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                <span>{course.duration}</span>
+                                <span>{course.level}</span>
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-3 h-3 text-yellow-500" />
+                                  {course.rating}
+                                </div>
                               </div>
-                              {isCompleted && (
-                                <Check className="w-5 h-5 text-green-600" />
-                              )}
-                              {isLocked && (
-                                <div className="text-gray-400 text-sm">🔒</div>
-                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isCompleted && <Check className="w-5 h-5 text-green-600" />}
+                              {isLocked && <div className="text-gray-400 text-sm">🔒</div>}
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
                             </div>
                           </div>
                         )
@@ -409,38 +485,32 @@ const EducationHub: React.FC = () => {
                   </div>
                 </div>
 
-                {/* New Course Recommendation */}
+                {/* Course Spotlight */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">New course matching your interests</h3>
-                  <div className="bg-gradient-to-br from-lime-400 to-lime-500 rounded-3xl p-6 text-gray-900">
-                    <div className="inline-block px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-medium mb-4">
-                      Design
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Course Spotlight</h3>
+                  <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-3xl p-6 text-white">
+                    <div className="inline-block px-3 py-1 bg-orange-700 rounded-full text-xs font-medium mb-4">
+                      Most Popular
                     </div>
 
-                    <h3 className="text-2xl font-bold mb-2">Advanced Option Trading</h3>
+                    <h3 className="text-2xl font-bold mb-2">Visa-Safe Investing</h3>
+                    <p className="text-sm mb-6">Learn how to invest without risking your student visa status</p>
 
                     <div className="flex items-center gap-2 mb-6">
-                      <span className="text-sm">They are already studying</span>
-                      <div className="flex -space-x-2">
-                        <div className="w-6 h-6 bg-gray-800 rounded-full"></div>
-                        <div className="w-6 h-6 bg-gray-700 rounded-full"></div>
-                        <div className="w-6 h-6 bg-gray-600 rounded-full"></div>
-                        <span className="text-sm font-medium">+100</span>
-                      </div>
+                      <span className="text-sm">Join 1,200+ students</span>
                     </div>
 
-                    <button className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors">
-                      More details
+                    <button 
+                      onClick={() => startCourse(1)}
+                      className="w-full bg-white text-orange-600 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Start Course
                     </button>
                   </div>
                 </div>
               </div>
-
-              {/* All Courses Grid */}
-            
             </motion.div>
           ) : !selectedModule ? (
-            /* Course Modules */
             <motion.div
               key="modules"
               initial={{ opacity: 0 }}
@@ -457,7 +527,7 @@ const EducationHub: React.FC = () => {
                 </button>
 
                 <div className="flex items-start gap-6 mb-8">
-                  <div className="text-6xl">{selectedCourse.emoji}</div>
+                  <div className="text-6xl flex items-center justify-center">{selectedCourse.emoji}</div>
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold mb-2">{selectedCourse.title}</h1>
                     <p className="text-gray-600 mb-4">{selectedCourse.description}</p>
@@ -491,7 +561,7 @@ const EducationHub: React.FC = () => {
                       <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
                         {module.type === 'lesson' ? <FileText className="w-6 h-6 text-primary-600" /> :
                           module.type === 'video' ? <Video className="w-6 h-6 text-primary-600" /> :
-                            <Play className="w-6 h-6 text-primary-600" />}
+                          <Play className="w-6 h-6 text-primary-600" />}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">{module.title}</h3>
@@ -507,7 +577,6 @@ const EducationHub: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            /* Module Content */
             <motion.div
               key="module"
               initial={{ opacity: 0 }}
@@ -533,7 +602,6 @@ const EducationHub: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Enhanced Chat Widget with Course Context */}
       <EnhancedChatWidget
         currentCourse={selectedCourse?.title}
         currentModule={selectedCourse?.modules.find(m => m.id === selectedModule)?.title}
@@ -542,134 +610,107 @@ const EducationHub: React.FC = () => {
   )
 }
 
-// Enhanced course data with comprehensive content
-const COMPREHENSIVE_COURSES: Course[] = [
+// Courses specifically designed for international students
+const INTERNATIONAL_STUDENT_COURSES: Course[] = [
   {
     id: 1,
-    title: "Investing Fundamentals",
-    emoji: "📚",
-    description: "Master the core concepts of investing with practical examples and real-world applications.",
+    title: "Visa-Safe Investing for Students",
+    emoji: <Shield className="w-6 h-6" />,
+    description: "Learn investment strategies that protect your student visa status while building wealth.",
     duration: "45 min",
     level: "beginner",
     unlocked: true,
     rating: 4.9,
-    students: 2847,
+    students: 3241,
     modules: [
       {
         id: 1,
-        title: "What is Investing?",
+        title: "Understanding Visa Restrictions",
         type: "lesson",
         content: {
           text: `
-# What is Investing? 💰
+# Understanding Visa Restrictions
 
-Investing is the process of putting your money to work to generate returns over time. Think of it as planting seeds that grow into trees bearing fruit.
+## F-1 Visa Investment Rules
 
-## Key Concepts:
+As an F-1 student, you can legally invest in stocks, bonds, and other securities. However, there are important restrictions to understand:
 
-**Risk vs Return**: Higher potential returns usually come with higher risk. It's like climbing a mountain - the higher you go, the more beautiful the view, but the more challenging the climb.
+**What's Allowed:**
+- Buy and hold investing (long-term positions)
+- Passive income from dividends and capital gains
+- Investment through brokerage accounts
+- Retirement account contributions (with earned income)
 
-**Time Horizon**: How long you plan to keep your money invested. Longer time horizons generally allow for more aggressive strategies.
+**What to Avoid:**
+- Day trading or frequent trading that resembles employment
+- Running an investment business or advisory service
+- Pattern Day Trading (25k+ account with 4+ day trades in 5 days)
+- Any activity that generates "active" income
 
-**Compound Interest**: Einstein called it "the eighth wonder of the world." Your money earns returns, and those returns earn returns!
+## Key Principle: Passive vs Active Income
 
-## Example:
-If you invest $1,000 at 7% annual return:
-- Year 1: $1,070
-- Year 10: $1,967
-- Year 20: $3,870
-- Year 30: $7,612
+The IRS distinguishes between passive investment income (allowed) and active business income (restricted). Buying stocks and holding them is passive. Trading frequently can be seen as active business.
 
-The magic happens over time! ✨
+## Safe Investment Approach
+
+Focus on buy-and-hold strategies with index funds, ETFs, and blue-chip stocks. This approach is not only visa-safe but also historically more profitable than frequent trading.
           `,
-          video: "intro-to-investing.mp4",
           quiz: [
             {
-              question: "What is the main benefit of compound interest?",
+              question: "Which investment activity is safest for F-1 visa holders?",
               options: [
-                "You get money back immediately",
-                "Your returns generate additional returns over time",
-                "It eliminates all investment risk",
-                "It guarantees profits"
+                "Day trading stocks daily",
+                "Buy-and-hold investing in ETFs",
+                "Running a trading advisory service",
+                "Forex trading for quick profits"
               ],
               correct: 1,
-              explanation: "Compound interest means your returns generate additional returns, creating exponential growth over time! 🚀"
+              explanation: "Buy-and-hold investing generates passive income, which is allowed for F-1 students and doesn't risk visa status."
             }
           ]
         }
       },
       {
         id: 2,
-        title: "Types of Investments",
+        title: "Safe Brokerage Account Setup",
         type: "lesson",
         content: {
           text: `
-# Types of Investments 🎯
+# Safe Brokerage Account Setup
 
-## Stocks (Equities)
-Buying shares means owning a piece of a company. When the company does well, your investment typically grows.
+## Choosing the Right Broker
 
-**Example**: If you buy Apple stock, you own a tiny piece of Apple!
+**Student-Friendly Brokers:**
+- Fidelity: No minimums, excellent research tools
+- Charles Schwab: Global support, no foreign transaction fees
+- E*TRADE: User-friendly mobile app, educational resources
+- TD Ameritrade: Comprehensive learning platform
 
-## Bonds
-Lending money to companies or governments in exchange for regular interest payments.
+**What to Look For:**
+- No account minimums
+- Commission-free stock and ETF trades  
+- Educational resources
+- Mobile app functionality
+- Customer support for international students
 
-**Think of it as**: Being the bank - you lend money and get paid interest.
+## Required Documents
 
-## Real Estate
-Investing in property, either directly or through REITs (Real Estate Investment Trusts).
+- Valid passport
+- I-20 form
+- U.S. address (can be campus address)
+- Social Security Number or ITIN
+- Bank account information
 
-## ETFs & Mutual Funds
-Baskets of investments managed professionally. Perfect for diversification!
+## Account Types for Students
 
-**ETF Example**: SPDR S&P 500 (SPY) contains 500 of the largest US companies in one fund.
+**Taxable Brokerage Account**: Most flexible for students
+**Roth IRA**: Only if you have earned income from on-campus work
+**Traditional IRA**: Usually not beneficial for students in low tax brackets
 
-## Commodities
-Physical goods like gold, oil, or agricultural products.
-          `,
-          quiz: [
-            {
-              question: "What does buying a stock represent?",
-              options: [
-                "Lending money to a company",
-                "Owning a piece of the company",
-                "Buying the company's products",
-                "Working for the company"
-              ],
-              correct: 1,
-              explanation: "When you buy stock, you become a partial owner of that company! You share in its successes (and risks). 🏢"
-            }
-          ]
-        }
-      },
-      {
-        id: 3,
-        title: "Building Your First Portfolio",
-        type: "interactive",
-        content: {
-          text: `
-# Building Your First Portfolio 🎨
+## Important Settings
 
-A portfolio is your collection of investments. Like a balanced meal, you want variety!
-
-## The 60/40 Rule (Traditional)
-- 60% Stocks (growth potential)
-- 40% Bonds (stability)
-
-## Modern Approach for Young Investors
-- 70-80% Stock ETFs
-- 10-20% International ETFs
-- 5-10% Bonds
-- 5% Alternative investments
-
-## Sample $1,000 Student Portfolio:
-- $400 - US Total Market ETF (VTI)
-- $200 - International ETF (VTIAX)
-- $200 - Individual growth stocks
-- $150 - Bond ETF (BND)
-- $50 - Fun money (crypto, individual picks)
-          `,
-          interactive: true
+Set your account to "Cash Account" not "Margin Account" to avoid pattern day trading rules and stay visa-compliant.
+          `
         }
       }
     ],
@@ -677,43 +718,104 @@ A portfolio is your collection of investments. Like a balanced meal, you want va
   },
   {
     id: 2,
-    title: "Stock Market Mastery",
-    emoji: "📈",
-    description: "Deep dive into stock analysis, market trends, and advanced trading strategies.",
-    duration: "60 min",
+    title: "International Student Tax Guide",
+    emoji: <FileCheck className="w-6 h-6" />,
+    description: "Navigate U.S. tax obligations and optimize your investment taxes as an international student.",
+    duration: "55 min",
     level: "intermediate",
     unlocked: true,
     rating: 4.8,
-    students: 1923,
+    students: 2156,
     modules: [
       {
         id: 1,
-        title: "Reading Stock Charts",
+        title: "Tax Status and Classifications",
         type: "lesson",
         content: {
           text: `
-# Reading Stock Charts 📊
+# Tax Status and Classifications
 
-Charts tell the story of a stock's price movement. Learn to read this visual language!
+## Resident vs Non-Resident for Tax Purposes
 
-## Basic Chart Types:
+Your visa status doesn't determine your tax status. The IRS uses the "Substantial Presence Test":
 
-**Line Charts**: Simple price movement over time
-**Candlestick Charts**: Show open, high, low, close prices
-**Volume Charts**: How many shares were traded
+**Non-Resident (Years 1-5 for most F-1 students):**
+- Taxed only on U.S. source income
+- Standard deduction doesn't apply
+- Different tax rates on investment income
 
-## Key Indicators:
+**Resident (After 5 years or marriage to U.S. citizen):**
+- Taxed on worldwide income like U.S. citizens
+- Can use standard deduction
+- Standard capital gains rates apply
 
-**Support & Resistance**: Price levels where stock tends to bounce
-**Moving Averages**: Smooth out price action to show trends
-**RSI**: Measures if stock is overbought or oversold
+## Investment Income Tax Rates
 
-## Reading the Story:
-- Upward trend = Bullish (optimistic)
-- Downward trend = Bearish (pessimistic)
-- Sideways = Consolidation (uncertainty)
+**For Non-Residents:**
+- Dividends: 30% (or lower treaty rate)
+- Capital gains: Generally not taxed if you leave the U.S.
+- Interest: Usually not taxed on bank accounts
 
-Remember: Charts show what happened, not what will happen! 🔮
+**Treaty Benefits:**
+Many countries have tax treaties reducing these rates. Common treaty rates:
+- India: 15% on dividends
+- China: 10% on dividends  
+- South Korea: 15% on dividends
+- Canada: 15% on dividends
+
+## Tax Forms You'll Need
+
+- Form 1040NR (Non-resident) or 1040 (Resident)
+- Form 8843 (Exempt individual statement)
+- Form W-8BEN (Treaty benefits)
+          `
+        }
+      },
+      {
+        id: 2,
+        title: "Tax-Efficient Investment Strategies",
+        type: "lesson",
+        content: {
+          text: `
+# Tax-Efficient Investment Strategies
+
+## Growth vs Dividend Stocks
+
+**For Non-Resident Students:**
+Focus on growth stocks over dividend-paying stocks to minimize current tax obligations.
+
+**Growth Stocks Benefits:**
+- No annual tax on unrealized gains
+- Lower tax rates when you eventually sell
+- Compound growth without tax drag
+
+**Dividend Stock Considerations:**
+- Subject to withholding tax each year
+- May reduce treaty benefits if switching countries
+- Still valuable for long-term wealth building
+
+## ETF vs Mutual Fund Selection
+
+**ETFs Generally Better for Tax Efficiency:**
+- Lower internal turnover
+- More control over when you realize gains
+- No forced distributions from other investors
+
+**Index Funds:**
+- Vanguard, Fidelity, and Schwab offer tax-efficient options
+- Lower turnover than actively managed funds
+- Broad diversification reduces risk
+
+## Tax Loss Harvesting
+
+Sell losing investments to offset gains, reducing your tax bill. However, be aware of the "wash sale rule" - you can't repurchase the same security within 30 days.
+
+## Timing Your Investment Sales
+
+Consider your future plans:
+- Selling before leaving the U.S. may avoid some taxes
+- Holding investments while returning home may benefit from treaty provisions
+- Consult tax professional for complex situations
           `
         }
       }
@@ -722,50 +824,140 @@ Remember: Charts show what happened, not what will happen! 🔮
   },
   {
     id: 3,
-    title: "ETF Investment Strategy",
-    emoji: "🛒",
-    description: "Master Exchange Traded Funds for diversified, low-cost investing.",
-    duration: "35 min",
+    title: "Building Credit While Investing",
+    emoji: <CreditCard className="w-6 h-6" />,
+    description: "Establish U.S. credit history alongside your investment journey for financial success.",
+    duration: "40 min",
     level: "beginner",
     unlocked: true,
-    rating: 4.9,
-    students: 3241,
+    rating: 4.7,
+    students: 1987,
     modules: [
       {
         id: 1,
-        title: "ETF Basics",
+        title: "Credit Basics for International Students",
         type: "lesson",
         content: {
           text: `
-# ETF Basics 🛒
+# Credit Basics for International Students
 
-## What are ETFs?
-Exchange Traded Funds are like buying a pre-made smoothie instead of individual fruits. You get a blend of many investments in one purchase!
+## Why Credit Matters
 
-## Popular ETF Categories:
+Building credit in the U.S. opens doors to:
+- Better loan rates for cars, homes, or education
+- Higher credit card limits and rewards
+- Easier apartment rentals
+- Some employers check credit for job applications
+- Building financial credibility for future opportunities
 
-**Broad Market ETFs**:
-- SPY (S&P 500) - Top 500 US companies
-- VTI (Total Stock Market) - Entire US market
-- QQQ (NASDAQ 100) - Tech-heavy index
+## Credit Score Basics
 
-**International ETFs**:
-- VXUS (International stocks excluding US)
-- EEM (Emerging markets)
+**Credit Score Ranges:**
+- 300-579: Poor
+- 580-669: Fair  
+- 670-739: Good
+- 740-799: Very Good
+- 800-850: Exceptional
 
-**Sector ETFs**:
-- XLK (Technology)
-- XLF (Financial)
-- XLE (Energy)
+**What Affects Your Score:**
+- Payment history (35%): Always pay on time
+- Credit utilization (30%): Keep balances low
+- Length of credit history (15%): Start early
+- Credit mix (10%): Different types of accounts
+- New credit (10%): Don't open too many accounts quickly
 
-## Benefits:
--  Instant diversification
--  Low fees (expense ratios)
--  Professional management
--  Trade like stocks
+## First Steps for Students
 
-## Student-Friendly ETFs:
-Start with broad market ETFs like VTI or VOO for maximum diversification! 🎯
+**Secured Credit Card:**
+- Easiest approval for students with no credit
+- Requires security deposit
+- Use for small purchases, pay in full monthly
+- Discover it Secured and Capital One Secured are popular
+
+**Student Credit Cards:**
+- Designed for students with limited credit
+- Often have rewards and no annual fees
+- Discover it Student Cash Back is highly rated
+
+**Authorized User:**
+- Ask a trusted friend/family member to add you
+- Their good credit history helps build yours
+- Ensure they have excellent payment history
+
+## Credit Building Strategy
+
+1. Start with one card, use it responsibly
+2. Keep utilization under 30% (under 10% is ideal)
+3. Pay statement balance in full each month
+4. Never miss payment deadlines
+5. Check your credit report regularly (free at annualcreditreport.com)
+          `,
+          quiz: [
+            {
+              question: "What's the most important factor affecting your credit score?",
+              options: [
+                "Credit utilization ratio",
+                "Payment history",
+                "Length of credit history",
+                "Types of credit accounts"
+              ],
+              correct: 1,
+              explanation: "Payment history accounts for 35% of your credit score - always paying on time is the most critical factor."
+            }
+          ]
+        }
+      },
+      {
+        id: 2,
+        title: "Balancing Credit Building and Investing",
+        type: "lesson",
+        content: {
+          text: `
+# Balancing Credit Building and Investing
+
+## Monthly Budget Allocation
+
+**Sample $1,000 Monthly Budget:**
+- Essential expenses: $600 (rent, food, utilities)
+- Credit card spending: $100 (pay in full monthly)
+- Emergency fund: $150 (until you have $1,000 saved)
+- Investments: $150 (once emergency fund is complete)
+
+## Credit Card Strategies
+
+**Use Credit Cards for:**
+- Recurring bills (Netflix, Spotify, phone)
+- Groceries and gas (categories with rewards)
+- Online purchases (better fraud protection)
+
+**Never Use Credit Cards for:**
+- Cash advances (high fees and interest)
+- Purchases you can't afford to pay off
+- Investment funding (high interest rates)
+
+## Building Both Simultaneously
+
+**Month 1-3: Foundation**
+- Open secured credit card
+- Set up automatic bill payments
+- Start building emergency fund
+
+**Month 4-6: Growth**
+- Apply for student credit card
+- Begin small investment contributions ($25-50/month)
+- Monitor credit score monthly
+
+**Month 7+: Optimization**
+- Increase investment contributions
+- Consider rewards credit cards
+- Look into investment-backed credit products
+
+## Common Mistakes to Avoid
+
+- Using credit cards to fund investments
+- Missing credit card payments to invest more
+- Opening too many accounts too quickly
+- Carrying balances to "build credit" (this actually hurts your score)
           `
         }
       }
@@ -774,27 +966,264 @@ Start with broad market ETFs like VTI or VOO for maximum diversification! 🎯
   },
   {
     id: 4,
-    title: "Crypto & Alternative Investments",
-    emoji: "₿",
-    description: "Explore cryptocurrency, NFTs, and other alternative investment opportunities.",
-    duration: "50 min",
-    level: "advanced",
-    unlocked: false,
+    title: "Student-Friendly Investment Apps",
+    emoji: <Smartphone className="w-6 h-6" />,
+    description: "Master the best investment platforms and apps designed for students and beginners.",
+    duration: "35 min",
+    level: "beginner",
+    unlocked: true,
     rating: 4.6,
-    students: 1456,
-    modules: [],
+    students: 2834,
+    modules: [
+      {
+        id: 1,
+        title: "Choosing the Right Platform",
+        type: "lesson",
+        content: {
+          text: `
+# Choosing the Right Platform
+
+## Top Platforms for Students
+
+**Fidelity:**
+- No account minimums or fees
+- Excellent fractional shares
+- Strong research tools and education
+- 24/7 customer support
+
+**Charles Schwab:**
+- Great for international students
+- No foreign transaction fees
+- Comprehensive educational resources
+- Global ATM fee reimbursement
+
+**E*TRADE:**
+- User-friendly mobile app
+- No minimums for brokerage accounts
+- Good selection of commission-free ETFs
+- Educational webinars and tools
+
+**Robinhood:**
+- Simple, intuitive interface
+- Commission-free trades
+- Fractional shares available
+- Good for beginners but limited research tools
+
+## Key Features to Consider
+
+**Account Minimums:** Choose platforms with $0 minimums
+**Fractional Shares:** Invest in expensive stocks with small amounts
+**Educational Resources:** Learning materials and research tools
+**Mobile App:** Easy-to-use interface for managing investments
+**Customer Support:** Available when you need help
+
+## Red Flags to Avoid
+
+- High account fees or maintenance charges
+- Limited investment options
+- Poor customer reviews
+- Platforms that encourage frequent trading
+- Complex fee structures
+
+## Getting Started Checklist
+
+1. Research platform options
+2. Gather required documents (passport, I-20, SSN)
+3. Open account online
+4. Fund account via bank transfer
+5. Start with broad market ETFs
+6. Set up automatic investing if available
+          `
+        }
+      }
+    ],
     completed: false
   },
   {
     id: 5,
-    title: "Tax-Efficient Investing",
-    emoji: "📋",
-    description: "Maximize your returns by minimizing taxes through smart investment strategies.",
-    duration: "40 min",
+    title: "Post-Graduation Investment Planning",
+    emoji: <GraduationCap className="w-6 h-6" />,
+    description: "Navigate investment decisions when transitioning from student to professional status.",
+    duration: "50 min",
+    level: "intermediate",
+    unlocked: true,
+    rating: 4.8,
+    students: 1654,
+    modules: [
+      {
+        id: 1,
+        title: "OPT and H-1B Considerations",
+        type: "lesson",
+        content: {
+          text: `
+# OPT and H-1B Considerations
+
+## Investment Changes During OPT
+
+**What Changes:**
+- You can now earn active income from employment
+- Eligible for employer 401(k) plans
+- May qualify for Roth IRA contributions
+- Still subject to non-resident tax rules initially
+
+**Investment Opportunities:**
+- Maximize employer 401(k) match (free money!)
+- Increase investment contributions with higher income
+- Consider more aggressive growth strategies
+- Start planning for potential H-1B transition
+
+## H-1B Investment Advantages
+
+**New Opportunities:**
+- Higher income allows larger investments
+- Employer-sponsored retirement plans
+- Potential for company stock options
+- More stability for long-term planning
+
+**Tax Considerations:**
+- May become tax resident after 5 years total in U.S.
+- Different capital gains treatment
+- Access to tax-advantaged retirement accounts
+- Estate planning becomes important
+
+## Career Transition Strategies
+
+**6 Months Before Graduation:**
+- Research visa options and requirements
+- Optimize current investment portfolio
+- Plan for potential income changes
+- Consider job location impact on taxes
+
+**During Job Search:**
+- Keep essential expenses low
+- Maintain investment contributions if possible
+- Research employer benefits packages
+- Plan for potential relocation costs
+
+**After Starting Work:**
+- Immediately enroll in employer 401(k)
+- Increase investment rate with higher income
+- Reassess risk tolerance and time horizon
+- Consider professional financial advice
+
+## Long-term Planning Scenarios
+
+**Staying in U.S. (Green Card Path):**
+- Maximize retirement account contributions
+- Consider real estate investment
+- Build substantial emergency fund
+- Plan for eventual tax resident status
+
+**Returning Home Eventually:**
+- Focus on portable investments
+- Understand tax implications of moving assets
+- Consider international investment accounts
+- Plan withdrawal strategies to minimize taxes
+          `
+        }
+      }
+    ],
+    completed: false
+  },
+  {
+    id: 6,
+    title: "International Diversification",
+    emoji: <Globe className="w-6 h-6" />,
+    description: "Build a globally diversified portfolio that makes sense for your international background.",
+    duration: "45 min",
     level: "intermediate",
     unlocked: false,
     rating: 4.7,
-    students: 987,
+    students: 1123,
+    modules: [
+      {
+        id: 1,
+        title: "Global Portfolio Construction",
+        type: "lesson",
+        content: {
+          text: `
+# Global Portfolio Construction
+
+## Why International Diversification Matters
+
+**Benefits for International Students:**
+- Exposure to your home country's growth
+- Currency diversification
+- Access to different economic cycles
+- Reduced dependence on U.S. market performance
+
+**Geographic Allocation Guidelines:**
+- 60-70% U.S. stocks (where you're living/working)
+- 20-30% International developed markets
+- 5-10% Emerging markets (including home country)
+- 10-20% Bonds (U.S. and international)
+
+## ETF Options for Global Exposure
+
+**U.S. Market:**
+- VTI (Total Stock Market)
+- VOO (S&P 500)
+- QQQ (NASDAQ 100)
+
+**International Developed:**
+- VTIAX (Total International)
+- EFA (MSCI EAFE)
+- VEA (Developed Markets)
+
+**Emerging Markets:**
+- VWO (Emerging Markets)
+- IEMG (Core MSCI Emerging)
+- EEM (MSCI Emerging Markets)
+
+**Home Country Specific (Examples):**
+- INDA (India)
+- FXI (China)
+- EWJ (Japan)
+- EWZ (Brazil)
+
+## Currency Considerations
+
+**Currency Risk Management:**
+- Most international ETFs are currency-hedged or unhedged
+- Hedged ETFs reduce currency volatility
+- Unhedged ETFs provide natural currency diversification
+- Consider your future plans when choosing
+
+**Sample International Student Portfolio:**
+- 50% U.S. Total Market (VTI)
+- 20% International Developed (VTIAX)
+- 10% Emerging Markets (VWO)
+- 10% Home Country ETF
+- 10% U.S. Bonds (BND)
+          `
+        }
+      }
+    ],
+    completed: false
+  },
+  {
+    id: 7,
+    title: "Emergency Fund Strategies",
+    emoji: <Shield className="w-6 h-6" />,
+    description: "Build and maintain emergency funds while maximizing investment growth as a student.",
+    duration: "30 min",
+    level: "beginner",
+    unlocked: false,
+    rating: 4.9,
+    students: 2456,
+    modules: [],
+    completed: false
+  },
+  {
+    id: 8,
+    title: "Banking for International Students",
+    emoji: <Building className="w-6 h-6" />,
+    description: "Navigate U.S. banking system, optimize accounts, and integrate with investment strategy.",
+    duration: "40 min",
+    level: "beginner",
+    unlocked: false,
+    rating: 4.5,
+    students: 1789,
     modules: [],
     completed: false
   }
