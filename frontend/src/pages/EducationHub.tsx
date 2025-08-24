@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon } from 'lucide-react'
+import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon, Shield, GraduationCap } from 'lucide-react'
 import Navigation from '../components/Navigation'
 import EnhancedChatWidget from '../components/ChatWidget'
 
@@ -81,116 +81,231 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
   const quiz = module.content?.quiz || []
   const hasQuiz = quiz.length > 0
 
+  // Enhanced markdown parser function
+  function parseMarkdown(text: string) {
+    // First, split into blocks to handle lists properly
+    const lines = text.split('\n');
+    const blocks: Array<{ type: 'text' | 'list'; content?: string; items?: string[] }> = [];
+    let currentBlock = '';
+    let inList = false;
+    let listItems: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Check if line is a list item
+      if (line.startsWith('- ')) {
+        if (!inList) {
+          // Save previous block if exists
+          if (currentBlock.trim()) {
+            blocks.push({ type: 'text', content: currentBlock.trim() });
+          }
+          currentBlock = '';
+          inList = true;
+          listItems = [];
+        }
+        listItems.push(line.substring(2));
+      } else if (line.startsWith('**') && line.endsWith('**')) {
+        // Bold text on its own line
+        if (inList) {
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+        }
+        if (currentBlock.trim()) {
+          blocks.push({ type: 'text', content: currentBlock.trim() });
+        }
+        currentBlock = line;
+      } else if (line.startsWith('##')) {
+        // Subheading
+        if (inList) {
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+        }
+        if (currentBlock.trim()) {
+          blocks.push({ type: 'text', content: currentBlock.trim() });
+        }
+        currentBlock = line;
+      } else if (line.startsWith('#')) {
+        // Main heading
+        if (inList) {
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+        }
+        if (currentBlock.trim()) {
+          blocks.push({ type: 'text', content: currentBlock.trim() });
+        }
+        currentBlock = line;
+      } else if (line === '') {
+        // Empty line - end current block
+        if (inList) {
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+        } else if (currentBlock.trim()) {
+          blocks.push({ type: 'text', content: currentBlock.trim() });
+        }
+        currentBlock = '';
+      } else {
+        // Regular text line
+        if (inList) {
+          // End list and start new text block
+          blocks.push({ type: 'list', items: listItems });
+          inList = false;
+          listItems = [];
+          currentBlock = line;
+        } else {
+          currentBlock += (currentBlock ? '\n' : '') + line;
+        }
+      }
+    }
+    
+    // Handle last block
+    if (inList) {
+      blocks.push({ type: 'list', items: listItems });
+    } else if (currentBlock.trim()) {
+      blocks.push({ type: 'text', content: currentBlock.trim() });
+    }
+
+    return blocks;
+  }
+
+  const renderTextBlock = (text: string) => {
+    // Handle headings
+    if (text.startsWith('#')) {
+      const level = text.match(/^#+/)?.[0].length || 1;
+      const content = text.replace(/^#+\s*/, '');
+      
+      if (level === 1) {
+        return <h1 className="text-3xl font-bold text-gray-900 mb-4">{content}</h1>;
+      } else if (level === 2) {
+        return <h2 className="text-2xl font-semibold text-gray-800 mb-3 mt-6">{content}</h2>;
+      } else if (level === 3) {
+        return <h3 className="text-xl font-semibold text-gray-700 mb-2 mt-4">{content}</h3>;
+      }
+    }
+    
+    // Handle bold text
+    if (text.startsWith('**') && text.endsWith('**')) {
+      const content = text.replace(/^\*\*(.*)\*\*$/, '$1');
+      return <p className="text-lg font-semibold text-gray-800 mb-4">{content}</p>;
+    }
+    
+    // Regular paragraph
+    return <p className="text-gray-700 mb-4 leading-relaxed">{text}</p>;
+  };
+
+  const renderListBlock = (items: string[]) => {
+    return (
+      <ul className="list-disc list-inside mb-4 space-y-2">
+        {items.map((item, index) => (
+          <li key={index} className="text-gray-700 leading-relaxed">{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const blocks = parseMarkdown(module.content.text);
+
   return (
-    <div className="bg-white rounded-2xl p-8 shadow-lg">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-      >
-        ← Back to {course.title}
-      </button>
-
-      <h1 className="text-3xl font-bold mb-6">{module.title}</h1>
-
-      {/* Content */}
-      <div className="prose prose-lg max-w-none mb-8">
-        <div dangerouslySetInnerHTML={{ __html: module.content.text.replace(/\n/g, '<br>') }} />
-      </div>
-
-      {/* Interactive Portfolio Builder */}
-      {module.content.interactive && (
-        <div className="mb-8">
-          <PortfolioBuilder />
-        </div>
-      )}
-
-      {/* Quiz Section */}
-      {hasQuiz && (
-        <div className="border-t pt-8">
-          <h2 className="text-2xl font-bold mb-6">Knowledge Check 🧠</h2>
-
-          <div className="bg-gray-50 rounded-2xl p-6">
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Question {currentQuiz + 1} of {quiz.length}</span>
-                <span>{Math.round(((currentQuiz + 1) / quiz.length) * 100)}% Complete</span>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6">
+        <button
+          onClick={onBack}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
+          Back to Course
+        </button>
+        
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">{module.title}</h1>
+          
+          <div className="prose max-w-none">
+            {blocks.map((block, index) => (
+              <div key={index}>
+                {block.type === 'text' && block.content && renderTextBlock(block.content)}
+                {block.type === 'list' && block.items && renderListBlock(block.items)}
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <motion.div
-                  className="bg-primary-600 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((currentQuiz + 1) / quiz.length) * 100}%` }}
-                  transition={{ duration: 0.3 }}
-                />
-              </div>
-            </div>
-
-            <h3 className="text-xl font-semibold mb-6">{quiz[currentQuiz].question}</h3>
-
-            <div className="space-y-3 mb-6">
-              {quiz[currentQuiz].options.map((option, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => !showExplanation && onAnswerSelect(index)}
-                  disabled={showExplanation}
-                  className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${showExplanation
-                    ? index === quiz[currentQuiz].correct
-                      ? 'border-green-500 bg-green-50 text-green-800'
-                      : selectedAnswer === index
-                        ? 'border-red-500 bg-red-50 text-red-800'
-                        : 'border-gray-200 bg-gray-50'
-                    : selectedAnswer === index
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  whileHover={!showExplanation ? { scale: 1.02 } : {}}
-                >
-                  {option}
-                </motion.button>
-              ))}
-            </div>
-
-            {showExplanation && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200"
-              >
-                <h4 className="font-semibold text-blue-800 mb-2">Explanation:</h4>
-                <p className="text-blue-700">{quiz[currentQuiz].explanation}</p>
-              </motion.div>
-            )}
-
-            {showExplanation && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={onNextQuestion}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-6 rounded-xl font-medium transition-colors"
-              >
-                {currentQuiz < quiz.length - 1 ? 'Next Question' : 'Complete Module'} →
-              </motion.button>
-            )}
+            ))}
           </div>
+
+          {module.content.interactive && (
+            <div className="mt-8">
+              <PortfolioBuilder />
+            </div>
+          )}
+
+          {/* Quiz Section */}
+          {hasQuiz && (
+            <div className="border-t pt-8">
+              <h2 className="text-2xl font-bold mb-6">Knowledge Check 🧠</h2>
+              
+              {currentQuiz < quiz.length && (
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">{quiz[currentQuiz].question}</h3>
+                  
+                  <div className="space-y-3 mb-6">
+                    {quiz[currentQuiz].options.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => onAnswerSelect(index)}
+                        disabled={selectedAnswer !== null}
+                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                          selectedAnswer === index
+                            ? index === quiz[currentQuiz].correct
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-red-500 bg-red-50'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {showExplanation && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <p className="text-blue-800 font-medium">
+                        {selectedAnswer === quiz[currentQuiz].correct ? '✅ Correct!' : '❌ Incorrect'}
+                      </p>
+                      <p className="text-blue-700 mt-2">{quiz[currentQuiz].explanation}</p>
+                    </div>
+                  )}
+                  
+                  {showExplanation && (
+                    <button
+                      onClick={onNextQuestion}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      {currentQuiz < quiz.length - 1 ? 'Next Question' : 'Complete Module'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
-  )
-}
+  );
+};
 
 const EducationHub: React.FC = () => {
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
-  const [selectedModule, setSelectedModule] = useState<number | null>(null)
-  const [currentQuiz, setCurrentQuiz] = useState<number>(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [showExplanation, setShowExplanation] = useState<boolean>(false)
-  const [completedCourses] = useState<number[]>([])
-  const [completedModules, setCompletedModules] = useState<number[]>([])
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [currentQuiz, setCurrentQuiz] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [completedCourses, setCompletedCourses] = useState<number[]>([]);
+  const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [portfolioBuilder, setPortfolioBuilder] = useState<PortfolioAllocation>({
     stocks: 70,
     bonds: 20,
     alternatives: 10
-  })
+  });
 
   const PortfolioBuilder: React.FC = () => (
     <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border">
@@ -202,7 +317,7 @@ const EducationHub: React.FC = () => {
           <div key={key} className="space-y-2">
             <div className="flex justify-between">
               <label className="font-medium capitalize">{key}</label>
-              <span className="font-bold text-primary-600">{value}%</span>
+              <span className="font-bold text-blue-600">{value}%</span>
             </div>
             <input
               type="range"
@@ -295,8 +410,6 @@ const EducationHub: React.FC = () => {
           </div>
         </div>
 
-
-
         <AnimatePresence mode="wait">
           {!selectedCourse ? (
             /* Courses Grid */
@@ -345,7 +458,7 @@ const EducationHub: React.FC = () => {
                         <div className="mb-4">
                           <div className="flex justify-between text-sm mb-2">
                             <span>Progress</span>
-                            <span>{progress}/24 lessons</span>
+                            <span>{progress}/{lessonsCount} lessons</span>
                           </div>
                           <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
                             <div
@@ -435,9 +548,6 @@ const EducationHub: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* All Courses Grid */}
-            
             </motion.div>
           ) : !selectedModule ? (
             /* Course Modules */
@@ -472,7 +582,7 @@ const EducationHub: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        {selectedCourse.students.toLocaleString()} students
+                        <span>{selectedCourse.students.toLocaleString()} students</span>
                       </div>
                     </div>
                   </div>
@@ -486,12 +596,12 @@ const EducationHub: React.FC = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       onClick={() => startModule(module.id)}
-                      className="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl hover:border-primary-200 hover:bg-primary-50 cursor-pointer transition-all"
+                      className="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50 cursor-pointer transition-all"
                     >
-                      <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                        {module.type === 'lesson' ? <FileText className="w-6 h-6 text-primary-600" /> :
-                          module.type === 'video' ? <Video className="w-6 h-6 text-primary-600" /> :
-                            <Play className="w-6 h-6 text-primary-600" />}
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        {module.type === 'lesson' ? <FileText className="w-6 h-6 text-blue-600" /> :
+                          module.type === 'video' ? <Video className="w-6 h-6 text-red-600" /> :
+                            <Play className="w-6 h-6 text-green-600" />}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold">{module.title}</h3>
@@ -798,6 +908,6 @@ Start with broad market ETFs like VTI or VOO for maximum diversification! 🎯
     modules: [],
     completed: false
   }
-]
+];
 
-export default EducationHub
+export default EducationHub;
