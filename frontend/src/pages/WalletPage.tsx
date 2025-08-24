@@ -1,18 +1,24 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Plus, 
-  Minus, 
+  Search, 
+  ChevronDown, 
+  Download, 
+  Grid3X3, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  BarChart3, 
+  TrendingUp, 
+  TrendingDown, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  CreditCard, 
+  Pencil,
+  Zap,
+  ChevronRight,
+  MoreVertical,
   DollarSign, 
-  Calendar,
-  Filter,
-  Search,
-  TrendingUp,
-  TrendingDown,
-  RefreshCw
+  Wallet
 } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
@@ -20,144 +26,146 @@ import Navigation from '../components/Navigation'
 
 interface Transaction {
   id: string
-  type: 'buy' | 'sell' | 'deposit' | 'withdrawal'
-  symbol?: string
-  company?: string
-  shares?: number
-  price?: number
+  paymentName: string
   amount: number
   date: Date
-  status: 'completed' | 'pending' | 'failed'
-  logo?: string
+  status: 'completed' | 'failed'
+  type: 'income' | 'expense'
+  icon: string
 }
 
 const WalletPage = () => {
   const { user } = useUser()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'overview' | 'transactions'>('overview')
-  const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell' | 'deposit' | 'withdrawal'>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All Status')
+  const [timeFilter, setTimeFilter] = useState('Latest')
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
 
-  // Mock wallet data
-  const walletBalance = 2450.75
-  const availableCash = 2450.75
-  const pendingTransactions = 0
-
-  // Mock transaction history
-  const allTransactions: Transaction[] = [
+  // Mock transaction data based on the image
+  const transactions: Transaction[] = [
     {
-      id: '1',
-      type: 'buy',
-      symbol: 'AAPL',
-      company: 'Apple Inc.',
-      shares: 5,
-      price: 175.30,
-      amount: -876.50,
-      date: new Date('2024-01-15'),
+      id: 'TXN-24020110',
+      paymentName: 'Transfer from Bank',
+      amount: 980,
+      date: new Date('2025-02-29T21:41:00'),
       status: 'completed',
-      logo: '🍎'
+      type: 'income',
+      icon: '🏦'
     },
     {
-      id: '2',
-      type: 'deposit',
-      amount: 1000.00,
-      date: new Date('2024-01-14'),
-      status: 'completed'
-    },
-    {
-      id: '3',
-      type: 'buy',
-      symbol: 'TSLA',
-      company: 'Tesla Inc.',
-      shares: 2,
-      price: 242.15,
-      amount: -484.30,
-      date: new Date('2024-01-12'),
+      id: 'TXN-24020109',
+      paymentName: 'Youtube Premium',
+      amount: -20,
+      date: new Date('2025-02-29T21:41:00'),
       status: 'completed',
-      logo: '🚗'
+      type: 'expense',
+      icon: '📺'
     },
     {
-      id: '4',
-      type: 'sell',
-      symbol: 'NVDA',
-      company: 'NVIDIA Corp.',
-      shares: 1,
-      price: 203.65,
-      amount: 203.65,
-      date: new Date('2024-01-10'),
+      id: 'TXN-24020108',
+      paymentName: 'Internet',
+      amount: -120,
+      date: new Date('2025-02-29T13:56:00'),
       status: 'completed',
-      logo: '🔥'
+      type: 'expense',
+      icon: '🌐'
     },
     {
-      id: '5',
-      type: 'deposit',
-      amount: 500.00,
-      date: new Date('2024-01-08'),
-      status: 'completed'
-    },
-    {
-      id: '6',
-      type: 'buy',
-      symbol: 'META',
-      company: 'Meta Platforms',
-      shares: 3,
-      price: 325.70,
-      amount: -977.10,
-      date: new Date('2024-01-05'),
+      id: 'TXN-24020107',
+      paymentName: 'Transfer from Bank',
+      amount: 1000,
+      date: new Date('2025-02-29T11:36:00'),
       status: 'completed',
-      logo: '📱'
+      type: 'income',
+      icon: '🏦'
+    },
+    {
+      id: 'TXN-24020106',
+      paymentName: 'Transfer from Bank',
+      amount: 1200,
+      date: new Date('2025-02-29T11:25:00'),
+      status: 'completed',
+      type: 'income',
+      icon: '🏦'
+    },
+    {
+      id: 'TXN-24020105',
+      paymentName: 'Starbucks Coffee',
+      amount: -12,
+      date: new Date('2025-02-29T09:41:00'),
+      status: 'completed',
+      type: 'expense',
+      icon: '☕'
+    },
+    {
+      id: 'TXN-24020104',
+      paymentName: 'Salary (Freelance)',
+      amount: 100,
+      date: new Date('2025-02-28T22:12:00'),
+      status: 'completed',
+      type: 'income',
+      icon: '💼'
+    },
+    {
+      id: 'TXN-24020103',
+      paymentName: 'Crypto Investment',
+      amount: 1000,
+      date: new Date('2025-02-28T22:12:00'),
+      status: 'completed',
+      type: 'income',
+      icon: '₿'
+    },
+    {
+      id: 'TXN-24020102',
+      paymentName: 'Amazon Purchase',
+      amount: -30,
+      date: new Date('2025-02-27T22:12:00'),
+      status: 'completed',
+      type: 'expense',
+      icon: '📦'
+    },
+    {
+      id: 'TXN-24020101',
+      paymentName: 'Spotify Premium',
+      amount: -40,
+      date: new Date('2025-02-27T08:00:00'),
+      status: 'failed',
+      type: 'expense',
+      icon: '🎵'
     }
   ]
 
-  // Filter transactions
-  const filteredTransactions = allTransactions.filter(transaction => {
-    const matchesFilter = filterType === 'all' || transaction.type === filterType
-    const matchesSearch = !searchTerm || 
-      transaction.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.company?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    return matchesFilter && matchesSearch
-  })
+  const totalTransactions = 125430
+  const totalIncome = 92000
+  const totalExpenses = 58500
 
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'buy':
-        return <TrendingUp className="w-5 h-5 text-green-600" />
-      case 'sell':
-        return <TrendingDown className="w-5 h-5 text-red-600" />
-      case 'deposit':
-        return <ArrowDownLeft className="w-5 h-5 text-blue-600" />
-      case 'withdrawal':
-        return <ArrowUpRight className="w-5 h-5 text-orange-600" />
-      default:
-        return <DollarSign className="w-5 h-5 text-gray-600" />
+  const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
     }
-  }
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'buy':
-        return 'text-red-600' // Money going out
-      case 'sell':
-      case 'deposit':
-        return 'text-green-600' // Money coming in
-      case 'withdrawal':
-        return 'text-red-600' // Money going out
-      default:
-        return 'text-gray-600'
+    const timeOptions: Intl.DateTimeFormatOptions = { 
+      hour: '2-digit', 
+      minute: '2-digit' 
     }
+    return `${date.toLocaleDateString('en-US', options)} · ${date.toLocaleTimeString('en-US', timeOptions)}`
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Completed</span>
-      case 'pending':
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Pending</span>
-      case 'failed':
-        return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Failed</span>
-      default:
-        return null
+    if (status === 'completed') {
+      return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Completed</span>
+    } else {
+      return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Failed</span>
+    }
+  }
+
+  const toggleTransactionSelection = (id: string) => {
+    if (selectedTransactions.includes(id)) {
+      setSelectedTransactions(selectedTransactions.filter(t => t !== id))
+    } else {
+      setSelectedTransactions([...selectedTransactions, id])
     }
   }
 
@@ -177,345 +185,319 @@ const WalletPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Wallet</h1>
-              <p className="text-gray-600">Manage your funds and track transactions</p>
-            </div>
-            <div className="flex gap-3">
-              <button className="btn-secondary flex items-center gap-2">
-                <ArrowDownLeft className="w-5 h-5" />
-                Deposit
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+            <div className="flex items-center gap-3">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                <Pencil className="w-4 h-4" />
+                Ask FinLit AI
               </button>
-              <button className="btn-secondary flex items-center gap-2">
-                <ArrowUpRight className="w-5 h-5" />
-                Withdraw
+              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                <Download className="w-4 h-4" />
+                Export Report
               </button>
             </div>
           </div>
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-6 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === 'overview'
-                ? 'border-purple-600 text-purple-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={`px-6 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === 'transactions'
-                ? 'border-purple-600 text-purple-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Transactions
-          </button>
-        </div>
-
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Wallet Balance Cards */}
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Total Balance */}
+                 {/* Summary Cards */}
+         <div className="grid md:grid-cols-3 gap-6 mb-8">
+           {/* Portfolio Value */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="card"
+             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-white" />
+               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                 <BarChart3 className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm text-gray-500">Total Balance</h3>
-                    <p className="text-2xl font-bold">${walletBalance.toLocaleString()}</p>
+                 <h3 className="text-sm text-gray-500">Portfolio Value</h3>
+                 <p className="text-2xl font-bold text-gray-900">${totalTransactions.toLocaleString()}</p>
                   </div>
                 </div>
+             <p className="text-sm text-green-600 font-medium">↑ 12.5% compared to last month</p>
               </motion.div>
 
-              {/* Available Cash */}
+           {/* Trading Profits */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="card"
+             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-green-600" />
+                 <TrendingUp className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm text-gray-500">Available Cash</h3>
-                    <p className="text-2xl font-bold text-green-600">${availableCash.toLocaleString()}</p>
+                 <h3 className="text-sm text-gray-500">Trading Profits</h3>
+                 <p className="text-2xl font-bold text-gray-900">${totalIncome.toLocaleString()}</p>
                   </div>
                 </div>
+             <p className="text-sm text-green-600 font-medium">↑ 15.5% compared to last month</p>
               </motion.div>
 
-              {/* Pending */}
+           {/* Trading Losses */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="card"
+             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <RefreshCw className="w-6 h-6 text-yellow-600" />
+               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                 <TrendingDown className="w-6 h-6 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm text-gray-500">Pending</h3>
-                    <p className="text-2xl font-bold">${pendingTransactions.toLocaleString()}</p>
+                 <h3 className="text-sm text-gray-500">Trading Losses</h3>
+                 <p className="text-2xl font-bold text-gray-900">${totalExpenses.toLocaleString()}</p>
                   </div>
                 </div>
+             <p className="text-sm text-red-600 font-medium">↓ 8.5% compared to last month</p>
               </motion.div>
             </div>
 
-            {/* Quick Actions */}
+        {/* Main Content and Sidebar */}
+        <div className="flex gap-8">
+          {/* Main Content - Transactions Table */}
+          <div className="flex-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="card"
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"
             >
-              <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => navigate('/trade')}
-                  className="p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all group"
-                >
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-purple-200">
-                      <TrendingUp className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold mb-1">Buy Stocks</h3>
-                    <p className="text-sm text-gray-600">Invest in your favorite companies</p>
-                  </div>
+              {/* Table Header with Search and Filters */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Transactions</h2>
+                  <div className="flex items-center gap-3">
+                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                      <Download className="w-4 h-4 text-gray-500" />
                 </button>
-
-                <button className="p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all group">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200">
-                      <ArrowDownLeft className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold mb-1">Add Funds</h3>
-                    <p className="text-sm text-gray-600">Deposit money to your wallet</p>
-                  </div>
-                </button>
-
-                <button className="p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-orange-300 hover:bg-orange-50 transition-all group">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-200">
-                      <ArrowUpRight className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <h3 className="font-semibold mb-1">Withdraw</h3>
-                    <p className="text-sm text-gray-600">Transfer funds to your bank</p>
-                  </div>
+                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                      <Grid3X3 className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
-            </motion.div>
-
-            {/* Recent Transactions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="card"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">Recent Transactions</h2>
-                <button
-                  onClick={() => setActiveTab('transactions')}
-                  className="text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
-                >
-                  View All <ArrowUpRight className="w-4 h-4" />
-                </button>
               </div>
 
-              <div className="space-y-4">
-                {allTransactions.slice(0, 5).map((transaction, index) => (
-                  <motion.div
-                    key={transaction.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
-                  >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        {transaction.logo ? (
-                          <span className="text-lg">{transaction.logo}</span>
-                        ) : (
-                          getTransactionIcon(transaction.type)
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold">
-                          {transaction.type === 'buy' && `Buy ${transaction.symbol}`}
-                          {transaction.type === 'sell' && `Sell ${transaction.symbol}`}
-                          {transaction.type === 'deposit' && 'Cash Deposit'}
-                          {transaction.type === 'withdrawal' && 'Cash Withdrawal'}
-                        </p>
-                        {transaction.company && (
-                          <p className="text-sm text-gray-500">{transaction.company}</p>
-                        )}
-                        {transaction.shares && (
-                          <p className="text-xs text-gray-400">
-                            {transaction.shares} shares × ${transaction.price}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p className={`font-semibold ${getTransactionColor(transaction.type)}`}>
-                        {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {transaction.date.toLocaleDateString()}
-                      </p>
-                      {getStatusBadge(transaction.status)}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {activeTab === 'transactions' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Filters and Search */}
-            <div className="card">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex gap-2 flex-wrap">
-                  {['all', 'buy', 'sell', 'deposit', 'withdrawal'].map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setFilterType(type as any)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors capitalize ${
-                        filterType === type
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-                
-                <div className="relative w-full sm:w-auto">
+                  <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search transactions..."
-                    className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Search..."
+                      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Transactions List */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">
-                  All Transactions ({filteredTransactions.length})
-                </h2>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-                  <Filter className="w-4 h-4" />
-                  <span className="text-sm">Filter</span>
-                </button>
-              </div>
-
-              {filteredTransactions.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">No transactions found</h3>
-                  <p className="text-gray-600 mb-6">Try adjusting your search or filter criteria</p>
-                  <button
-                    onClick={() => {
-                      setFilterType('all')
-                      setSearchTerm('')
-                    }}
-                    className="btn-secondary"
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    Clear Filters
-                  </button>
+                    <option>All Status</option>
+                    <option>Completed</option>
+                    <option>Failed</option>
+                  </select>
+                  <select
+                    value={timeFilter}
+                    onChange={(e) => setTimeFilter(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option>Latest</option>
+                    <option>Oldest</option>
+                    <option>This Week</option>
+                    <option>This Month</option>
+                  </select>
+              </div>
+            </div>
+
+              {/* Transactions Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectedTransactions.length === transactions.length}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTransactions(transactions.map(t => t.id))
+                            } else {
+                              setSelectedTransactions([])
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Transaction ID
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment Name
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-4 text-left"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {transactions.map((transaction, index) => (
+                      <motion.tr
+                        key={transaction.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactions.includes(transaction.id)}
+                            onChange={() => toggleTransactionSelection(transaction.id)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{transaction.id}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-lg">
+                              {transaction.icon}
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">{transaction.paymentName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`text-sm font-medium ${
+                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.type === 'income' ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-500">{formatDate(transaction.date)}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(transaction.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <MoreVertical className="w-4 h-4 text-gray-400" />
+                </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Show data 10 of 200</span>
+                  <div className="flex items-center gap-2">
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{"<<"}</button>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{"<"}</button>
+                    <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded">1</button>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">2</button>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">3</button>
+                    <span className="px-3 py-1 text-sm text-gray-500">...</span>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">10</button>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{">"}</button>
+                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{">>"}</button>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredTransactions.map((transaction, index) => (
+                  </div>
+            </motion.div>
+                </div>
+
+          {/* Right Sidebar */}
+          <div className="w-80 space-y-6">
+            {/* Category Breakdown */}
                     <motion.div
-                      key={transaction.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          {transaction.logo ? (
-                            <span className="text-xl">{transaction.logo}</span>
-                          ) : (
-                            getTransactionIcon(transaction.type)
-                          )}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Category Breakdown</h3>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+              
+              {/* Donut Chart Placeholder */}
+              <div className="w-32 h-32 mx-auto mb-4 relative">
+                <div className="w-full h-full rounded-full border-8 border-blue-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600">125K</p>
+                    <p className="text-xs text-gray-500">Total Balance</p>
+                  </div>
+                </div>
+                <div className="absolute inset-0 rounded-full border-8 border-blue-600" style={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%)' }}></div>
+              </div>
+              
+              {/* Legend */}
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Income</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-200 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Expense</span>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold">
-                              {transaction.type === 'buy' && `Buy ${transaction.symbol}`}
-                              {transaction.type === 'sell' && `Sell ${transaction.symbol}`}
-                              {transaction.type === 'deposit' && 'Cash Deposit'}
-                              {transaction.type === 'withdrawal' && 'Cash Withdrawal'}
-                            </p>
-                            {getStatusBadge(transaction.status)}
                           </div>
-                          {transaction.company && (
-                            <p className="text-sm text-gray-500">{transaction.company}</p>
-                          )}
-                          {transaction.shares && (
-                            <p className="text-xs text-gray-400">
-                              {transaction.shares} shares × ${transaction.price?.toFixed(2)}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{transaction.date.toLocaleDateString()}</span>
-                            <span>{transaction.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              
+              {/* Insight */}
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Pencil className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <p className="text-sm text-blue-800">Your dining expense increased by 20% compared to last month</p>
                           </div>
                         </div>
+            </motion.div>
+
+            {/* AI Insight */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="w-5 h-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">AI Insight</h3>
                       </div>
 
-                      <div className="text-right">
-                        <p className={`text-lg font-semibold ${getTransactionColor(transaction.type)}`}>
-                          {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          ID: {transaction.id}
+              <div className="bg-blue-600 text-white p-4 rounded-lg mb-4">
+                <p className="text-sm leading-relaxed">
+                  You have saved $1,200 this month. Based on your spending habits, allocating an additional 5% to savings can help you reach your financial goal faster.
                         </p>
                       </div>
+              
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                Auto Save Now &gt;
+              </button>
                     </motion.div>
-                  ))}
+
+
                 </div>
-              )}
             </div>
-          </motion.div>
-        )}
       </div>
     </div>
   )

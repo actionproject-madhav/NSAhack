@@ -1,4 +1,4 @@
-import { Bell, ChevronRight, Menu } from 'lucide-react'
+import { Bell, ChevronRight, Menu, Globe, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { useState } from 'react'
@@ -14,6 +14,10 @@ import { StockSearch } from '../components/StockSearch'
 import { SearchResult } from '../services/alphaVantageApi'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import SectorPerformance from '../components/SectorPerformance'
+import InternationalStudentAlerts from '../components/InternationalStudentAlerts'
+import TaxTreatyCalculator from '../components/TaxTreatyCalculator'
+import F1ComplianceTracker from '../components/F1ComplianceTracker'
+import InvestmentRecommendations from '../components/InvestmentRecommendations'
 
 const Dashboard = () => {
   const { user } = useUser()
@@ -89,6 +93,13 @@ const Dashboard = () => {
         <div className="flex-1 flex overflow-hidden">
           {/* Main Content - Scrollable */}
           <div className="flex-1 overflow-y-auto p-4 lg:p-6 min-w-0">
+
+
+            {/* Critical Trading Alerts for International Students */}
+            <div className="mb-6">
+              <InternationalStudentAlerts />
+            </div>
+
             {/* My Stocks */}
             <div className="mb-6">
               <h2 className="text-lg font-jakarta font-medium text-gray-900 mb-4">My Stocks</h2>
@@ -107,18 +118,20 @@ const Dashboard = () => {
 
             </div>
 
-            {/* Second Row - Snapshot + Future Box */}
+            {/* Second Row - Snapshot + F-1 Compliance Tracker */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <SnapshotCard />
-              <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col h-[320px] border border-dashed border-gray-200 items-center justify-center">
-                <div className="text-gray-400 text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-3 mx-auto">
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <p className="text-base font-medium">Coming Soon</p>
-                  <p className="text-sm mt-1 text-gray-500">New feature in development</p>
-                </div>
-              </div>
+              <F1ComplianceTracker />
+            </div>
+
+            {/* Tax Treaty Calculator - Below Snapshot Row */}
+            <div className="mb-6">
+              <TaxTreatyCalculator />
+            </div>
+
+            {/* Investment Recommendations */}
+            <div className="mb-6">
+              <InvestmentRecommendations />
             </div>
 
             {/* Sector Performance */}
