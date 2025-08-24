@@ -582,7 +582,7 @@ const EducationHub: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        {selectedCourse.students.toLocaleString()} students
+                        <span>{selectedCourse.students.toLocaleString()} students</span>
                       </div>
                     </div>
                   </div>

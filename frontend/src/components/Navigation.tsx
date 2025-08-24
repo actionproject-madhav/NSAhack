@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Home, TrendingUp, BookOpen, User, Menu, X, Search, Globe } from 'lucide-react'
+import { Home, TrendingUp, BookOpen, User, Menu, X, Search, Brain, GraduationCap } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import CommandMenu from './CommandMenu'
@@ -13,7 +13,9 @@ const Navigation = () => {
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/trade', icon: TrendingUp, label: 'Trade' },
     { path: '/screener', icon: Search, label: 'Screener' },
-    { path: '/learn', icon: BookOpen, label: 'Learn' }
+    { path: '/ai-hub', icon: Brain, label: 'AI Hub' },
+    { path: '/education-hub', icon: GraduationCap, label: 'Education Hub' },
+    { path: '/learn', icon: BookOpen, label: 'Learn' },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -34,7 +36,7 @@ const Navigation = () => {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="font-bold text-xl text-gray-900">StudVest</span>
+              <span className="font-bold text-xl text-gray-900">FinLit</span>
             </motion.div>
 
             {/* Desktop Menu */}
@@ -46,8 +48,6 @@ const Navigation = () => {
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors relative ${
                     isActive(item.path)
                       ? 'bg-primary-100 text-primary-700'
-                      : item.highlight
-                      ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                   whileHover={{ scale: 1.05 }}
@@ -55,9 +55,6 @@ const Navigation = () => {
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
-                  {item.highlight && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
-                  )}
                 </motion.button>
               ))}
             </div>
