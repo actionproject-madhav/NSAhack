@@ -11,14 +11,12 @@ interface Quiz {
   explanation: string;
 }
 
-
 interface ModuleContent {
   text: string;
   video?: string;
   quiz?: Quiz[];
   interactive?: boolean;
 }
-
 
 interface Module {
   id: number;
@@ -83,77 +81,6 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
   const quiz = module.content?.quiz || []
   const hasQuiz = quiz.length > 0
 
-  // Enhanced markdown parser function
-  function parseMarkdown(text: string) {
-    // First, split into blocks to handle lists properly
-    const lines = text.split('\n');
-    const blocks: Array<{ type: 'text' | 'list'; content?: string; items?: string[] }> = [];
-    let currentBlock = '';
-    let inList = false;
-    let listItems: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // Check if line is a list item
-      if (line.startsWith('- ')) {
-        if (!inList) {
-          // Starting a new list
-          if (currentBlock.trim()) {
-            blocks.push({ type: 'text', content: currentBlock.trim() });
-            currentBlock = '';
-          }
-          inList = true;
-          listItems = [];
-        }
-        listItems.push(line.substring(2)); // Remove "- "
-      } else {
-        if (inList) {
-          // End of list
-          blocks.push({ type: 'list', items: listItems });
-          inList = false;
-          listItems = [];
-        }
-        currentBlock += line + '\n';
-      }
-    }
-    
-    // Handle any remaining content
-    if (inList) {
-      blocks.push({ type: 'list', items: listItems });
-    } else if (currentBlock.trim()) {
-      blocks.push({ type: 'text', content: currentBlock.trim() });
-    }
-    
-    // Convert blocks to HTML
-    let html = blocks.map(block => {
-      if (block.type === 'list' && block.items) {
-        const items = block.items.map(item => 
-          `<li class="mb-1">${item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`
-        ).join('');
-        return `<ul class="list-disc ml-6 mb-4 space-y-1">${items}</ul>`;
-      } else if (block.type === 'text' && block.content) {
-        return block.content
-          // Headers
-          .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mb-3 mt-6 text-gray-900">$1</h3>')
-          .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mb-4 mt-8 text-gray-900">$1</h2>')
-          .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mb-6 mt-8 text-gray-900">$1</h1>')
-          
-          // Bold text
-          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
-          
-          // Paragraphs (non-empty lines that aren't headers)
-          .replace(/^(?!<[h123]|$)(.*$)/gim, '<p class="mb-4 text-gray-700 leading-relaxed">$1</p>')
-          
-          // Clean up empty paragraphs
-          .replace(/<p class="[^"]*">\s*<\/p>/g, '');
-      }
-      return '';
-    }).join('');
-    
-    return html;
-  }
-
   return (
     <div className="bg-white rounded-2xl p-8 shadow-lg">
       <button
@@ -167,7 +94,7 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
 
       {/* Content */}
       <div className="prose prose-lg max-w-none mb-8">
-        <div dangerouslySetInnerHTML={{ __html: parseMarkdown(module.content.text) }} />
+        <div dangerouslySetInnerHTML={{ __html: module.content.text.replace(/\n/g, '<br>') }} />
       </div>
 
       {/* Interactive Portfolio Builder */}
