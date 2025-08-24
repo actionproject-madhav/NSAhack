@@ -128,9 +128,9 @@ python scanner.py  # Production mode via environment variables
 ##  Team Members
 
 
-- **[Arman Amatya]**
-- **[Madhav Khanal]**
-- **[Koshish Shrestha]**
+- **Arman Amatya**
+- **Madhav Khanal**
+- **Koshish Shrestha**
 
 
 ##  Architecture Overview
