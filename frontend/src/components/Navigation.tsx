@@ -13,8 +13,7 @@ const Navigation = () => {
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/trade', icon: TrendingUp, label: 'Trade' },
     { path: '/screener', icon: Search, label: 'Screener' },
-    { path: '/learn', icon: BookOpen, label: 'Learn' },
-    { path: '/international-student-hub', icon: Globe, label: 'Intl Students', highlight: true },
+    { path: '/learn', icon: BookOpen, label: 'Learn' }
   ]
 
   const isActive = (path: string) => location.pathname === path

@@ -9,6 +9,9 @@ build/
 frontend/dist/
 frontend/build/
 
+CLAUDE.md
+Untitled-1
+
 # Environment files (IMPORTANT: Never commit secrets)
 .env
 .env.local
