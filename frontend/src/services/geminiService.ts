@@ -162,7 +162,6 @@ class GeminiService {
       if (homeCountry) {
         prompt += `\nHome Country: ${homeCountry}`;
         const taxTreaties: Record<string, string> = {
-          'NP': 'Nepal (Upto 30% gains tax rate)',
           'IN': 'India (15% capital gains tax rate with treaty)',
           'CN': 'China (10% capital gains tax rate with treaty)',
           'KR': 'South Korea (15% capital gains tax rate with treaty)',

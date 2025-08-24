@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon, Shield, FileCheck, CreditCard, Smartphone, GraduationCap, Globe, DollarSign, Building } from 'lucide-react'
+import { Clock, Trophy, ChevronRight, Check, Play, FileText, Video, Users, Star, Award, TrendingUp, BookmarkIcon, Shield, GraduationCap } from 'lucide-react'
 import Navigation from '../components/Navigation'
 import EnhancedChatWidget from '../components/ChatWidget'
 
@@ -28,7 +28,7 @@ interface Module {
 interface Course {
   id: number;
   title: string;
-  emoji: string | React.ReactNode;
+  emoji: string;
   description: string;
   duration: string;
   level: 'beginner' | 'intermediate' | 'advanced';
@@ -238,24 +238,27 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
             </div>
           )}
 
+          {/* Quiz Section */}
           {hasQuiz && (
-            <div className="mt-8 bg-gray-50 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">Quiz</h3>
-              {currentQuiz < quiz.length ? (
-                <div>
-                  <p className="text-gray-700 mb-4">{quiz[currentQuiz].question}</p>
-                  <div className="space-y-3">
+            <div className="border-t pt-8">
+              <h2 className="text-2xl font-bold mb-6">Knowledge Check 🧠</h2>
+              
+              {currentQuiz < quiz.length && (
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">{quiz[currentQuiz].question}</h3>
+                  
+                  <div className="space-y-3 mb-6">
                     {quiz[currentQuiz].options.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => onAnswerSelect(index)}
                         disabled={selectedAnswer !== null}
-                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                           selectedAnswer === index
                             ? index === quiz[currentQuiz].correct
-                              ? 'border-green-500 bg-green-50 text-green-800'
-                              : 'border-red-500 bg-red-50 text-red-800'
-                            : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-red-500 bg-red-50'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                         }`}
                       >
                         {option}
@@ -263,128 +266,27 @@ const ModuleContent: React.FC<ModuleContentProps> = ({
                     ))}
                   </div>
                   
-                  {selectedAnswer !== null && (
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  {showExplanation && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="text-blue-800 font-medium">
-                        {selectedAnswer === quiz[currentQuiz].correct ? 'Correct!' : 'Incorrect!'}
+                        {selectedAnswer === quiz[currentQuiz].correct ? '✅ Correct!' : '❌ Incorrect'}
                       </p>
                       <p className="text-blue-700 mt-2">{quiz[currentQuiz].explanation}</p>
-                      {currentQuiz < quiz.length - 1 && (
-                        <button
-                          onClick={onNextQuestion}
-                          className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                        >
-                          Next Question
-                        </button>
-                      )}
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="text-center">
-                  <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Quiz Complete!</h4>
-                  <p className="text-gray-600">Great job! You've completed all the questions.</p>
+                  
+                  {showExplanation && (
+                    <button
+                      onClick={onNextQuestion}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      {currentQuiz < quiz.length - 1 ? 'Next Question' : 'Complete Module'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const PortfolioBuilder: React.FC = () => {
-  const [allocation, setAllocation] = useState({ stocks: 70, bonds: 20, alternatives: 10 });
-
-  const handleSliderChange = (type: keyof typeof allocation, value: number) => {
-    setAllocation(prev => {
-      const newAllocation = { ...prev, [type]: value };
-      const total = Object.values(newAllocation).reduce((sum, val) => sum + val, 0);
-      
-      if (total !== 100) {
-        // Adjust other values proportionally
-        const otherTypes = Object.keys(newAllocation).filter(key => key !== type) as (keyof typeof allocation)[];
-        const remaining = 100 - value;
-        const otherTotal = otherTypes.reduce((sum, key) => sum + newAllocation[key], 0);
-        
-        otherTypes.forEach(key => {
-          if (otherTotal > 0) {
-            newAllocation[key] = Math.round((newAllocation[key] / otherTotal) * remaining);
-          }
-        });
-        
-        // Ensure total equals 100
-        const finalTotal = Object.values(newAllocation).reduce((sum, val) => sum + val, 0);
-        if (finalTotal !== 100) {
-          newAllocation[otherTypes[0]] += (100 - finalTotal);
-        }
-      }
-      
-      return newAllocation;
-    });
-  };
-
-  return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
-      <h3 className="text-xl font-semibold mb-4">Portfolio Builder</h3>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Stocks: {allocation.stocks}%
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={allocation.stocks}
-            onChange={(e) => handleSliderChange('stocks', parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Bonds: {allocation.bonds}%
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={allocation.bonds}
-            onChange={(e) => handleSliderChange('bonds', parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Alternatives: {allocation.alternatives}%
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={allocation.alternatives}
-            onChange={(e) => handleSliderChange('alternatives', parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          />
-        </div>
-      </div>
-      <div className="mt-4 p-4 bg-white rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Your Portfolio Allocation</h4>
-        <div className="flex space-x-4">
-          <div className="flex-1 text-center">
-            <div className="text-2xl font-bold text-blue-600">{allocation.stocks}%</div>
-            <div className="text-sm text-gray-600">Stocks</div>
-          </div>
-          <div className="flex-1 text-center">
-            <div className="text-2xl font-bold text-green-600">{allocation.bonds}%</div>
-            <div className="text-sm text-gray-600">Bonds</div>
-          </div>
-          <div className="flex-1 text-center">
-            <div className="text-2xl font-bold text-purple-600">{allocation.alternatives}%</div>
-            <div className="text-sm text-gray-600">Alternatives</div>
-          </div>
         </div>
       </div>
     </div>
@@ -397,529 +299,615 @@ const EducationHub: React.FC = () => {
   const [currentQuiz, setCurrentQuiz] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [completedCourses, setCompletedCourses] = useState<number[]>([]);
+  const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [portfolioBuilder, setPortfolioBuilder] = useState<PortfolioAllocation>({
     stocks: 70,
     bonds: 20,
     alternatives: 10
   });
 
-  const courses: Course[] = [
-    {
-      id: 1,
-      title: "F-1 Visa Investment Mastery",
-      emoji: "🎓",
-      description: "Learn how to invest safely while maintaining your F-1 visa status",
-      duration: "45 min",
-      level: "beginner",
-      unlocked: true,
-      rating: 4.9,
-      students: 3241,
-      modules: [
-        {
-          id: 1,
-          title: "Understanding Visa Restrictions",
-          type: "lesson",
-          content: {
-            text: `
-# Understanding Visa Restrictions
+  const PortfolioBuilder: React.FC = () => (
+    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border">
+      <h3 className="text-xl font-bold mb-4">🎨 Interactive Portfolio Builder</h3>
+      <p className="text-gray-600 mb-6">Adjust the sliders to see how different allocations affect your portfolio!</p>
 
-## F-1 Visa Investment Rules
+      <div className="space-y-4">
+        {Object.entries(portfolioBuilder).map(([key, value]) => (
+          <div key={key} className="space-y-2">
+            <div className="flex justify-between">
+              <label className="font-medium capitalize">{key}</label>
+              <span className="font-bold text-blue-600">{value}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={value}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value)
+                setPortfolioBuilder(prev => ({
+                  ...prev,
+                  [key]: newValue
+                }))
+              }}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+        ))}
+      </div>
 
-As an F-1 student, you can legally invest in stocks, bonds, and other securities. However, there are important restrictions to understand:
+      <div className="mt-6 p-4 bg-white rounded-xl">
+        <div className="flex justify-between text-sm">
+          <span>Total Allocation:</span>
+          <span className={`font-bold ${Object.values(portfolioBuilder).reduce((a: number, b: number) => a + b, 0) === 100
+            ? 'text-green-600'
+            : 'text-red-600'
+            }`}>
+            {Object.values(portfolioBuilder).reduce((a: number, b: number) => a + b, 0)}%
+          </span>
+        </div>
+      </div>
+    </div>
+  )
 
-**What's Allowed:**
-- Buy and hold investing (long-term positions)
-- Passive income from dividends and capital gains
-- Investment through brokerage accounts
-- Retirement account contributions (with earned income)
+  const handleAnswerSelect = (answerIndex: number): void => {
+    setSelectedAnswer(answerIndex)
+    setShowExplanation(true)
+  }
 
-**What to Avoid:**
-- Day trading or frequent trading that resembles employment
-- Running an investment business or advisory service
-- Pattern Day Trading (25k+ account with 4+ day trades in 5 days)
-- Any activity that generates "active" income
+  const nextQuestion = (): void => {
+    const currentModule = selectedCourse?.modules.find(m => m.id === selectedModule)
+    const quiz = currentModule?.content?.quiz || []
 
-## Key Principle: Passive vs Active Income
+    if (currentQuiz < quiz.length - 1) {
+      setCurrentQuiz(currentQuiz + 1)
+      setSelectedAnswer(null)
+      setShowExplanation(false)
+    } else {
+      // Module completed
+      if (selectedModule && !completedModules.includes(selectedModule)) {
+        setCompletedModules([...completedModules, selectedModule])
+      }
+      setSelectedModule(null)
+      setCurrentQuiz(0)
+      setSelectedAnswer(null)
+      setShowExplanation(false)
+    }
+  }
 
-The IRS distinguishes between passive investment income (allowed) and active business income (restricted). Buying stocks and holding them is passive. Trading frequently can be seen as active business.
+  const startCourse = (courseId: number): void => {
+    const course = COMPREHENSIVE_COURSES.find(c => c.id === courseId)
+    if (course) {
+      setSelectedCourse(course)
+    }
+  }
 
-## Safe Investment Approach
+  const startModule = (moduleId: number): void => {
+    setSelectedModule(moduleId)
+    setCurrentQuiz(0)
+  }
 
-Focus on buy-and-hold strategies with index funds, ETFs, and blue-chip stocks. This approach is not only visa-safe but also historically more profitable than frequent trading.
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Investment Academy 
+            </h1>
+            <p className="text-gray-600">Master investing through interactive courses and AI-powered guidance</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">All courses</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Stocks</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">ETFs</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Options</button>
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50">Crypto</button>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {!selectedCourse ? (
+            /* Courses Grid */
+            <motion.div
+              key="courses"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-8"
+            >
+              {/* My Courses Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">My courses</h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {COMPREHENSIVE_COURSES.slice(0, 3).map((course, index) => {
+                    const isCompleted = completedCourses.includes(course.id)
+                    const progress = Math.floor(Math.random() * 100) // Mock progress
+                    const lessonsCount = course.modules.length
+
+                    return (
+                      <motion.div
+                        key={course.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`relative rounded-3xl p-6 text-white cursor-pointer transition-all duration-200 hover:scale-105 ${index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
+                          index === 1 ? 'bg-gradient-to-br from-red-500 to-orange-500' :
+                            'bg-gradient-to-br from-gray-800 to-gray-900'
+                          }`}
+                        onClick={() => startCourse(course.id)}
+                      >
+                        <div className="absolute top-4 right-4">
+                          <BookmarkIcon className="w-6 h-6" />
+                        </div>
+
+                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${index === 0 ? 'bg-blue-700' :
+                          index === 1 ? 'bg-red-700' :
+                            'bg-gray-700'
+                          }`}>
+                          {course.level}
+                        </div>
+
+                        <h3 className="text-xl font-bold mb-2">{course.title}</h3>
+                        <p className="text-sm opacity-90 mb-4">{course.description.slice(0, 60)}...</p>
+
+                        <div className="mb-4">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span>Progress</span>
+                            <span>{progress}/{lessonsCount} lessons</span>
+                          </div>
+                          <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
+                            <div
+                              className="bg-white h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex -space-x-2">
+                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs">+{Math.floor(Math.random() * 200) + 100}</div>
+                          </div>
+                          <button className="bg-lime-400 text-gray-900 px-4 py-2 rounded-xl font-medium text-sm hover:bg-lime-300 transition-colors">
+                            Continue
+                          </button>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* My Next Lessons */}
+              <div className="grid lg:grid-cols-3 gap-8 mb-8">
+                <div className="lg:col-span-2">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">All Courses</h2>
+                    <button className="text-red-500 hover:text-red-600 font-medium">View all courses</button>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div className="space-y-4">
+                      {COMPREHENSIVE_COURSES.map((course, index) => {
+                        const isCompleted = completedCourses.includes(course.id)
+                        const isLocked = !course.unlocked && !isCompleted
+
+                        return (
+                          <div key={course.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => !isLocked && startCourse(course.id)}>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                              <p className="text-sm text-gray-600">{course.description}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">{course.emoji}</div>
+                              <div className="text-right">
+                                <div className="text-sm font-medium text-gray-900">{course.level}</div>
+                                <div className="text-xs text-gray-500">{course.duration}</div>
+                              </div>
+                              {isCompleted && (
+                                <Check className="w-5 h-5 text-green-600" />
+                              )}
+                              {isLocked && (
+                                <div className="text-gray-400 text-sm">🔒</div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* New Course Recommendation */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">New course matching your interests</h3>
+                  <div className="bg-gradient-to-br from-lime-400 to-lime-500 rounded-3xl p-6 text-gray-900">
+                    <div className="inline-block px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-medium mb-4">
+                      Design
+                    </div>
+
+                    <h3 className="text-2xl font-bold mb-2">Advanced Option Trading</h3>
+
+                    <div className="flex items-center gap-2 mb-6">
+                      <span className="text-sm">They are already studying</span>
+                      <div className="flex -space-x-2">
+                        <div className="w-6 h-6 bg-gray-800 rounded-full"></div>
+                        <div className="w-6 h-6 bg-gray-700 rounded-full"></div>
+                        <div className="w-6 h-6 bg-gray-600 rounded-full"></div>
+                        <span className="text-sm font-medium">+100</span>
+                      </div>
+                    </div>
+
+                    <button className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors">
+                      More details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : !selectedModule ? (
+            /* Course Modules */
+            <motion.div
+              key="modules"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+                >
+                  ← Back to Courses
+                </button>
+
+                <div className="flex items-start gap-6 mb-8">
+                  <div className="text-6xl">{selectedCourse.emoji}</div>
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold mb-2">{selectedCourse.title}</h1>
+                    <p className="text-gray-600 mb-4">{selectedCourse.description}</p>
+                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {selectedCourse.duration}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        {selectedCourse.rating}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        {selectedCourse.students.toLocaleString()} students
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4">
+                  {selectedCourse.modules.map((module, index) => (
+                    <motion.div
+                      key={module.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      onClick={() => startModule(module.id)}
+                      className="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50 cursor-pointer transition-all"
+                    >
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        {module.type === 'lesson' ? <FileText className="w-6 h-6 text-blue-600" /> :
+                          module.type === 'video' ? <Video className="w-6 h-6 text-red-600" /> :
+                            <Play className="w-6 h-6 text-green-600" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{module.title}</h3>
+                        <p className="text-sm text-gray-500 capitalize">{module.type}</p>
+                      </div>
+                      {completedModules.includes(module.id) && (
+                        <Check className="w-6 h-6 text-green-600" />
+                      )}
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* Module Content */
+            <motion.div
+              key="module"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-4xl mx-auto"
+            >
+              <ModuleContent
+                course={selectedCourse}
+                moduleId={selectedModule}
+                onBack={() => setSelectedModule(null)}
+                currentQuiz={currentQuiz}
+                selectedAnswer={selectedAnswer}
+                showExplanation={showExplanation}
+                onAnswerSelect={handleAnswerSelect}
+                onNextQuestion={nextQuestion}
+                portfolioBuilder={portfolioBuilder}
+                setPortfolioBuilder={setPortfolioBuilder}
+                PortfolioBuilder={PortfolioBuilder}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Enhanced Chat Widget with Course Context */}
+      <EnhancedChatWidget
+        currentCourse={selectedCourse?.title}
+        currentModule={selectedCourse?.modules.find(m => m.id === selectedModule)?.title}
+      />
+    </div>
+  )
+}
+
+// Enhanced course data with comprehensive content
+const COMPREHENSIVE_COURSES: Course[] = [
+  {
+    id: 1,
+    title: "Investing Fundamentals",
+    emoji: "📚",
+    description: "Master the core concepts of investing with practical examples and real-world applications.",
+    duration: "45 min",
+    level: "beginner",
+    unlocked: true,
+    rating: 4.9,
+    students: 2847,
+    modules: [
+      {
+        id: 1,
+        title: "What is Investing?",
+        type: "lesson",
+        content: {
+          text: `
+# What is Investing? 💰
+
+Investing is the process of putting your money to work to generate returns over time. Think of it as planting seeds that grow into trees bearing fruit.
+
+## Key Concepts:
+
+**Risk vs Return**: Higher potential returns usually come with higher risk. It's like climbing a mountain - the higher you go, the more beautiful the view, but the more challenging the climb.
+
+**Time Horizon**: How long you plan to keep your money invested. Longer time horizons generally allow for more aggressive strategies.
+
+**Compound Interest**: Einstein called it "the eighth wonder of the world." Your money earns returns, and those returns earn returns!
+
+## Example:
+If you invest $1,000 at 7% annual return:
+- Year 1: $1,070
+- Year 10: $1,967
+- Year 20: $3,870
+- Year 30: $7,612
+
+The magic happens over time! ✨
           `,
-            quiz: [
-              {
-                question: "Which investment activity is safest for F-1 visa holders?",
-                options: [
-                  "Day trading stocks daily",
-                  "Buy-and-hold investing in ETFs",
-                  "Running a trading advisory service",
-                  "Forex trading for quick profits"
-                ],
-                correct: 1,
-                explanation: "Buy-and-hold investing generates passive income, which is allowed for F-1 students and doesn't risk visa status."
-              }
-            ]
-          }
-        },
-        {
-          id: 2,
-          title: "Safe Brokerage Account Setup",
-          type: "lesson",
-          content: {
-            text: `
-# Safe Brokerage Account Setup
+          video: "intro-to-investing.mp4",
+          quiz: [
+            {
+              question: "What is the main benefit of compound interest?",
+              options: [
+                "You get money back immediately",
+                "Your returns generate additional returns over time",
+                "It eliminates all investment risk",
+                "It guarantees profits"
+              ],
+              correct: 1,
+              explanation: "Compound interest means your returns generate additional returns, creating exponential growth over time! 🚀"
+            }
+          ]
+        }
+      },
+      {
+        id: 2,
+        title: "Types of Investments",
+        type: "lesson",
+        content: {
+          text: `
+# Types of Investments 🎯
 
-## Choosing the Right Broker
+## Stocks (Equities)
+Buying shares means owning a piece of a company. When the company does well, your investment typically grows.
 
-**Student-Friendly Brokers:**
-- Fidelity: No minimums, excellent research tools
-- Charles Schwab: Global support, no foreign transaction fees
-- E*TRADE: User-friendly mobile app, educational resources
-- TD Ameritrade: Comprehensive learning platform
+**Example**: If you buy Apple stock, you own a tiny piece of Apple!
 
-**What to Look For:**
-- No account minimums
-- Commission-free stock and ETF trades  
-- Educational resources
-- Mobile app functionality
-- Customer support for international students
+## Bonds
+Lending money to companies or governments in exchange for regular interest payments.
 
-## Required Documents
+**Think of it as**: Being the bank - you lend money and get paid interest.
 
-- Valid passport
-- I-20 form
-- U.S. address (can be campus address)
-- Social Security Number or ITIN
-- Bank account information
+## Real Estate
+Investing in property, either directly or through REITs (Real Estate Investment Trusts).
 
-## Account Types for Students
+## ETFs & Mutual Funds
+Baskets of investments managed professionally. Perfect for diversification!
 
-**Taxable Brokerage Account**: Most flexible for students
-**Roth IRA**: Only if you have earned income from on-campus work
-**Traditional IRA**: Usually not beneficial for students in low tax brackets
+**ETF Example**: SPDR S&P 500 (SPY) contains 500 of the largest US companies in one fund.
 
-## Important Settings
-
-Set your account to "Cash Account" not "Margin Account" to avoid pattern day trading rules and stay visa-compliant.
-          `
-          }
-        },
-        {
-          id: 3,
-          title: "Building Your First Portfolio",
-          type: "interactive",
-          content: {
-            text: `
-Building Your First Portfolio 🎨
+## Commodities
+Physical goods like gold, oil, or agricultural products.
+          `,
+          quiz: [
+            {
+              question: "What does buying a stock represent?",
+              options: [
+                "Lending money to a company",
+                "Owning a piece of the company",
+                "Buying the company's products",
+                "Working for the company"
+              ],
+              correct: 1,
+              explanation: "When you buy stock, you become a partial owner of that company! You share in its successes (and risks). 🏢"
+            }
+          ]
+        }
+      },
+      {
+        id: 3,
+        title: "Building Your First Portfolio",
+        type: "interactive",
+        content: {
+          text: `
+# Building Your First Portfolio 🎨
 
 A portfolio is your collection of investments. Like a balanced meal, you want variety!
 
-The 60/40 Rule (Traditional)
+## The 60/40 Rule (Traditional)
 - 60% Stocks (growth potential)
 - 40% Bonds (stability)
 
-Modern Approach for Young Investors
+## Modern Approach for Young Investors
 - 70-80% Stock ETFs
 - 10-20% International ETFs
 - 5-10% Bonds
 - 5% Alternative investments
 
-Sample $1,000 Student Portfolio:
+## Sample $1,000 Student Portfolio:
 - $400 - US Total Market ETF (VTI)
 - $200 - International ETF (VTIAX)
 - $200 - Individual growth stocks
 - $150 - Bond ETF (BND)
 - $50 - Fun money (crypto, individual picks)
           `,
-            interactive: true
-          }
+          interactive: true
         }
-      ],
-      completed: false
-    },
-    {
-      id: 2,
-      title: "Investment Fundamentals",
-      emoji: "📚",
-      description: "Master the basics of investing and portfolio management",
-      duration: "60 min",
-      level: "beginner",
-      unlocked: true,
-      rating: 4.8,
-      students: 2156,
-      modules: [
-        {
-          id: 1,
-          title: "What's the Difference Between Saving and Investing?",
-          type: "lesson",
-          content: {
-            text: `
-What's the difference between saving and investing?
+      }
+    ],
+    completed: false
+  },
+  {
+    id: 2,
+    title: "Stock Market Mastery",
+    emoji: "📈",
+    description: "Deep dive into stock analysis, market trends, and advanced trading strategies.",
+    duration: "60 min",
+    level: "intermediate",
+    unlocked: true,
+    rating: 4.8,
+    students: 1923,
+    modules: [
+      {
+        id: 1,
+        title: "Reading Stock Charts",
+        type: "lesson",
+        content: {
+          text: `
+# Reading Stock Charts 📊
 
-Saving is putting money aside for future use. It's important to save so you can cover fixed expenses, such as mortgage or rent payments, and to make sure you're prepared for emergencies. Generally, people put their savings in bank accounts, where up to $250,000 is insured by the Federal Deposit Insurance Corporation (FDIC).
+Charts tell the story of a stock's price movement. Learn to read this visual language!
 
-Investing is when you put your money "to work for you," another way to think of investing is when you put your money "at risk." You buy an investment like a stock or bond with the hope that its value will increase over time. Although investing comes with the risk of losing money, should a stock or bond decrease in value, it also has the potential for greater returns than you'd receive by putting your money in a bank account.
+## Basic Chart Types:
 
-The goal of investing is to grow your money over time.
+**Line Charts**: Simple price movement over time
+**Candlestick Charts**: Show open, high, low, close prices
+**Volume Charts**: How many shares were traded
 
-**Why should I invest?**
+## Key Indicators:
 
-Investing can help investors pursue financial goals, such as buying a home or funding retirement. By investing, you're putting your money to work, and at risk, to pursue your goals.
+**Support & Resistance**: Price levels where stock tends to bounce
+**Moving Averages**: Smooth out price action to show trends
+**RSI**: Measures if stock is overbought or oversold
 
-**The power of compounding**: A little goes a long way. When you invest, your returns generate more returns, creating exponential growth over time.
+## Reading the Story:
+- Upward trend = Bullish (optimistic)
+- Downward trend = Bearish (pessimistic)
+- Sideways = Consolidation (uncertainty)
 
-**When should I invest?**
-
-Many investment professionals say the sooner you invest, the better. Historically, the longer you invest, the less impact the market's short-term ups and downs have on your return.
-
-**Time in the market is more important than timing the market.**
-          `,
-            quiz: [
-              {
-                question: "What is the main difference between saving and investing?",
-                options: [
-                  "Saving is riskier than investing",
-                  "Investing aims to grow money over time while saving preserves money",
-                  "Saving requires more money than investing",
-                  "There is no difference between the two"
-                ],
-                correct: 1,
-                explanation: "Investing puts your money to work to grow over time, while saving preserves your money safely in bank accounts! 💰"
-              },
-              {
-                question: "What is the power of compounding?",
-                options: [
-                  "Earning interest only on your initial investment",
-                  "Earning returns on your initial investment plus accumulated earnings",
-                  "Avoiding all investment fees",
-                  "Trading stocks frequently"
-                ],
-                correct: 1,
-                explanation: "Compounding means your returns generate more returns, creating exponential growth over time! 📈"
-              },
-              {
-                question: "What is diversification?",
-                options: [
-                  "Putting all your money in one investment",
-                  "Spreading investments across different types to reduce risk",
-                  "Only investing in stocks",
-                  "Avoiding all bonds"
-                ],
-                correct: 1,
-                explanation: "Diversification spreads your risk across different investments, so you're not putting all your eggs in one basket! 🥚"
-              }
-            ]
-          }
-        },
-        {
-          id: 2,
-          title: "Types of Investments",
-          type: "lesson",
-          content: {
-            text: `
-Types of Investments 🎯
-
-**Stocks (Equities)**
-Buying shares means owning a piece of a company. When the company does well, your investment typically grows.
-
-Example: If you buy Apple stock, you own a tiny piece of Apple!
-
-**Bonds**
-Lending money to companies or governments in exchange for regular interest payments.
-
-Think of it as: Being the bank - you lend money and get paid interest.
-
-**Real Estate**
-Investing in property, either directly or through REITs (Real Estate Investment Trusts).
-
-**ETFs & Mutual Funds**
-Baskets of investments managed professionally. Perfect for diversification!
-
-ETF Example: SPDR S&P 500 (SPY) contains 500 of the largest US companies in one fund.
-
-**Commodities**
-Physical goods like gold, oil, or agricultural products.
-          `,
-            quiz: [
-              {
-                question: "What does buying a stock represent?",
-                options: [
-                  "Lending money to a company",
-                  "Owning a piece of the company",
-                  "Buying the company's products",
-                  "Working for the company"
-                ],
-                correct: 1,
-                explanation: "When you buy stock, you become a partial owner of that company! You share in its successes (and risks). 🏢"
-              }
-            ]
-          }
+Remember: Charts show what happened, not what will happen! 🔮
+          `
         }
-      ],
-      completed: false
-    }
-  ];
+      }
+    ],
+    completed: false
+  },
+  {
+    id: 3,
+    title: "ETF Investment Strategy",
+    emoji: "🛒",
+    description: "Master Exchange Traded Funds for diversified, low-cost investing.",
+    duration: "35 min",
+    level: "beginner",
+    unlocked: true,
+    rating: 4.9,
+    students: 3241,
+    modules: [
+      {
+        id: 1,
+        title: "ETF Basics",
+        type: "lesson",
+        content: {
+          text: `
+# ETF Basics 🛒
 
-  const handleCourseSelect = (course: Course) => {
-    setSelectedCourse(course);
-    setSelectedModule(null);
-    setCurrentQuiz(0);
-    setSelectedAnswer(null);
-    setShowExplanation(false);
-  };
+## What are ETFs?
+Exchange Traded Funds are like buying a pre-made smoothie instead of individual fruits. You get a blend of many investments in one purchase!
 
-  const handleModuleSelect = (moduleId: number) => {
-    setSelectedModule(moduleId);
-    setCurrentQuiz(0);
-    setSelectedAnswer(null);
-    setShowExplanation(false);
-  };
+## Popular ETF Categories:
 
-  const handleBackToCourses = () => {
-    setSelectedCourse(null);
-    setSelectedModule(null);
-  };
+**Broad Market ETFs**:
+- SPY (S&P 500) - Top 500 US companies
+- VTI (Total Stock Market) - Entire US market
+- QQQ (NASDAQ 100) - Tech-heavy index
 
-  const handleBackToModules = () => {
-    setSelectedModule(null);
-  };
+**International ETFs**:
+- VXUS (International stocks excluding US)
+- EEM (Emerging markets)
 
-  const handleAnswerSelect = (answerIndex: number) => {
-    setSelectedAnswer(answerIndex);
-    setShowExplanation(true);
-  };
+**Sector ETFs**:
+- XLK (Technology)
+- XLF (Financial)
+- XLE (Energy)
 
-  const handleNextQuestion = () => {
-    if (currentQuiz < (selectedCourse?.modules.find(m => m.id === selectedModule)?.content.quiz?.length || 0) - 1) {
-      setCurrentQuiz(currentQuiz + 1);
-      setSelectedAnswer(null);
-      setShowExplanation(false);
-    }
-  };
+## Benefits:
+-  Instant diversification
+-  Low fees (expense ratios)
+-  Professional management
+-  Trade like stocks
 
-  if (selectedCourse && selectedModule) {
-    return (
-      <ModuleContent
-        course={selectedCourse}
-        moduleId={selectedModule}
-        onBack={handleBackToModules}
-        currentQuiz={currentQuiz}
-        selectedAnswer={selectedAnswer}
-        showExplanation={showExplanation}
-        onAnswerSelect={handleAnswerSelect}
-        onNextQuestion={handleNextQuestion}
-        portfolioBuilder={portfolioBuilder}
-        setPortfolioBuilder={setPortfolioBuilder}
-        PortfolioBuilder={PortfolioBuilder}
-      />
-    );
+## Student-Friendly ETFs:
+Start with broad market ETFs like VTI or VOO for maximum diversification! 🎯
+          `
+        }
+      }
+    ],
+    completed: false
+  },
+  {
+    id: 4,
+    title: "Crypto & Alternative Investments",
+    emoji: "₿",
+    description: "Explore cryptocurrency, NFTs, and other alternative investment opportunities.",
+    duration: "50 min",
+    level: "advanced",
+    unlocked: false,
+    rating: 4.6,
+    students: 1456,
+    modules: [],
+    completed: false
+  },
+  {
+    id: 5,
+    title: "Tax-Efficient Investing",
+    emoji: "📋",
+    description: "Maximize your returns by minimizing taxes through smart investment strategies.",
+    duration: "40 min",
+    level: "intermediate",
+    unlocked: false,
+    rating: 4.7,
+    students: 987,
+    modules: [],
+    completed: false
   }
-
-  if (selectedCourse) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <button
-              onClick={handleBackToCourses}
-              className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
-            >
-              <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
-              Back to Courses
-            </button>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center mb-6">
-                <span className="text-4xl mr-4">{selectedCourse.emoji}</span>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{selectedCourse.title}</h1>
-                  <p className="text-gray-600 mt-2">{selectedCourse.description}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="flex items-center text-gray-600">
-                  <Clock className="w-5 h-5 mr-2" />
-                  <span>{selectedCourse.duration}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <Trophy className="w-5 h-5 mr-2" />
-                  <span className="capitalize">{selectedCourse.level}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <Users className="w-5 h-5 mr-2" />
-                  <span>{selectedCourse.students.toLocaleString()} students</span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {selectedCourse.modules.map((module) => (
-                  <motion.div
-                    key={module.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => handleModuleSelect(module.id)}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        {module.type === 'lesson' && <FileText className="w-5 h-5 text-blue-600 mr-2" />}
-                        {module.type === 'video' && <Video className="w-5 h-5 text-red-600 mr-2" />}
-                        {module.type === 'interactive' && <Play className="w-5 h-5 text-green-600 mr-2" />}
-                        <span className="text-sm text-gray-500 capitalize">{module.type}</span>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
-                    
-                    {module.content.quiz && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <FileCheck className="w-4 h-4 mr-1" />
-                        <span>{module.content.quiz.length} quiz questions</span>
-                      </div>
-                    )}
-                    
-                    {module.content.interactive && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Play className="w-4 h-4 mr-1" />
-                        <span>Interactive exercise</span>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <EnhancedChatWidget />
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Education Hub
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Master the fundamentals of investing while staying compliant with your visa requirements. 
-              Learn from expert-curated content designed specifically for international students.
-            </p>
-          </motion.div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {courses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
-              onClick={() => handleCourseSelect(course)}
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-4xl">{course.emoji}</span>
-                  <div className="flex items-center">
-                    <Star className="w-5 h-5 text-yellow-400 mr-1" />
-                    <span className="text-sm font-medium text-gray-900">{course.rating}</span>
-                  </div>
-                </div>
-                
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{course.title}</h3>
-                <p className="text-gray-600 mb-4">{course.description}</p>
-                
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>{course.duration}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />
-                    <span>{course.students.toLocaleString()}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    course.level === 'beginner' ? 'bg-green-100 text-green-800' :
-                    course.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {course.level}
-                  </span>
-                  
-                  <div className="flex items-center text-blue-600 font-medium">
-                    <span>Start Learning</span>
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose Our Education Hub?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Designed specifically for international students with F-1 visas, our courses ensure you learn 
-              investment strategies that won't jeopardize your immigration status.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Visa-Safe Learning</h3>
-              <p className="text-gray-600">
-                All content is reviewed to ensure compliance with F-1 visa regulations
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <GraduationCap className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Expert-Curated Content</h3>
-              <p className="text-gray-600">
-                Learn from financial experts who understand international student needs
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Practical Skills</h3>
-              <p className="text-gray-600">
-                Build real-world investment skills you can use immediately
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <EnhancedChatWidget />
-    </div>
-  );
-};
+];
 
 export default EducationHub;
