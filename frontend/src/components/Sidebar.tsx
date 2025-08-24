@@ -18,7 +18,7 @@ const Sidebar = () => {
     <div className="w-64 bg-white flex flex-col h-screen shadow-sm">
       {/* Logo */}
       <div className="p-6">
-        <h1 className="text-xl font-bold text-gray-900">StudVest</h1>
+        <h1 className="text-xl font-bold text-gray-900">Finlit</h1>
       </div>
 
       {/* User Panel */}

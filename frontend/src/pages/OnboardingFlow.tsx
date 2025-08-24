@@ -7,6 +7,7 @@ import Logo from '../components/Logo'
 
 const OnboardingFlow = () => {
   const [step, setStep] = useState(1)
+  const [userName, setUserName] = useState('')
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
   const [selectedGoal, setSelectedGoal] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState('en')
@@ -44,6 +45,7 @@ const OnboardingFlow = () => {
 
     const user = {
       id: '1',
+      name: userName,
       email: 'student@example.com',
       goal: selectedGoal as any,
       language: selectedLanguage,
@@ -59,7 +61,7 @@ const OnboardingFlow = () => {
   }
 
   const nextStep = () => {
-    if (step < 5) setStep(step + 1)
+    if (step < 6) setStep(step + 1)
     else generatePortfolio()
   }
 
@@ -69,33 +71,36 @@ const OnboardingFlow = () => {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return selectedBrands.length >= 2
-      case 2: return selectedGoal !== ''
-      case 3: return selectedLanguage !== ''
-      case 4: return visaStatus !== ''
-      case 5: return homeCountry !== ''
+      case 1: return userName.trim() !== ''
+      case 2: return selectedBrands.length >= 2
+      case 3: return selectedGoal !== ''
+      case 4: return selectedLanguage !== ''
+      case 5: return visaStatus !== ''
+      case 6: return homeCountry !== ''
       default: return false
     }
   }
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return 'Choose Your Brands'
-      case 2: return 'Investment Goals'
-      case 3: return 'Select Language'
-      case 4: return 'Visa Status'
-      case 5: return 'Home Country'
+      case 1: return 'What\'s Your Name?'
+      case 2: return 'Choose Your Brands'
+      case 3: return 'Investment Goals'
+      case 4: return 'Select Language'
+      case 5: return 'Visa Status'
+      case 6: return 'Home Country'
       default: return 'Getting Started'
     }
   }
 
   const getStepDescription = () => {
     switch (step) {
-      case 1: return 'Select brands you use regularly. We\'ll help you invest in companies you know.'
-      case 2: return 'Choose your primary investment objective to personalize your experience.'
-      case 3: return 'Select your preferred language for the platform interface.'
-      case 4: return 'Help us provide visa-compliant trading guidance and alerts.'
-      case 5: return 'We\'ll calculate your tax treaty benefits and provide country-specific guidance.'
+      case 1: return 'Let\'s start by getting to know you better.'
+      case 2: return 'Select brands you use regularly. We\'ll help you invest in companies you know.'
+      case 3: return 'Choose your primary investment objective to personalize your experience.'
+      case 4: return 'Select your preferred language for the platform interface.'
+      case 5: return 'Help us provide visa-compliant trading guidance and alerts.'
+      case 6: return 'We\'ll calculate your tax treaty benefits and provide country-specific guidance.'
       default: return 'Let\'s personalize your investment journey.'
     }
   }
@@ -168,7 +173,7 @@ const OnboardingFlow = () => {
           {/* Progress Indicator */}
           <div className="flex items-center justify-center mb-8">
             <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-blue-600' : i < step ? 'bg-blue-300' : 'bg-gray-200'
@@ -184,8 +189,27 @@ const OnboardingFlow = () => {
             <p className="text-gray-600 text-sm">{getStepDescription()}</p>
           </div>
 
-          {/* Step 1: Lifestyle Brands */}
+          {/* Step 1: Name Input */}
           {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Enter your full name"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Lifestyle Brands */}
+          {step === 2 && (
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-3">
                 {LIFESTYLE_BRANDS.slice(0, 9).map((brand) => (
@@ -217,8 +241,8 @@ const OnboardingFlow = () => {
             </div>
           )}
 
-          {/* Step 2: Investment Goal */}
-          {step === 2 && (
+          {/* Step 3: Investment Goal */}
+          {step === 3 && (
             <div className="space-y-3">
               {INVESTMENT_GOALS.map((goal) => (
                 <button
@@ -247,8 +271,8 @@ const OnboardingFlow = () => {
             </div>
           )}
 
-          {/* Step 3: Language */}
-          {step === 3 && (
+          {/* Step 4: Language */}
+          {step === 4 && (
             <div className="grid grid-cols-2 gap-3">
               {LANGUAGES.map((lang) => (
                 <button
@@ -269,8 +293,8 @@ const OnboardingFlow = () => {
             </div>
           )}
 
-          {/* Step 4: Visa Status */}
-          {step === 4 && (
+          {/* Step 5: Visa Status */}
+          {step === 5 && (
             <div className="space-y-3">
               {[
                 { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', emoji: '🎓' },
@@ -304,8 +328,8 @@ const OnboardingFlow = () => {
             </div>
           )}
 
-          {/* Step 5: Home Country */}
-          {step === 5 && (
+          {/* Step 6: Home Country */}
+          {step === 6 && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -316,7 +340,8 @@ const OnboardingFlow = () => {
                   { code: 'DE', name: 'Germany', flag: '🇩🇪', treaty: '5% tax rate' },
                   { code: 'JP', name: 'Japan', flag: '🇯🇵', treaty: '15% tax rate' },
                   { code: 'BR', name: 'Brazil', flag: '🇧🇷', treaty: '15% tax rate' },
-                  { code: 'MX', name: 'Mexico', flag: '🇲🇽', treaty: '10% tax rate' }
+                  { code: 'MX', name: 'Mexico', flag: '🇲🇽', treaty: '10% tax rate' },
+                  { code: 'NP', name: 'Nepal', flag: '🇳🇵', treaty: '30% tax rate' }
                 ].map((country) => (
                   <button
                     key={country.code}
@@ -367,7 +392,7 @@ const OnboardingFlow = () => {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              {step === 5 ? 'Create Portfolio' : 'Continue'}
+              {step === 6 ? 'Create Portfolio' : 'Continue'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
