@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Home, TrendingUp, BookOpen, User, Menu, X, Search } from 'lucide-react'
+import { Home, TrendingUp, BookOpen, User, Menu, X, Search, Globe } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import CommandMenu from './CommandMenu'
@@ -14,6 +14,7 @@ const Navigation = () => {
     { path: '/trade', icon: TrendingUp, label: 'Trade' },
     { path: '/screener', icon: Search, label: 'Screener' },
     { path: '/learn', icon: BookOpen, label: 'Learn' },
+    { path: '/international-student-hub', icon: Globe, label: 'Intl Students', highlight: true },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -43,9 +44,11 @@ const Navigation = () => {
                 <motion.button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors relative ${
                     isActive(item.path)
                       ? 'bg-primary-100 text-primary-700'
+                      : item.highlight
+                      ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                   whileHover={{ scale: 1.05 }}
@@ -53,6 +56,9 @@ const Navigation = () => {
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
+                  {item.highlight && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+                  )}
                 </motion.button>
               ))}
             </div>

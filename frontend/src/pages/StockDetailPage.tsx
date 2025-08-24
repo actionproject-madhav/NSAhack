@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom'
 import TradingViewWidget from '../components/TradingViewWidget'
 import Navigation from '../components/Navigation'
 import StockAnalysisChat from '../components/StockAnalysisChat'
+import InternationalStudentAlerts from '../components/InternationalStudentAlerts'
+import F1StockCompliance from '../components/F1StockCompliance'
+import EnhancedOrderBook from '../components/EnhancedOrderBook'
 import { cn } from '../utils/cn'
 
 // Mock stock data - replace with real API calls
@@ -11,7 +14,7 @@ const mockStockData = {
     symbol: "AAPL",
     shortName: "Apple Inc.",
     fullExchangeName: "NASDAQ",
-    regularMarketPrice: 190.40,
+    regularMarketPrice: 227.46,
     regularMarketChange: 1.59,
     regularMarketChangePercent: 0.84,
     currency: "USD",
@@ -145,7 +148,13 @@ const formatLargeNumber = (value: number) => {
 export default function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [isAnalysisChatOpen, setIsAnalysisChatOpen] = useState(false)
-  
+  const [complianceStatus, setComplianceStatus] = useState<{ isCompliant: boolean; warnings: string[] }>({
+    isCompliant: true,
+    warnings: []
+  })
+  const [tradeQuantity, setTradeQuantity] = useState(10)
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy')
+
   if (!symbol || !mockStockData[symbol as keyof typeof mockStockData]) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -182,14 +191,14 @@ export default function StockDetailPage() {
       summary: "The company exceeded analyst expectations with strong revenue growth..."
     },
     {
-      source: "Reuters", 
+      source: "Reuters",
       time: "5 hours ago",
       title: `Market Analysis: ${stock.sector} Sector Outlook`,
       summary: `Industry experts weigh in on the future prospects of the ${stock.sector.toLowerCase()} sector...`
     },
     {
       source: "Bloomberg",
-      time: "1 day ago", 
+      time: "1 day ago",
       title: `${stock.shortName} Announces New Strategic Initiative`,
       summary: "The company unveiled plans for expansion into new markets..."
     }
@@ -206,10 +215,26 @@ export default function StockDetailPage() {
     setIsAnalysisChatOpen(true)
   }
 
+  const handleComplianceCheck = (isCompliant: boolean, warnings: string[]) => {
+    setComplianceStatus({ isCompliant, warnings })
+  }
+
+  const handleTrade = () => {
+    if (!complianceStatus.isCompliant) {
+      alert('Trading blocked due to compliance violations. Please review warnings before proceeding.')
+      return
+    }
+    
+    // Proceed with trade
+    alert(`Order placed: ${tradeType} ${tradeQuantity} shares of ${symbol} at $${stock.regularMarketPrice}`)
+  }
+
+  const canTrade = complianceStatus.isCompliant
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-6 py-3">
@@ -223,18 +248,18 @@ export default function StockDetailPage() {
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center">
                   <span className="text-white text-xs">
-                    {stock.symbol === 'AAPL' ? '' : 
-                     stock.symbol === 'NVDA' ? '' : 
-                     stock.symbol === 'META' ? '' :
-                     stock.symbol === 'TSLA' ? '' :
-                     stock.symbol === 'AMD' ? '' : ''}
+                    {stock.symbol === 'AAPL' ? '' :
+                      stock.symbol === 'NVDA' ? '' :
+                        stock.symbol === 'META' ? '' :
+                          stock.symbol === 'TSLA' ? '' :
+                            stock.symbol === 'AMD' ? '' : ''}
                   </span>
                 </div>
                 <span className="font-medium">{stock.symbol}</span>
                 <span className="text-gray-500 text-sm">{formatCurrency(stock.regularMarketPrice)}</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-6">
               <nav className="flex gap-6">
                 <button className="text-sm font-medium text-black border-b-2 border-black pb-1">Chart</button>
@@ -245,7 +270,7 @@ export default function StockDetailPage() {
                 <button className="text-sm text-gray-400 hover:text-gray-600 pb-1">Financials</button>
                 <button className="text-sm text-gray-400 hover:text-gray-600 pb-1">Peer</button>
               </nav>
-              <button 
+              <button
                 onClick={handleAnalyzeClick}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
               >
@@ -287,10 +312,16 @@ export default function StockDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
                 </button>
-                <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                <button 
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={() => setTradeType('sell')}
+                >
                   Sell
                 </button>
-                <button className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                <button 
+                  className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  onClick={() => setTradeType('buy')}
+                >
                   Buy
                 </button>
               </div>
@@ -298,7 +329,7 @@ export default function StockDetailPage() {
 
             {/* Chart */}
             <div className="bg-white rounded-lg border border-gray-200 p-0 mb-6 overflow-hidden">
-              <TradingViewWidget 
+              <TradingViewWidget
                 symbol={stock.symbol}
                 height="400px"
                 theme="light"
@@ -309,8 +340,8 @@ export default function StockDetailPage() {
                     key={period}
                     className={cn(
                       "px-2 py-1 text-sm rounded transition-colors",
-                      period === '1D' 
-                        ? "bg-gray-100 text-gray-900 font-medium" 
+                      period === '1D'
+                        ? "bg-gray-100 text-gray-900 font-medium"
                         : "text-gray-500 hover:bg-gray-50"
                     )}
                   >
@@ -318,7 +349,7 @@ export default function StockDetailPage() {
                   </button>
                 ))}
                 <button className="ml-auto text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-                  Share chart 
+                  Share chart
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -357,17 +388,30 @@ export default function StockDetailPage() {
                 </table>
               </div>
             </div>
+
+            {/* Enhanced Order Book - Below the existing order book */}
+            <EnhancedOrderBook 
+              symbol={stock.symbol}
+              currentPrice={stock.regularMarketPrice}
+            />
           </div>
 
           {/* Right Column */}
           <div className="col-span-4 space-y-6">
+            {/* International Student Alerts - Critical for F-1 Visa Compliance */}
+            <InternationalStudentAlerts
+              ticker={stock.symbol}
+              tradeAmount={stock.regularMarketPrice * tradeQuantity}
+              tradeType={tradeType}
+            />
+
             {/* Buy Stock Panel */}
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Buy Stock</h3>
+                <h3 className="font-semibold">Trade Stock</h3>
                 <button className="text-gray-400">×</button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -375,7 +419,7 @@ export default function StockDetailPage() {
                     <span className="font-medium">$10,000.00</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{width: '19%'}}></div>
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '19%' }}></div>
                   </div>
                   <div className="text-right text-xs text-gray-500 mt-1">19%</div>
                 </div>
@@ -383,13 +427,13 @@ export default function StockDetailPage() {
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-500">Investment Total</span>
-                    <span className="font-medium">{formatCurrency(stock.regularMarketPrice * 10)}</span>
+                    <span className="font-medium">{formatCurrency(stock.regularMarketPrice * tradeQuantity)}</span>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-500">Buy Price</span>
+                    <span className="text-sm text-gray-500">Trade Price</span>
                     <div className="flex items-center gap-2">
                       <button className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500">−</button>
                       <span className="font-medium">{formatCurrency(stock.regularMarketPrice)}</span>
@@ -402,9 +446,15 @@ export default function StockDetailPage() {
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-sm text-gray-500">Quantity</span>
                     <div className="flex items-center gap-2">
-                      <button className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500">−</button>
-                      <span className="font-medium">10</span>
-                      <button className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500">+</button>
+                      <button 
+                        className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500"
+                        onClick={() => setTradeQuantity(Math.max(1, tradeQuantity - 1))}
+                      >−</button>
+                      <span className="font-medium">{tradeQuantity}</span>
+                      <button 
+                        className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center text-gray-500"
+                        onClick={() => setTradeQuantity(tradeQuantity + 1)}
+                      >+</button>
                     </div>
                   </div>
                 </div>
@@ -412,17 +462,31 @@ export default function StockDetailPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between mb-2">
                     <span className="font-medium">Total</span>
-                    <span className="font-bold">{formatCurrency(stock.regularMarketPrice * 10)}</span>
+                    <span className="font-bold">{formatCurrency(stock.regularMarketPrice * tradeQuantity)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500 mb-4">
                     <span>Transaction Fee</span>
                     <span>$0</span>
                   </div>
-                  
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                    Buy {stock.symbol}
+
+                  <button 
+                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                      canTrade 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-red-500 text-white cursor-not-allowed'
+                    }`}
+                    onClick={handleTrade}
+                    disabled={!canTrade}
+                  >
+                    {canTrade ? `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${stock.symbol}` : 'Trading Blocked'}
                   </button>
-                  
+
+                  {!canTrade && (
+                    <p className="text-xs text-red-600 text-center mt-2">
+                      Review compliance warnings above
+                    </p>
+                  )}
+
                   <p className="text-xs text-gray-500 text-center mt-2">
                     By placing this order, you agree to our Terms and Conditions.
                   </p>
@@ -430,13 +494,21 @@ export default function StockDetailPage() {
               </div>
             </div>
 
+            {/* F-1 Stock Compliance - Moved below Trade Stock panel */}
+            <F1StockCompliance
+              ticker={stock.symbol}
+              tradeAmount={stock.regularMarketPrice * tradeQuantity}
+              tradeType={tradeType}
+              onComplianceCheck={handleComplianceCheck}
+            />
+
             {/* Peer Analysis */}
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Peer Analysis</h3>
                 <button className="text-sm text-blue-600 hover:text-blue-700">View all</button>
               </div>
-              
+
               <div className="space-y-3">
                 {peerAnalysisData.map((peer, index) => (
                   <div key={index} className="flex items-center justify-between py-2">
@@ -444,7 +516,7 @@ export default function StockDetailPage() {
                       <div className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium",
                         peer.color === 'red' && "bg-red-500",
-                        peer.color === 'orange' && "bg-orange-500", 
+                        peer.color === 'orange' && "bg-orange-500",
                         peer.color === 'green' && "bg-green-500",
                         peer.color === 'blue' && "bg-blue-500"
                       )}>
@@ -471,7 +543,7 @@ export default function StockDetailPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <h3 className="font-semibold mb-4">Capitalization Breakdown</h3>
               <div className="text-xs text-gray-500 mb-4">Currency in USD</div>
-              
+
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
@@ -480,7 +552,7 @@ export default function StockDetailPage() {
                   </div>
                   <span className="font-medium">-{formatLargeNumber(stock.marketCap * 0.04)}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
@@ -488,12 +560,12 @@ export default function StockDetailPage() {
                   </div>
                   <span className="font-medium">{formatLargeNumber(stock.marketCap)}</span>
                 </div>
-                
+
                 <div className="flex justify-between font-medium border-t pt-2">
                   <span>= Total Enterprise Value (TEV)</span>
                   <span>{formatLargeNumber(stock.marketCap * 0.96)}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -501,7 +573,7 @@ export default function StockDetailPage() {
                   </div>
                   <span className="font-medium">{formatLargeNumber(stock.marketCap * 0.02)}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -509,7 +581,7 @@ export default function StockDetailPage() {
                   </div>
                   <span className="font-medium">{formatLargeNumber(stock.marketCap * 0.04)}</span>
                 </div>
-                
+
                 <div className="flex justify-between font-medium border-t pt-2">
                   <span>= Total Capital</span>
                   <span>{formatLargeNumber(stock.marketCap * 0.06)}</span>
@@ -521,7 +593,7 @@ export default function StockDetailPage() {
       </div>
 
       {/* Stock Analysis Chat Modal */}
-      <StockAnalysisChat 
+      <StockAnalysisChat
         isOpen={isAnalysisChatOpen}
         onClose={() => setIsAnalysisChatOpen(false)}
         stockData={stock}

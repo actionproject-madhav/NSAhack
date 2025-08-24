@@ -4,6 +4,8 @@ interface Context {
   currentCourse?: string;
   currentModule?: string;
   userLevel?: 'beginner' | 'intermediate' | 'advanced';
+  visaStatus?: string;
+  homeCountry?: string;
 }
 
 interface GeminiResponse {
@@ -39,9 +41,9 @@ class GeminiService {
 
   async generateContent(prompt: string, context: Context = {}): Promise<string> {
     try {
-      const { currentCourse, currentModule, userLevel = 'beginner' } = context;
+      const { currentCourse, currentModule, userLevel = 'beginner', visaStatus, homeCountry } = context;
 
-      const systemPrompt = this.buildSystemPrompt(currentCourse, currentModule, userLevel);
+      const systemPrompt = this.buildSystemPrompt(currentCourse, currentModule, userLevel, visaStatus, homeCountry);
       const fullPrompt = `${systemPrompt}\n\nUser Question: ${prompt}`;
 
       const generationConfig: GenerationConfig = {
@@ -98,7 +100,9 @@ class GeminiService {
   private buildSystemPrompt(
     currentCourse?: string,
     currentModule?: string,
-    userLevel: 'beginner' | 'intermediate' | 'advanced' = 'beginner'
+    userLevel: 'beginner' | 'intermediate' | 'advanced' = 'beginner',
+    visaStatus?: string,
+    homeCountry?: string
   ):  string {
     let prompt = `You are **FinTutor AI** — an expert AI investment tutor built for international students (Gen-Z) in the U.S. Your mission is to make investing easy, safe, and engaging.
   
@@ -119,9 +123,13 @@ class GeminiService {
      - Use analogies from Gen-Z life (Netflix, gaming, food delivery, shopping at Walmart, etc.).  
      - Be supportive and encouraging — treat the student like a peer who is curious.  
   
-  4. **Intl Student Context**:
-     - Whenever rules, taxes, or trading limitations come up, mention if there are special considerations for international students on visas (e.g., F-1 visa, tax treaties, pattern day trading limits).  
-     - If unsure, advise them to check with an advisor — but always give a simplified explanation first.  
+  4. **International Student Context**:
+     - CRITICAL: Always consider visa restrictions and tax implications for international students.
+     - F-1 visa holders: Warn about unauthorized employment risks from frequent trading.
+     - Pattern Day Trading: Requires $25k minimum, affects ALL traders regardless of visa.
+     - Tax treaties: Many countries have reduced capital gains rates (vs 30% default).
+     - Always recommend passive investing (buy-and-hold) as safest for visa compliance.
+     - If unsure about specific rules, advise consulting immigration attorney AND tax professional.
   
   5. **Consistency**:
      - Always keep answers concise (3–6 short paragraphs).  
@@ -141,6 +149,34 @@ class GeminiService {
   ---
   
   `;
+
+    // Add international student context if available
+    if (visaStatus || homeCountry) {
+      prompt += `\n\nSTUDENT PROFILE:`;
+      if (visaStatus) {
+        prompt += `\nVisa Status: ${visaStatus}`;
+        if (visaStatus === 'F-1') {
+          prompt += ` (IMPORTANT: Warn about unauthorized employment risks from frequent trading)`;
+        }
+      }
+      if (homeCountry) {
+        prompt += `\nHome Country: ${homeCountry}`;
+        const taxTreaties: Record<string, string> = {
+          'IN': 'India (15% capital gains tax rate with treaty)',
+          'CN': 'China (10% capital gains tax rate with treaty)',
+          'KR': 'South Korea (15% capital gains tax rate with treaty)',
+          'CA': 'Canada (0% capital gains tax rate with treaty)',
+          'DE': 'Germany (5% capital gains tax rate with treaty)',
+          'JP': 'Japan (15% capital gains tax rate with treaty)',
+          'BR': 'Brazil (15% capital gains tax rate with treaty)',
+          'MX': 'Mexico (10% capital gains tax rate with treaty)'
+        };
+        if (taxTreaties[homeCountry]) {
+          prompt += ` - ${taxTreaties[homeCountry]}`;
+        }
+      }
+      prompt += `\n\nALWAYS mention relevant visa/tax considerations in your responses when discussing trading, taxes, or investment strategies.`;
+    }
 
     if (currentCourse) {
       prompt += `\n\nCURRENT LEARNING CONTEXT:

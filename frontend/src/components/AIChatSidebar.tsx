@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Sparkles, TrendingUp, DollarSign, BookOpen, Minimize2, Maximize2, Loader2 } from 'lucide-react'
+import { Send, Sparkles, Minimize2, Maximize2, Loader2, Plus } from 'lucide-react'
 import GeminiService from '../services/geminiService'
 
 const AIChatSidebar = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm your AI investment advisor 🤖 I can help you with portfolio analysis, market insights, investment strategies, and answer any questions about investing. What would you like to know?",
+      text: "Hi! How can I help you today?",
       isBot: true,
       timestamp: new Date()
     }
@@ -15,13 +15,7 @@ const AIChatSidebar = () => {
   const [inputValue, setInputValue] = useState('')
   const [isMinimized, setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-
-  const quickActions = [
-    { icon: TrendingUp, text: "Analyze my portfolio performance", color: "bg-green-100 text-green-700" },
-    { icon: DollarSign, text: "Give me investment suggestions", color: "bg-blue-100 text-blue-700" },
-    { icon: BookOpen, text: "Explain diversification strategies", color: "bg-purple-100 text-purple-700" }
-  ]
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -89,11 +83,7 @@ const AIChatSidebar = () => {
     }
   }
 
-  const handleQuickAction = (actionText) => {
-    setInputValue(actionText)
-  }
-
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
@@ -109,15 +99,11 @@ const AIChatSidebar = () => {
         <div className="flex items-center justify-between">
           {!isMinimized && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-full flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                <Plus className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">AI Investment Advisor</h3>
-                <p className="text-xs text-green-600 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Online
-                </p>
+                <h3 className="font-semibold text-gray-900">Personalised AI Assistant</h3>
               </div>
             </div>
           )}
@@ -132,6 +118,15 @@ const AIChatSidebar = () => {
 
       {!isMinimized && (
         <>
+          {/* AI Orb at top middle */}
+          <div className="flex justify-center p-4">
+            <img 
+              src="/orb.gif" 
+              alt="AI Orb" 
+              className="w-24 h-24 rounded-full object-cover"
+            />
+          </div>
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <AnimatePresence>
@@ -145,20 +140,20 @@ const AIChatSidebar = () => {
                 >
                   <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
                     {message.isBot && (
-                      <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-purple-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <Sparkles className="w-3 h-3 text-white" />
+                      <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <Plus className="w-3 h-3 text-white" />
                       </div>
                     )}
                     <div
                       className={`p-3 rounded-2xl text-sm ${
                         message.isBot
                           ? 'bg-gray-100 text-gray-900 rounded-tl-md'
-                          : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-tr-md'
+                          : 'bg-black text-white rounded-tr-md'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{message.text}</p>
                       <p className={`text-xs mt-1 opacity-60 ${
-                        message.isBot ? 'text-gray-500' : 'text-purple-200'
+                        message.isBot ? 'text-gray-500' : 'text-gray-300'
                       }`}>
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -176,8 +171,8 @@ const AIChatSidebar = () => {
                 className="flex justify-start"
               >
                 <div className="flex gap-2 max-w-[85%]">
-                  <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-purple-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Sparkles className="w-3 h-3 text-white" />
+                  <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Plus className="w-3 h-3 text-white" />
                   </div>
                   <div className="bg-gray-100 text-gray-900 p-3 rounded-2xl rounded-tl-md">
                     <div className="flex items-center gap-2">
@@ -192,26 +187,6 @@ const AIChatSidebar = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Actions */}
-          <div className="p-4 border-t border-gray-100 flex-shrink-0">
-            <p className="text-xs text-gray-500 mb-3 font-medium">Quick actions:</p>
-            <div className="space-y-2">
-              {quickActions.map((action, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => handleQuickAction(action.text)}
-                  disabled={isLoading}
-                  className={`w-full flex items-center gap-2 p-2 rounded-lg text-xs transition-colors hover:opacity-80 disabled:opacity-50 ${action.color}`}
-                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                >
-                  <action.icon className="w-3 h-3" />
-                  <span>{action.text}</span>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
           {/* Input */}
           <div className="p-4 border-t border-gray-200 flex-shrink-0">
             <div className="flex gap-2">
@@ -220,25 +195,26 @@ const AIChatSidebar = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about investing..."
+                  placeholder="Ask me anything..."
                   disabled={isLoading}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                   rows={1}
                   style={{
-                    minHeight: '36px',
+                    minHeight: '44px',
                     maxHeight: '100px',
                     height: 'auto'
                   }}
                   onInput={(e) => {
-                    e.target.style.height = 'auto'
-                    e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px'
+                    const target = e.target as HTMLTextAreaElement
+                    target.style.height = 'auto'
+                    target.style.height = Math.min(target.scrollHeight, 100) + 'px'
                   }}
                 />
               </div>
               <button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading}
-                className="p-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 flex items-center justify-center min-w-[36px]"
+                className="p-3 bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-w-[44px]"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -255,13 +231,12 @@ const AIChatSidebar = () => {
       {isMinimized && (
         <div className="flex-1 flex flex-col items-center justify-center p-2">
           <motion.div
-            className="w-10 h-10 bg-gradient-to-r from-purple-600 to-purple-700 rounded-full flex items-center justify-center mb-2 cursor-pointer"
+            className="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2 cursor-pointer"
             whileHover={{ scale: 1.1 }}
             onClick={() => setIsMinimized(false)}
           >
-            <Sparkles className="w-5 h-5 text-white" />
+            <Plus className="w-5 h-5 text-white" />
           </motion.div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <p className="text-xs text-gray-500 mt-2 writing-mode-vertical text-center">AI Chat</p>
         </div>
       )}

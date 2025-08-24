@@ -10,6 +10,8 @@ const OnboardingFlow = () => {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
   const [selectedGoal, setSelectedGoal] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState('en')
+  const [visaStatus, setVisaStatus] = useState('')
+  const [homeCountry, setHomeCountry] = useState('')
   const { setUser } = useUser()
   const navigate = useNavigate()
 
@@ -46,6 +48,8 @@ const OnboardingFlow = () => {
       goal: selectedGoal as any,
       language: selectedLanguage,
       lifestyle: selectedBrands,
+      visaStatus,
+      homeCountry,
       portfolio,
       totalValue
     }
@@ -55,7 +59,7 @@ const OnboardingFlow = () => {
   }
 
   const nextStep = () => {
-    if (step < 3) setStep(step + 1)
+    if (step < 5) setStep(step + 1)
     else generatePortfolio()
   }
 
@@ -68,6 +72,8 @@ const OnboardingFlow = () => {
       case 1: return selectedBrands.length >= 2
       case 2: return selectedGoal !== ''
       case 3: return selectedLanguage !== ''
+      case 4: return visaStatus !== ''
+      case 5: return homeCountry !== ''
       default: return false
     }
   }
@@ -77,6 +83,8 @@ const OnboardingFlow = () => {
       case 1: return 'Choose Your Brands'
       case 2: return 'Investment Goals'
       case 3: return 'Select Language'
+      case 4: return 'Visa Status'
+      case 5: return 'Home Country'
       default: return 'Getting Started'
     }
   }
@@ -86,6 +94,8 @@ const OnboardingFlow = () => {
       case 1: return 'Select brands you use regularly. We\'ll help you invest in companies you know.'
       case 2: return 'Choose your primary investment objective to personalize your experience.'
       case 3: return 'Select your preferred language for the platform interface.'
+      case 4: return 'Help us provide visa-compliant trading guidance and alerts.'
+      case 5: return 'We\'ll calculate your tax treaty benefits and provide country-specific guidance.'
       default: return 'Let\'s personalize your investment journey.'
     }
   }
@@ -158,7 +168,7 @@ const OnboardingFlow = () => {
           {/* Progress Indicator */}
           <div className="flex items-center justify-center mb-8">
             <div className="flex space-x-2">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-blue-600' : i < step ? 'bg-blue-300' : 'bg-gray-200'
@@ -259,6 +269,83 @@ const OnboardingFlow = () => {
             </div>
           )}
 
+          {/* Step 4: Visa Status */}
+          {step === 4 && (
+            <div className="space-y-3">
+              {[
+                { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', emoji: '🎓' },
+                { id: 'J-1', title: 'J-1 Exchange Visitor', description: 'Exchange programs and research', emoji: '🔬' },
+                { id: 'H-1B', title: 'H-1B Work Visa', description: 'Specialty occupation worker', emoji: '💼' },
+                { id: 'Other', title: 'Other/US Citizen', description: 'Other visa status or US citizen', emoji: '🇺🇸' }
+              ].map((visa) => (
+                <button
+                  key={visa.id}
+                  onClick={() => setVisaStatus(visa.id)}
+                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${visaStatus === visa.id
+                    ? 'border-blue-500 bg-blue-500 text-white'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-xl">{visa.emoji}</div>
+                    <div className="flex-1">
+                      <h3 className={`font-semibold mb-1 ${visaStatus === visa.id ? 'text-white' : 'text-gray-900'
+                        }`}>
+                        {visa.title}
+                      </h3>
+                      <p className={`text-sm ${visaStatus === visa.id ? 'text-blue-100' : 'text-gray-600'
+                        }`}>
+                        {visa.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Step 5: Home Country */}
+          {step === 5 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { code: 'IN', name: 'India', flag: '🇮🇳', treaty: '15% tax rate' },
+                  { code: 'CN', name: 'China', flag: '🇨🇳', treaty: '10% tax rate' },
+                  { code: 'KR', name: 'South Korea', flag: '🇰🇷', treaty: '15% tax rate' },
+                  { code: 'CA', name: 'Canada', flag: '🇨🇦', treaty: '0% tax rate' },
+                  { code: 'DE', name: 'Germany', flag: '🇩🇪', treaty: '5% tax rate' },
+                  { code: 'JP', name: 'Japan', flag: '🇯🇵', treaty: '15% tax rate' },
+                  { code: 'BR', name: 'Brazil', flag: '🇧🇷', treaty: '15% tax rate' },
+                  { code: 'MX', name: 'Mexico', flag: '🇲🇽', treaty: '10% tax rate' }
+                ].map((country) => (
+                  <button
+                    key={country.code}
+                    onClick={() => setHomeCountry(country.code)}
+                    className={`p-3 rounded-lg border transition-all duration-200 ${homeCountry === country.code
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">{country.flag}</div>
+                      <div className={`font-medium text-sm mb-1 ${homeCountry === country.code ? 'text-white' : 'text-gray-900'
+                        }`}>
+                        {country.name}
+                      </div>
+                      <div className={`text-xs ${homeCountry === country.code ? 'text-blue-100' : 'text-green-600'
+                        }`}>
+                        {country.treaty}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-center text-sm text-gray-500">
+                Don't see your country? We'll help you find the right tax information.
+              </p>
+            </div>
+          )}
+
           {/* Navigation */}
           <div className="flex justify-between items-center mt-6">
             <button
@@ -280,7 +367,7 @@ const OnboardingFlow = () => {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              {step === 3 ? 'Create Portfolio' : 'Continue'}
+              {step === 5 ? 'Create Portfolio' : 'Continue'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
