@@ -2,7 +2,7 @@
 
 A full-stack financial literacy application that helps international students understand the US financial system through receipt scanning and investment education.
 
-##  Project Overview
+## 📋 Project Overview
 
 FinLit bridges the gap between everyday spending and investment understanding by transforming receipt scanning into financial education. International students can scan receipts from familiar companies (Starbucks, Target, Apple) and learn about these companies as investment opportunities.
 
@@ -16,7 +16,7 @@ FinLit bridges the gap between everyday spending and investment understanding by
 ### Target Audience
 International students in the US who need practical financial literacy education that connects to their daily experiences.
 
-##  Setup and Run Instructions
+## 🚀 Setup and Run Instructions
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -94,7 +94,7 @@ cd backend
 python scanner.py  # Production mode via environment variables
 ```
 
-##  Dependencies and Tools Used
+## 🛠️ Dependencies and Tools Used
 
 ### Frontend Stack
 - **React 18** - Component framework
@@ -125,7 +125,7 @@ python scanner.py  # Production mode via environment variables
 - **Google Gemini** - AI-powered features
 - **Google Sign-In** - Authentication
 
-##  Team Members and Roles
+## 👥 Team Members and Roles
 
 *Note: Please update this section with your actual team information*
 
@@ -134,7 +134,7 @@ python scanner.py  # Production mode via environment variables
 - **[Team Member 3]** - Backend Developer  
 - **[Team Member 4]** - UI/UX Designer
 
-##  Architecture Overview
+## 🏗️ Architecture Overview
 
 ### Data Flow
 1. User authenticates via Google OAuth
@@ -150,7 +150,7 @@ python scanner.py  # Production mode via environment variables
 - **Investment Bridge**: Connects spending to stock market education
 - **Portfolio Simulation**: Risk-free learning environment
 
-##  Development Notes
+## 🔧 Development Notes
 
 ### OCR Dependencies
 OCR functionality requires additional packages but is optional:
