@@ -6,12 +6,22 @@ A full-stack financial literacy application that helps international students un
 
 FinLit bridges the gap between everyday spending and investment understanding by transforming receipt scanning into financial education. International students can scan receipts from familiar companies (Starbucks, Target, Apple) and learn about these companies as investment opportunities. It provides tailored financial investment advice to immigrants keeping in mind their country of origin, immigration status and personal situations.
 
-## What makes our app Unique?
--**Tailored for immigrants and international students**
--**Alerts and warnings for immigrants based on their status and restrictions, like day-trading**
--**LLM integration with the context window wrapped on each page**
--**Smart computer vision model for receipt detection**
--**Smart live NLP analysis on market trends**
+##  What Makes Our App Unique?
+
+- **Tailored for Immigrants & International Students**  
+  Designed specifically to address the unique financial challenges faced by immigrants and international students.  
+
+- **Alerts & Warnings Based on Immigration Status**  
+  Get notified of restrictions that apply to you (e.g., day-trading limits) to stay compliant and safe.  
+
+- **LLM Integration with Context Awareness**  
+  Every page is powered by a large language model with a context window wrapped around it for smarter, more relevant assistance.  
+
+- **Smart Computer Vision for Receipt Detection**  
+  Automatically detect, scan, and organize receipts for effortless financial tracking.  
+
+- **Live NLP Market Trend Analysis**  
+  Real-time natural language processing to analyze and interpret market shifts, helping you make informed decisions.  
 
 ### Key Features
 - **Smart Receipt OCR**: Advanced image processing to extract company names and amounts
