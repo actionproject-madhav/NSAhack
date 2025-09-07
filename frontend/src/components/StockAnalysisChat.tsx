@@ -42,8 +42,7 @@ const StockAnalysisChat: React.FC<StockAnalysisChatProps> = ({ isOpen, onClose, 
   ])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -340,8 +339,9 @@ Please try your question again! 📊`
                         maxHeight: '120px'
                       }}
                       onInput={(e) => {
-                        e.target.style.height = 'auto'
-                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
+                        const target = e.target as HTMLTextAreaElement
+                        target.style.height = 'auto'
+                        target.style.height = Math.min(target.scrollHeight, 120) + 'px'
                       }}
                     />
                   </div>
