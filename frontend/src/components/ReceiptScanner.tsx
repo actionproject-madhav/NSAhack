@@ -72,7 +72,8 @@ const COMPANY_TICKER_MAP: Record<string, { ticker: string; logo: string; isPremi
   'chipotle': { ticker: 'CMG', logo: '🌯', isPremium: true }
 }
 
-const API_BASE_URL = 'http://localhost:5000' // Change this to your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Change this to your backend URL
 
 const ReceiptScanner = () => {
   const [isOpen, setIsOpen] = useState(false)
