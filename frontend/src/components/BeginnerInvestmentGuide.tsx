@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Clock } from 'lucide-react'
+import * as React from 'react'
+import { useState } from 'react'
+import { Clock, AlertTriangle } from 'lucide-react'
 
 interface InvestmentOption {
   id: string
@@ -13,7 +14,6 @@ interface InvestmentOption {
   whyGoodForStudents: string
   pros: string[]
   cons: string[]
-  logo: string
 }
 
 const STUDENT_FRIENDLY_INVESTMENTS: InvestmentOption[] = [
@@ -161,7 +161,6 @@ const BeginnerInvestmentGuide: React.FC = () => {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="text-2xl">{investment.logo}</div>
                   <div>
                     <h4 className="font-semibold text-gray-900">{investment.ticker}</h4>
                     <p className="text-sm text-gray-600">{investment.name}</p>

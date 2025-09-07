@@ -42,7 +42,6 @@ function TradingViewWidget({ symbol, height = "400px", theme = "light" }: Tradin
       "compareSymbols": [],
       "studies": [],
       "autosize": true,
-      "hide_legend": true
     });
 
     const widgetContainer = document.createElement('div');
