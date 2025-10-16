@@ -17,6 +17,9 @@ db = ReceiptDatabase()
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
+
 
 print(f"Google Client ID loaded: {GOOGLE_CLIENT_ID[:50]}..." if GOOGLE_CLIENT_ID else "Google Client ID not found!")
 print(f"Google Client Secret loaded: {'Yes' if GOOGLE_CLIENT_SECRET else 'No'}")
