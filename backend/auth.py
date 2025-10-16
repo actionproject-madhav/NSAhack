@@ -110,8 +110,9 @@ def google_callback():
         session['user_name'] = user_data['name']
         
         # Redirect to frontend onboarding page
-        frontend_url = f"http://localhost:5173/onboarding?user_id={user_id}&email={user_data['email']}&name={user_data['name']}"
-        return redirect(frontend_url)
+        frontend_url = f"{FRONTEND_URL}/onboarding?user_id={user_id}&email={user_data['email']}&name={user_data['name']}"
+
+        return redirect(f"{FRONTEND_URL}/auth?error=authentication_failed")
         
     except Exception as e:
         print(f"Error in Google callback: {e}")
