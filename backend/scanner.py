@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import re
 import io
@@ -19,9 +19,12 @@ except ImportError as e:
     print(f"OCR packages not available: {e}")
     OCR_AVAILABLE = False
 
-app = Flask(__name__)
+# Create Flask app ONCE with static folder configuration
+app = Flask(__name__, static_folder='../frontend/dist')
+
+# Configure CORS
 CORS(app, 
-     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000"],
+     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000", "https://finlit-uyv5.onrender.com"],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -37,6 +40,25 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Initialize database
 db = ReceiptDatabase()
+
+# Frontend serving routes (place these BEFORE your API routes)
+@app.route('/')
+def serve_index():
+    """Serve the React app"""
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    """Serve static files or fall back to index.html for React Router"""
+    if path.startswith('api/') or path.startswith('auth/') or path == 'health':
+        # API route not found
+        return jsonify({'error': 'Endpoint not found'}), 404
+    
+    # Try to serve the file, fall back to index.html for client-side routing
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 # Hardcoded popular companies with their variations and stock tickers
 POPULAR_COMPANIES = {
