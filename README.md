@@ -1,185 +1,179 @@
-# FinLit - Financial Literacy for International Students
+# FinLit - Financial Literacy Platform
 
-A full-stack financial literacy application that helps international students understand the US financial system through receipt scanning and investment education.
+A comprehensive financial literacy and stock trading education platform for international students.
 
-##  Project Overview
+## Features
 
-FinLit bridges the gap between everyday spending and investment understanding by transforming receipt scanning into financial education. International students can scan receipts from familiar companies (Starbucks, Target, Apple) and learn about these companies as investment opportunities. It provides tailored financial investment advice to immigrants keeping in mind their country of origin, immigration status and personal situations.
+- Google OAuth Authentication
+- Receipt Scanner with OCR
+- Stock Market Education
+- Portfolio Management
+- Real-time Stock Data
+- AI-Powered Investment Recommendations
 
-##  What Makes Our App Unique?
-
-- **Tailored for Immigrants & International Students**  
-  Designed specifically to address the unique financial challenges faced by immigrants and international students.  
-
-- **Alerts & Warnings Based on Immigration Status**  
-  Get notified of restrictions that apply to you (e.g., day-trading limits) to stay compliant and safe.  
-
-- **LLM Integration with Context Awareness**  
-  Every page is powered by a large language model with a context window wrapped around it for smarter, more relevant assistance.  
-
-- **Smart Computer Vision for Receipt Detection**  
-  Automatically detect, scan, and organize receipts for effortless financial tracking.  
-
-- **Live NLP Market Trend Analysis**  
-  Real-time natural language processing to analyze and interpret market shifts, helping you make informed decisions.  
-
-### Key Features
-- **Smart Receipt OCR**: Advanced image processing to extract company names and amounts
-- **Investment Discovery**: Links everyday purchases to stock market opportunities
-- **Portfolio Simulation**: Risk-free investment tracking and learning
-- **Educational Hub**: Curated financial literacy content for international students
-- **Spending Analytics**: Visual dashboards showing spending patterns and trends
-
-### Target Audience
-International students in the US who need practical financial literacy education that connects to their daily experiences.
-
-##  Setup and Run Instructions
+## Setup Instructions
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Python 3.8+
-- MongoDB (local installation or Atlas cloud)
-- Google Cloud Console project for OAuth
 
-### Environment Setup
+- Python 3.11+
+- Node.js 18+
+- MongoDB (optional, for receipt storage)
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd NSAhack
-   ```
+### Backend Setup
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-3. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-4. **Environment Variables**
-   
-   Create `backend/.env`:
-   ```env
-   MONGO_URI=mongodb://localhost:27017/
-   DATABASE_NAME=finlit_app
-   GOOGLE_CLIENT_ID=your_google_client_id
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback
-   FLASK_SECRET_KEY=your_secret_key
-   ```
-
-5. **Google OAuth Setup**
-   - Go to [Google Cloud Console](https://console.cloud.google.com)
-   - Create OAuth 2.0 credentials
-   - Add authorized origins: `http://localhost:5173`, `http://localhost:5000`
-   - Add redirect URIs: `http://localhost:5000/auth/google/callback`
-
-### Running the Application
-
-**Development Mode (Recommended):**
+1. Navigate to the backend directory:
 ```bash
-# Terminal 1 - Start Backend
 cd backend
-python scanner.py
+```
 
-# Terminal 2 - Start Frontend
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+4. Add your Google OAuth credentials to `.env`:
+   - Get credentials from [Google Cloud Console](https://console.cloud.google.com/)
+   - Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+
+5. Start the backend server:
+```bash
+./start.sh
+```
+
+Or manually:
+```bash
+python3 scanner.py
+```
+
+The backend will run on `http://localhost:5000`
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
 cd frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Create a `.env` file (if needed):
+```bash
+# Optional - the app has fallback values
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Access the application:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
+The frontend will run on `http://localhost:5173`
 
-### Build for Production
+## Google OAuth Setup
 
-**Frontend:**
-```bash
-cd frontend
-npm run build
-npm run preview
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable Google+ API
+4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
+5. Set authorized redirect URIs:
+   - `http://localhost:5000/auth/google/callback`
+   - `http://localhost:5173`
+6. Copy the Client ID and Client Secret
+7. Add them to both:
+   - Backend `.env` file
+   - Frontend `.env` file (optional, has fallback)
+
+## Current Google Client ID
+
+The app is currently configured with:
+```
+830698799863-5k8e24o51cam7rnrpjtn5lc97rb7jirv.apps.googleusercontent.com
 ```
 
-**Backend:**
+Make sure this Client ID is configured in Google Cloud Console with the correct redirect URIs.
+
+## Troubleshooting
+
+### Google Auth Not Working
+
+**Problem**: Clicking "Sign in with Google" doesn't do anything or stays on the same page.
+
+**Solution**: Make sure the backend server is running!
+
 ```bash
+# Check if backend is running
+lsof -i :5000
+
+# If not running, start it
 cd backend
-python scanner.py  # Production mode via environment variables
+./start.sh
 ```
 
-##  Dependencies and Tools Used
+### CORS Errors
 
-### Frontend Stack
-- **React 18** - Component framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **TailwindCSS** - Styling framework
-- **Framer Motion** - Animations
-- **React Router** - Client-side routing
-- **Recharts** - Data visualization
-- **Radix UI** - Accessible component primitives
+The backend is configured to accept requests from:
+- `http://localhost:5173` (Vite default)
+- `http://localhost:5174`
+- `http://localhost:3000`
+- Production domain
 
-### Backend Stack
-- **Flask** - Web framework
-- **Python 3.8+** - Runtime
-- **MongoDB** - Database (local or Atlas)
-- **Google OAuth 2.0** - Authentication
-- **OpenCV + Tesseract** - OCR processing (optional)
-- **Flask-CORS** - Cross-origin resource sharing
+If you're running on a different port, update the CORS configuration in `backend/scanner.py`.
 
-### Development Tools
-- **ESLint** - Frontend code linting
-- **TypeScript compiler** - Type checking
-- **MongoDB Compass** - Database management
-- **Postman/Thunder Client** - API testing
+### Database Connection Issues
 
-### External APIs
-- **Alpha Vantage** - Stock market data
-- **Google Gemini** - AI-powered features
-- **Google Sign-In** - Authentication
+The app works without MongoDB, but some features (receipt storage, user data) require it.
 
-##  Team Members
+To connect MongoDB:
+1. Add `MONGO_URI` to your `.env` file
+2. Restart the backend server
 
+## Architecture
 
-- **Arman Amatya**
-- **Madhav Khanal**
-- **Koshish Shrestha**
-
-
-##  Architecture Overview
-
-### Data Flow
-1. User authenticates via Google OAuth
-2. Receipt images uploaded through React frontend
-3. Flask backend processes with OCR (OpenCV + Tesseract)
-4. Company matching against popular companies database
-5. Results stored in MongoDB with investment correlations
-6. Dashboard displays spending analytics and investment opportunities
-
-### Key Components
-- **Receipt Scanner**: Multi-pass OCR with image enhancement
-- **Company Detection**: Fuzzy matching against 18+ popular companies
-- **Investment Bridge**: Connects spending to stock market education
-- **Portfolio Simulation**: Risk-free learning environment
-
-##  Development Notes
-
-### OCR Dependencies
-OCR functionality requires additional packages but is optional:
-```bash
-pip install opencv-python Pillow pytesseract numpy
+```
+NSAhack/
+├── backend/           # Flask API server
+│   ├── auth.py       # Google OAuth handlers
+│   ├── scanner.py    # Main API + Receipt OCR
+│   ├── database.py   # MongoDB connection
+│   └── start.sh      # Startup script
+│
+├── frontend/         # React + TypeScript + Vite
+│   ├── src/
+│   │   ├── pages/    # Route pages
+│   │   ├── components/ # Reusable components
+│   │   ├── services/ # API clients
+│   │   └── context/  # State management
+│   └── public/       # Static assets
+│
+└── README.md
 ```
 
-### Database Setup
-The app works with both local MongoDB and MongoDB Atlas. Use `backend/test_atlas.py` to verify Atlas connections.
+## Tech Stack
 
-### Authentication
-Google OAuth integration requires proper domain configuration in Google Cloud Console for both development and production environments.
+### Backend
+- Flask
+- Google OAuth 2.0
+- OpenCV (OCR)
+- PyTesseract
+- MongoDB
 
----
+### Frontend
+- React 18
+- TypeScript
+- Vite
+- TailwindCSS
+- React Router
+- Lucide Icons
 
-*Built for NSA Hackathon - Financial Literacy for International Students*
+## License
+
+MIT
