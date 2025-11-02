@@ -100,11 +100,23 @@ class GeminiService {
 
       const data: GeminiResponse = await response.json();
       console.log('📦 Gemini API Full Response:', data);
+      console.log('📦 Candidates array:', data.candidates);
+      console.log('📦 First candidate:', data.candidates?.[0]);
+      console.log('📦 Content:', data.candidates?.[0]?.content);
+      console.log('📦 Parts:', data.candidates?.[0]?.content?.parts);
 
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const responseText = data.candidates[0].content.parts?.[0]?.text || 'No response generated';
-        console.log('✅ GeminiService: Extracted text:', responseText);
-        return responseText;
+      if (data.candidates && data.candidates[0]) {
+        const candidate = data.candidates[0];
+        
+        // Check if content exists
+        if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+          const responseText = candidate.content.parts[0].text || 'No response generated';
+          console.log('✅ GeminiService: Extracted text:', responseText);
+          return responseText;
+        } else {
+          console.error('❌ Missing content.parts in candidate:', candidate);
+          throw new Error('No content.parts in API response');
+        }
       } else {
         console.error('❌ Invalid response structure:', JSON.stringify(data, null, 2));
         throw new Error('Invalid response structure from Gemini API');
