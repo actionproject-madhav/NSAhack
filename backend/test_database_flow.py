@@ -15,7 +15,7 @@ def test_database_connection():
     db = ReceiptDatabase()
     
     if db.client is None:
-        print(" Database NOT connected!")
+        print("❌ Database NOT connected!")
         print("\nTo connect MongoDB:")
         print("1. Install MongoDB locally: brew install mongodb-community")
         print("2. Start MongoDB: brew services start mongodb-community")

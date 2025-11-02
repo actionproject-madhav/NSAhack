@@ -283,6 +283,59 @@ def save_onboarding_data():
         print(f"❌ Error saving onboarding data: {e}")
         return jsonify({'error': str(e)}), 500
 
+@auth_bp.route('/portfolio', methods=['POST'])
+def update_portfolio():
+    """Update user portfolio"""
+    if db.client is None:
+        return jsonify({'error': 'Database not connected'}), 500
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        portfolio = data.get('portfolio', [])
+        total_value = data.get('total_value', 0)
+        
+        if not user_id:
+            return jsonify({'error': 'user_id is required'}), 400
+        
+        users_collection = db.db['users']
+        
+        # Update user portfolio
+        from bson import ObjectId
+        try:
+            result = users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': {
+                    'portfolio': portfolio,
+                    'total_value': total_value,
+                    'updated_at': datetime.now(timezone.utc)
+                }}
+            )
+        except:
+            # If not valid ObjectId, try email
+            result = users_collection.update_one(
+                {'email': user_id},
+                {'$set': {
+                    'portfolio': portfolio,
+                    'total_value': total_value,
+                    'updated_at': datetime.now(timezone.utc)
+                }}
+            )
+        
+        if result.matched_count == 0:
+            return jsonify({'error': 'User not found'}), 404
+        
+        print(f"✅ Portfolio updated for user: {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Portfolio updated successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error updating portfolio: {e}")
+        return jsonify({'error': str(e)}), 500
+
 def save_or_update_user(user_data):
     """Save or update user in database"""
     if db.client is None:

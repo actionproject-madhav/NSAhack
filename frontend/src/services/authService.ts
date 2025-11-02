@@ -72,32 +72,20 @@ class AuthService {
       if (result.success && result.user) {
         console.log('Authentication successful! User:', result.user)
         
-        // Store basic user data in localStorage
+        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify(result.user))
         console.log('User data stored in localStorage')
         
-        // Check if user has completed onboarding
-        console.log('Checking onboarding status...')
-        const profileResult = await this.getUserProfile(result.user.id)
+        // Check if user has already completed onboarding
+        const hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
         
-        if (profileResult.success && profileResult.user) {
-          const fullUser = profileResult.user
-          console.log('Full user profile loaded:', fullUser)
-          
-          // Update localStorage with full profile
-          localStorage.setItem('user', JSON.stringify(fullUser))
-          
-          // Redirect based on onboarding status
-          if (fullUser.onboarding_completed) {
-            console.log('✅ Onboarding already completed, going to dashboard...')
-            window.location.href = '/dashboard'
-          } else {
-            console.log('⚠️ Onboarding not completed, redirecting to onboarding...')
-            window.location.href = '/onboarding'
-          }
+        if (hasCompletedOnboarding) {
+          console.log('User has completed onboarding, loading profile and redirecting to dashboard...')
+          // Load full profile data
+          await this.loadUserProfile(result.user.id)
+          window.location.href = '/dashboard'
         } else {
-          // If can't fetch profile, go to onboarding to be safe
-          console.log('Could not fetch profile, redirecting to onboarding...')
+          console.log('User needs to complete onboarding...')
           window.location.href = '/onboarding'
         }
       } else {
@@ -107,6 +95,44 @@ class AuthService {
       console.error('=== Google Authentication Error ===')
       console.error('Error details:', error)
       alert(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  // Check if user has completed onboarding
+  private async checkOnboardingStatus(userId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        return data.user?.onboarding_completed || false
+      }
+      return false
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+      return false
+    }
+  }
+
+  // Load full user profile from database
+  private async loadUserProfile(userId: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.user) {
+          // Store complete profile in localStorage
+          localStorage.setItem('user', JSON.stringify(data.user))
+          console.log('✅ Full user profile loaded from database')
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error)
     }
   }
 
@@ -191,36 +217,6 @@ class AuthService {
       }
     } catch (error) {
       console.error('Network/parsing error:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Network error'
-      }
-    }
-  }
-
-  // Get user profile from backend
-  async getUserProfile(userId: string): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
-        method: 'GET',
-        credentials: 'include'
-      })
-
-      const data = await response.json()
-      
-      if (response.ok && data.success) {
-        return {
-          success: true,
-          user: data.user
-        }
-      } else {
-        return {
-          success: false,
-          error: data.error || 'Failed to fetch user profile'
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Network error'
