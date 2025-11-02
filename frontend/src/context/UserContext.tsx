@@ -46,11 +46,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Check for authenticated user on app start
     const currentUser = authService.getCurrentUser()
     if (currentUser) {
+      // Load full user data from localStorage (includes onboarding data)
       setUser({
-        ...currentUser,
-        portfolio: [],
-        totalValue: 0
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        picture: currentUser.picture,
+        goal: (currentUser as any).investment_goal || (currentUser as any).goal,
+        language: (currentUser as any).language || 'en',
+        lifestyle: (currentUser as any).lifestyle_brands || (currentUser as any).lifestyle || [],
+        portfolio: (currentUser as any).portfolio || [],
+        totalValue: (currentUser as any).total_value || (currentUser as any).totalValue || 0
       })
+      console.log('✅ UserContext: Loaded user from localStorage:', currentUser)
+    } else {
+      console.log('⚠️ UserContext: No user found in localStorage')
     }
   }, [])
 

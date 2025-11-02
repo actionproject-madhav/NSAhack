@@ -72,7 +72,7 @@ const Dashboard = () => {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-xl lg:text-2xl font-medium text-gray-900">Hello NSA Boston,</h1>
+              <h1 className="text-xl lg:text-2xl font-medium text-gray-900">Hello {user?.name || 'there'},</h1>
             </div>
             <div className="flex items-center gap-3 lg:gap-4">
               <div className="hidden md:block">

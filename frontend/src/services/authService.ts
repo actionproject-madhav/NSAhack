@@ -72,13 +72,34 @@ class AuthService {
       if (result.success && result.user) {
         console.log('Authentication successful! User:', result.user)
         
-        // Store user data in localStorage
+        // Store basic user data in localStorage
         localStorage.setItem('user', JSON.stringify(result.user))
         console.log('User data stored in localStorage')
         
-        // Redirect to onboarding
-        console.log('Redirecting to /onboarding...')
-        window.location.href = '/onboarding'
+        // Check if user has completed onboarding
+        console.log('Checking onboarding status...')
+        const profileResult = await this.getUserProfile(result.user.id)
+        
+        if (profileResult.success && profileResult.user) {
+          const fullUser = profileResult.user
+          console.log('Full user profile loaded:', fullUser)
+          
+          // Update localStorage with full profile
+          localStorage.setItem('user', JSON.stringify(fullUser))
+          
+          // Redirect based on onboarding status
+          if (fullUser.onboarding_completed) {
+            console.log('✅ Onboarding already completed, going to dashboard...')
+            window.location.href = '/dashboard'
+          } else {
+            console.log('⚠️ Onboarding not completed, redirecting to onboarding...')
+            window.location.href = '/onboarding'
+          }
+        } else {
+          // If can't fetch profile, go to onboarding to be safe
+          console.log('Could not fetch profile, redirecting to onboarding...')
+          window.location.href = '/onboarding'
+        }
       } else {
         throw new Error(result.error || 'Authentication failed')
       }
@@ -170,6 +191,36 @@ class AuthService {
       }
     } catch (error) {
       console.error('Network/parsing error:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error'
+      }
+    }
+  }
+
+  // Get user profile from backend
+  async getUserProfile(userId: string): Promise<AuthResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        return {
+          success: true,
+          user: data.user
+        }
+      } else {
+        return {
+          success: false,
+          error: data.error || 'Failed to fetch user profile'
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Network error'
