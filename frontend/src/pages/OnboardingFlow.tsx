@@ -24,7 +24,7 @@ const OnboardingFlow = () => {
     )
   }
 
-  const generatePortfolio = () => {
+  const generatePortfolio = async () => {
     const portfolio = selectedBrands.map(brandName => {
       const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)!
       const currentPrice = MOCK_PRICES[brand.ticker]
@@ -43,10 +43,15 @@ const OnboardingFlow = () => {
 
     const totalValue = portfolio.reduce((sum, item) => sum + (item.quantity * item.currentPrice), 0)
 
+    // Get user data from localStorage (set during Google auth)
+    const storedUser = localStorage.getItem('user')
+    const googleUser = storedUser ? JSON.parse(storedUser) : null
+
     const user = {
-      id: '1',
-      name: userName,
-      email: 'student@example.com',
+      id: googleUser?.id || '1',
+      name: userName || googleUser?.name || 'Student',
+      email: googleUser?.email || 'student@example.com',
+      picture: googleUser?.picture,
       goal: selectedGoal as any,
       language: selectedLanguage,
       lifestyle: selectedBrands,
@@ -54,6 +59,38 @@ const OnboardingFlow = () => {
       homeCountry,
       portfolio,
       totalValue
+    }
+
+    // Save onboarding data to backend
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+      const response = await fetch(`${API_BASE_URL}/auth/onboarding`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: user.id,
+          lifestyle_brands: selectedBrands,
+          investment_goal: selectedGoal,
+          language: selectedLanguage,
+          visa_status: visaStatus,
+          home_country: homeCountry,
+          portfolio: portfolio,
+          total_value: totalValue
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        console.log('✅ Onboarding data saved to database!')
+      } else {
+        console.error('❌ Failed to save onboarding data:', data.error)
+      }
+    } catch (error) {
+      console.error('❌ Error saving onboarding data:', error)
     }
 
     setUser(user)

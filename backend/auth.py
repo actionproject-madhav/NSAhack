@@ -192,6 +192,97 @@ def get_current_user():
         }
     })
 
+@auth_bp.route('/user/<user_id>', methods=['GET'])
+def get_user_profile(user_id):
+    """Get full user profile including onboarding data"""
+    if db.client is None:
+        return jsonify({'error': 'Database not connected'}), 500
+    
+    try:
+        users_collection = db.db['users']
+        
+        # Find user by ID or email
+        from bson import ObjectId
+        try:
+            user = users_collection.find_one({'_id': ObjectId(user_id)})
+        except:
+            # If not valid ObjectId, try email
+            user = users_collection.find_one({'email': user_id})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Convert ObjectId to string
+        user['_id'] = str(user['_id'])
+        
+        # Remove sensitive data
+        user.pop('google_id', None)
+        
+        return jsonify({
+            'success': True,
+            'user': user
+        })
+        
+    except Exception as e:
+        print(f"Error getting user profile: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/onboarding', methods=['POST'])
+def save_onboarding_data():
+    """Save user onboarding data"""
+    if db.client is None:
+        return jsonify({'error': 'Database not connected'}), 500
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'error': 'user_id is required'}), 400
+        
+        # Extract onboarding data
+        onboarding_data = {
+            'lifestyle_brands': data.get('lifestyle_brands', []),
+            'investment_goal': data.get('investment_goal', ''),
+            'language': data.get('language', 'en'),
+            'visa_status': data.get('visa_status', ''),
+            'home_country': data.get('home_country', ''),
+            'portfolio': data.get('portfolio', []),
+            'total_value': data.get('total_value', 0),
+            'onboarding_completed': True,
+            'updated_at': datetime.now(timezone.utc)
+        }
+        
+        users_collection = db.db['users']
+        
+        # Update user with onboarding data
+        from bson import ObjectId
+        try:
+            result = users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': onboarding_data}
+            )
+        except:
+            # If not valid ObjectId, try email
+            result = users_collection.update_one(
+                {'email': user_id},
+                {'$set': onboarding_data}
+            )
+        
+        if result.matched_count == 0:
+            return jsonify({'error': 'User not found'}), 404
+        
+        print(f"✅ Onboarding data saved for user: {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Onboarding data saved successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error saving onboarding data: {e}")
+        return jsonify({'error': str(e)}), 500
+
 def save_or_update_user(user_data):
     """Save or update user in database"""
     if db.client is None:
