@@ -37,10 +37,21 @@ class GeminiService {
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
     this.baseURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    
+    // Debug logging
+    if (this.apiKey) {
+      console.log('✅ GeminiService: API Key loaded:', this.apiKey.substring(0, 20) + '...');
+    } else {
+      console.error('❌ GeminiService: API Key is MISSING! Check VITE_GEMINI_API_KEY in .env');
+    }
   }
 
   async generateContent(prompt: string, context: Context = {}): Promise<string> {
     try {
+      if (!this.apiKey) {
+        throw new Error('Gemini API key is not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
+      }
+
       const { currentCourse, currentModule, userLevel = 'beginner', visaStatus, homeCountry } = context;
 
       const systemPrompt = this.buildSystemPrompt(currentCourse, currentModule, userLevel, visaStatus, homeCountry);
@@ -64,6 +75,7 @@ class GeminiService {
         }
       ];
 
+      console.log('🔵 GeminiService: Making API request...');
       const response = await fetch(`${this.baseURL}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {

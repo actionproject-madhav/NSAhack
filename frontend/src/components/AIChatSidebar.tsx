@@ -41,6 +41,8 @@ const AIChatSidebar = () => {
     setIsLoading(true)
 
     try {
+      console.log('🔵 AIChatSidebar: Sending message to Gemini...')
+      
       // Create context for the dashboard - generic investment advice
       const context = {
         userLevel: 'beginner' as const,
@@ -55,7 +57,9 @@ const AIChatSidebar = () => {
 
       Please provide helpful, actionable investment guidance. Keep responses conversational and engaging, using emojis appropriately. Focus on education and practical tips while reminding users this is not professional financial advice.`
 
+      console.log('🔵 AIChatSidebar: Calling GeminiService.generateContent...')
       const aiResponse = await GeminiService.generateContent(investmentPrompt, context)
+      console.log('✅ AIChatSidebar: Got response from Gemini:', aiResponse.substring(0, 100))
       
       const botResponse = {
         id: Date.now() + 1,
@@ -66,7 +70,7 @@ const AIChatSidebar = () => {
       
       setMessages(prev => [...prev, botResponse])
     } catch (error) {
-      console.error('Error getting AI response:', error)
+      console.error('❌ AIChatSidebar Error getting AI response:', error)
       
       // Use fallback response from GeminiService
       const fallbackResponse = GeminiService.getFallbackResponse(currentInput, { userLevel: 'beginner' })
