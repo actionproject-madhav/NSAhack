@@ -1,4 +1,4 @@
-import { Bell, Menu, LogOut, Settings, X, Moon, Sun, TrendingUp, TrendingDown } from 'lucide-react'
+import { Bell, Menu, LogOut, Settings, X, Moon, Sun, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { useState, useEffect } from 'react'
@@ -11,6 +11,10 @@ import InternationalStudentAlerts from '../components/InternationalStudentAlerts
 import TaxTreatyCalculator from '../components/TaxTreatyCalculator'
 import F1ComplianceTracker from '../components/F1ComplianceTracker'
 import Logo from '../components/Logo'
+import TradingViewMiniWidget from '../components/TradingViewMiniWidget'
+
+// Popular stocks to show (these are real tickers)
+const POPULAR_STOCKS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD']
 
 const Dashboard = () => {
   const { user } = useUser()
@@ -22,17 +26,26 @@ const Dashboard = () => {
     return saved === 'true'
   })
   
-  // Get symbols from user's actual portfolio
+  // Get user's portfolio symbols
   const userSymbols = user?.portfolio?.map(p => p.ticker) || []
-  const { quotes, isLoading: isLoadingQuotes } = useRealTimeQuotes({
+  
+  // Get quotes for user's portfolio
+  const { quotes: userQuotes, isLoading: isLoadingUser } = useRealTimeQuotes({
     symbols: userSymbols,
     refreshInterval: 60000,
     enabled: userSymbols.length > 0
   })
 
+  // Get quotes for popular stocks
+  const { quotes: popularQuotes, isLoading: isLoadingPopular } = useRealTimeQuotes({
+    symbols: POPULAR_STOCKS,
+    refreshInterval: 60000,
+    enabled: true
+  })
+
   // Calculate portfolio total change
   const portfolioChange = user?.portfolio?.reduce((total, stock) => {
-    const quote = quotes?.find(q => q.symbol === stock.ticker)
+    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
     const currentPrice = quote?.price || stock.currentPrice
     const currentValue = stock.quantity * currentPrice
     const originalValue = stock.quantity * stock.avgPrice
@@ -98,7 +111,6 @@ const Dashboard = () => {
                 />
               </div>
               
-              {/* Dark Mode Toggle */}
               <button 
                 onClick={() => setDarkMode(!darkMode)}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
@@ -134,39 +146,42 @@ const Dashboard = () => {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 lg:px-6 py-8">
 
-            {/* Portfolio Value - Robinhood Style */}
+            {/* Portfolio Value */}
             <div className="mb-8">
               <div className="text-4xl font-medium text-gray-900 dark:text-white mb-2">
                 ${user?.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
               </div>
-              <div className={`flex items-center gap-2 text-sm font-medium ${portfolioChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                {portfolioChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
-                <span className="text-gray-500 dark:text-gray-400 font-normal">Today</span>
-              </div>
-            </div>
-
-            {/* Portfolio Chart Placeholder */}
-            <div className="mb-8 bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800">
-              <div className="h-64 flex items-center justify-center text-gray-400 dark:text-gray-600">
-                {/* Chart will go here - add TradingView widget or custom chart */}
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📈</div>
-                  <div className="text-sm">Portfolio Performance Chart</div>
-                  <div className="text-xs mt-1">(Connect real chart data)</div>
+              {portfolioChange !== 0 && (
+                <div className={`flex items-center gap-2 text-sm font-medium ${portfolioChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {portfolioChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
+                  <span className="text-gray-500 dark:text-gray-400 font-normal">Today</span>
                 </div>
+              )}
+            </div>
+
+            {/* Portfolio Chart - Real Data */}
+            <div className="mb-8">
+              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <TradingViewMiniWidget 
+                  symbol={user?.portfolio?.[0]?.ticker || 'SPY'} 
+                  height="300px"
+                  theme={darkMode ? 'dark' : 'light'}
+                />
               </div>
             </div>
 
-            {/* Stocks List */}
-            {user?.portfolio && user.portfolio.length > 0 ? (
+            {/* User's Stocks */}
+            {user?.portfolio && user.portfolio.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Stocks</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Stocks</h2>
                 <div className="space-y-1">
                   {user.portfolio.map((stock) => {
-                    const quote = quotes?.find(q => q.symbol === stock.ticker)
+                    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
                     const currentPrice = quote?.price || stock.currentPrice
+                    const change = quote?.change || 0
+                    const changePercent = quote?.changePercent || 0
                     const currentValue = stock.quantity * currentPrice
                     const totalGain = currentValue - (stock.quantity * stock.avgPrice)
                     const totalGainPercent = ((totalGain / (stock.quantity * stock.avgPrice)) * 100)
@@ -175,10 +190,9 @@ const Dashboard = () => {
                       <button
                         key={stock.ticker}
                         onClick={() => navigate(`/stock/${stock.ticker}`)}
-                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-colors group"
+                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-colors"
                       >
                         <div className="flex items-center gap-4 flex-1">
-                          {/* Company Logo */}
                           <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <Logo 
                               company={stock.company}
@@ -187,16 +201,14 @@ const Dashboard = () => {
                             />
                           </div>
                           
-                          {/* Stock Info */}
                           <div className="text-left flex-1">
-                            <div className="font-semibold text-gray-900 dark:text-white">{stock.company}</div>
+                            <div className="font-semibold text-gray-900 dark:text-white">{stock.ticker}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                               {stock.quantity} {stock.quantity === 1 ? 'share' : 'shares'}
                             </div>
                           </div>
                         </div>
                         
-                        {/* Price & Gains */}
                         <div className="text-right">
                           <div className="font-semibold text-gray-900 dark:text-white">
                             ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -211,24 +223,65 @@ const Dashboard = () => {
                   })}
                 </div>
               </div>
-            ) : (
-              <div className="mb-8 text-center py-12">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Stocks Yet</h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">Start building your portfolio</p>
+            )}
+
+            {/* Popular Stocks - REAL DATA from Alpha Vantage */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Popular</h2>
                 <button 
-                  onClick={() => navigate('/trade')}
-                  className="bg-emerald-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-600 transition-colors"
+                  onClick={() => navigate('/screener')}
+                  className="text-sm text-emerald-500 hover:text-emerald-600 flex items-center gap-1"
                 >
-                  Find Stocks
+                  See All
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-            )}
+              
+              {isLoadingPopular ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  Loading market data...
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {popularQuotes?.slice(0, 8).map((quote) => (
+                    <button
+                      key={quote.symbol}
+                      onClick={() => navigate(`/stock/${quote.symbol}`)}
+                      className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                          <Logo 
+                            company={quote.symbol}
+                            fallback={quote.symbol.charAt(0)}
+                            size={40}
+                          />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-semibold text-gray-900 dark:text-white">{quote.symbol}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          ${quote.price.toFixed(2)}
+                        </div>
+                        <div className={`text-sm font-medium ${quote.change >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {quote.change >= 0 ? '+' : ''}${Math.abs(quote.change).toFixed(2)}
+                          {' '}({quote.change >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* International Student Section */}
             {user?.visaStatus && (
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">For International Students</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">International Student Tools</h2>
                 <div className="space-y-4">
                   <InternationalStudentAlerts />
                   <F1ComplianceTracker />
