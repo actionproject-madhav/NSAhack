@@ -84,11 +84,21 @@ The frontend will run on `http://localhost:5173`
 2. Create a new project or select an existing one
 3. Enable Google+ API
 4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
-5. Set authorized redirect URIs:
+5. Set **Authorized JavaScript origins**:
+   - `http://localhost:5000`
+   - `http://localhost:5173`
+   - `http://localhost:5174`
+   - `https://finlit-uyv5.onrender.com`
+
+6. Set **Authorized redirect URIs**:
    - `http://localhost:5000/auth/google/callback`
    - `http://localhost:5173`
-6. Copy the Client ID and Client Secret
-7. Add them to both:
+   - `http://localhost:5174`
+   - `https://finlit-uyv5.onrender.com`
+   - `https://finlit-uyv5.onrender.com/auth/google/callback`
+
+7. Copy the Client ID and Client Secret
+8. Add them to both:
    - Backend `.env` file
    - Frontend `.env` file (optional, has fallback)
 
