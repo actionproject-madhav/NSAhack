@@ -1,11 +1,12 @@
 // Simple Gemini API Test
 // Run with: node test-gemini.js
 
-const API_KEY = 'AIzaSyAm9VUUofHNIc_5F_78Q2CqqvATfLmVYHk';
+// Get API key from environment variable
+const API_KEY = process.env.GEMINI_API_KEY || 'YOUR_API_KEY_HERE';
 const MODEL = 'gemini-2.5-flash';
 
 async function testGeminiAPI() {
-  console.log('🧪 Testing Gemini API...');
+  console.log(' Testing Gemini API...');
   console.log('API Key:', API_KEY.substring(0, 20) + '...');
   console.log('Model:', MODEL);
   console.log('');

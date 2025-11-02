@@ -102,14 +102,11 @@ The frontend will run on `http://localhost:5173`
    - Backend `.env` file
    - Frontend `.env` file (optional, has fallback)
 
-## Current Google Client ID
+## Configure Your Google Client ID
 
-The app is currently configured with:
-```
-830698799863-5k8e24o51cam7rnrpjtn5lc97rb7jirv.apps.googleusercontent.com
-```
-
-Make sure this Client ID is configured in Google Cloud Console with the correct redirect URIs.
+1. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/)
+2. Add your Client ID to the `.env` files
+3. Make sure to configure the correct redirect URIs in Google Console
 
 ## Troubleshooting
 
