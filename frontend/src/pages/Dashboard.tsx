@@ -66,8 +66,14 @@ const Dashboard = () => {
     localStorage.setItem('darkMode', darkMode.toString())
   }, [darkMode])
 
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/')
+    }
+  }, [user, navigate])
+
   if (!user) {
-    navigate('/')
     return null
   }
 
