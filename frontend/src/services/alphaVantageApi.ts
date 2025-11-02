@@ -185,24 +185,46 @@ class AlphaVantageAPI {
   }
 
   async getGlobalQuote(symbol: string): Promise<StockQuote> {
-    const data = await makeRequest({
-      function: 'GLOBAL_QUOTE',
-      symbol: symbol
-    });
+    try {
+      const data = await makeRequest({
+        function: 'GLOBAL_QUOTE',
+        symbol: symbol
+      });
 
-    const quote = data['Global Quote'];
-    if (!quote) {
-      throw new Error('No quote data found');
+      const quote = data['Global Quote'];
+      if (!quote || Object.keys(quote).length === 0) {
+        console.warn(`No quote data for ${symbol}, using fallback`);
+        // Return fallback data when API fails
+        return {
+          symbol: symbol,
+          price: 0,
+          change: 0,
+          changePercent: 0,
+          volume: 0,
+          previousClose: 0
+        };
+      }
+
+      return {
+        symbol: quote['01. symbol'],
+        price: parseFloat(quote['05. price']) || 0,
+        change: parseFloat(quote['09. change']) || 0,
+        changePercent: parseFloat(quote['10. change percent']?.replace('%', '') || '0'),
+        volume: parseInt(quote['06. volume']) || 0,
+        previousClose: parseFloat(quote['08. previous close']) || 0
+      };
+    } catch (error) {
+      console.warn(`Failed to fetch quote for ${symbol}:`, error);
+      // Return fallback data
+      return {
+        symbol: symbol,
+        price: 0,
+        change: 0,
+        changePercent: 0,
+        volume: 0,
+        previousClose: 0
+      };
     }
-
-    return {
-      symbol: quote['01. symbol'],
-      price: parseFloat(quote['05. price']),
-      change: parseFloat(quote['09. change']),
-      changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
-      volume: parseInt(quote['06. volume']),
-      previousClose: parseFloat(quote['08. previous close'])
-    };
   }
 
   async getIntradayData(symbol: string, interval: '1min' | '5min' | '15min' | '30min' | '60min' = '5min'): Promise<TimeSeriesData[]> {

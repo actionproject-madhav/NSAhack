@@ -50,7 +50,19 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Try to load full profile from database
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-          const response = await fetch(`${API_BASE_URL}/auth/user/${currentUser.id}`, {
+          const userId = currentUser.id || currentUser.email
+          
+          if (!userId) {
+            console.warn('No user ID or email found, using localStorage data')
+            setUser({
+              ...currentUser,
+              portfolio: currentUser.portfolio || [],
+              totalValue: currentUser.totalValue || 0
+            })
+            return
+          }
+
+          const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
             credentials: 'include'
           })
           

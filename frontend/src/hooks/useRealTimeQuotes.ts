@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { alphaVantageAPI, StockQuote } from '../services/alphaVantageApi';
+import { finnhubAPI, StockQuote } from '../services/finnhubApi';
 
 export interface UseRealTimeQuotesOptions {
   symbols: string[];
@@ -26,7 +26,7 @@ export const useRealTimeQuotes = ({
     setError(null);
 
     try {
-      const newQuotes = await alphaVantageAPI.getMultipleQuotes(symbols);
+      const newQuotes = await finnhubAPI.getMultipleQuotes(symbols);
       console.log('Fetched quotes:', newQuotes);
       setQuotes(newQuotes);
       setLastUpdated(new Date());

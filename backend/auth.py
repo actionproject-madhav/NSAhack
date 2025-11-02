@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from database import ReceiptDatabase
 from datetime import datetime, timezone
 import json
+import yfinance as yf
 
 load_dotenv()
 
@@ -335,6 +336,130 @@ def update_portfolio():
     except Exception as e:
         print(f"❌ Error updating portfolio: {e}")
         return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/stock-quote/<symbol>', methods=['GET'])
+def get_stock_quote(symbol):
+    """Get real-time stock quote using yfinance"""
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        
+        if not info or 'regularMarketPrice' not in info:
+            # Try fast_info as fallback
+            fast_info = ticker.fast_info
+            quote = {
+                'symbol': symbol,
+                'price': fast_info.get('lastPrice', 0) or fast_info.get('last_price', 0),
+                'change': 0,
+                'changePercent': 0,
+                'volume': fast_info.get('lastVolume', 0),
+                'previousClose': fast_info.get('previousClose', 0) or fast_info.get('previous_close', 0),
+                'high': fast_info.get('dayHigh', 0),
+                'low': fast_info.get('dayLow', 0),
+                'open': fast_info.get('open', 0)
+            }
+        else:
+            quote = {
+                'symbol': symbol,
+                'price': info.get('regularMarketPrice', 0) or info.get('currentPrice', 0),
+                'change': info.get('regularMarketChange', 0),
+                'changePercent': info.get('regularMarketChangePercent', 0),
+                'volume': info.get('regularMarketVolume', 0) or info.get('volume', 0),
+                'previousClose': info.get('previousClose', 0) or info.get('regularMarketPreviousClose', 0),
+                'high': info.get('dayHigh', 0) or info.get('regularMarketDayHigh', 0),
+                'low': info.get('dayLow', 0) or info.get('regularMarketDayLow', 0),
+                'open': info.get('open', 0) or info.get('regularMarketOpen', 0)
+            }
+        
+        # Calculate change if not provided
+        if quote['change'] == 0 and quote['previousClose'] > 0:
+            quote['change'] = quote['price'] - quote['previousClose']
+            quote['changePercent'] = (quote['change'] / quote['previousClose']) * 100
+        
+        return jsonify({
+            'success': True,
+            'quote': quote
+        })
+            
+    except Exception as e:
+        print(f"Error fetching quote for {symbol}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@auth_bp.route('/stock-quotes', methods=['POST'])
+def get_multiple_quotes():
+    """Get multiple stock quotes at once using yfinance"""
+    try:
+        data = request.get_json()
+        symbols = data.get('symbols', [])
+        
+        if not symbols:
+            return jsonify({'success': False, 'error': 'No symbols provided'}), 400
+        
+        print(f"📊 Fetching {len(symbols)} quotes: {symbols}")
+        
+        quotes = []
+        for symbol in symbols[:15]:  # Limit to 15 symbols
+            try:
+                ticker = yf.Ticker(symbol)
+                
+                # Try fast_info first (faster)
+                try:
+                    fast_info = ticker.fast_info
+                    price = fast_info.get('lastPrice', 0) or fast_info.get('last_price', 0)
+                    prev_close = fast_info.get('previousClose', 0) or fast_info.get('previous_close', 0)
+                    
+                    if price > 0:
+                        change = price - prev_close if prev_close > 0 else 0
+                        change_percent = (change / prev_close * 100) if prev_close > 0 else 0
+                        
+                        quote = {
+                            'symbol': symbol,
+                            'price': price,
+                            'change': change,
+                            'changePercent': change_percent,
+                            'volume': fast_info.get('lastVolume', 0),
+                            'previousClose': prev_close
+                        }
+                        quotes.append(quote)
+                        print(f"  ✅ {symbol}: ${price:.2f}")
+                        continue
+                except Exception as fast_error:
+                    print(f"  ⚠️ Fast info failed for {symbol}, trying regular info...")
+                
+                # Fallback to regular info
+                info = ticker.info
+                if info and 'regularMarketPrice' in info:
+                    quote = {
+                        'symbol': symbol,
+                        'price': info.get('regularMarketPrice', 0) or info.get('currentPrice', 0),
+                        'change': info.get('regularMarketChange', 0),
+                        'changePercent': info.get('regularMarketChangePercent', 0),
+                        'volume': info.get('regularMarketVolume', 0),
+                        'previousClose': info.get('previousClose', 0)
+                    }
+                    quotes.append(quote)
+                    print(f"  ✅ {symbol}: ${quote['price']:.2f}")
+                    
+            except Exception as e:
+                print(f"  ❌ Failed to get quote for {symbol}: {e}")
+                continue
+        
+        print(f"✅ Successfully fetched {len(quotes)}/{len(symbols)} quotes")
+        
+        return jsonify({
+            'success': True,
+            'quotes': quotes
+        })
+        
+    except Exception as e:
+        print(f"❌ Error fetching multiple quotes: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 def save_or_update_user(user_data):
     """Save or update user in database"""
