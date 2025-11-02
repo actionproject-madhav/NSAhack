@@ -93,18 +93,24 @@ class GeminiService {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Gemini API HTTP Error:', response.status, errorText);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
       }
 
       const data: GeminiResponse = await response.json();
+      console.log('📦 Gemini API Full Response:', data);
 
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        return data.candidates[0].content.parts?.[0]?.text || 'No response generated';
+        const responseText = data.candidates[0].content.parts?.[0]?.text || 'No response generated';
+        console.log('✅ GeminiService: Extracted text:', responseText);
+        return responseText;
       } else {
-        throw new Error('Invalid response structure');
+        console.error('❌ Invalid response structure:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response structure from Gemini API');
       }
     } catch (error) {
-      console.error('Gemini API Error:', error);
+      console.error('❌ Gemini API Error:', error);
       throw error;
     }
   }
