@@ -130,12 +130,26 @@ def verify_google_token():
         if not token:
             return jsonify({'error': 'Token is required'}), 400
         
-        # Verify the token
-        id_info = id_token.verify_oauth2_token(
-            token,
-            google_requests.Request(),
-            GOOGLE_CLIENT_ID
-        )
+        # Verify the token with clock skew tolerance
+        try:
+            id_info = id_token.verify_oauth2_token(
+                token,
+                google_requests.Request(),
+                GOOGLE_CLIENT_ID,
+                clock_skew_in_seconds=60  # Allow 60 seconds of clock skew
+            )
+        except ValueError as e:
+            # If clock skew error, try with more tolerance
+            if 'Token used too early' in str(e) or 'too late' in str(e):
+                print(f"Clock skew detected, retrying with more tolerance: {e}")
+                id_info = id_token.verify_oauth2_token(
+                    token,
+                    google_requests.Request(),
+                    GOOGLE_CLIENT_ID,
+                    clock_skew_in_seconds=300  # Allow 5 minutes of clock skew
+                )
+            else:
+                raise
         
         # Extract user information
         user_data = {

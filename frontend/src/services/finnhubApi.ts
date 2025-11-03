@@ -58,7 +58,7 @@ class StockAPI {
   }
 
   async getMultipleQuotes(symbols: string[]): Promise<StockQuote[]> {
-    console.log(`📊 Fetching ${symbols.length} quotes via backend proxy...`)
+    console.log(` Fetching ${symbols.length} quotes via backend proxy...`)
     
     try {
       const response = await fetch(`${API_BASE_URL}/auth/stock-quotes`, {
@@ -89,7 +89,7 @@ class StockAPI {
           timestamp: Date.now()
         }))
         
-        console.log(`✅ Got ${quotes.length}/${symbols.length} valid quotes`)
+        console.log(`Got ${quotes.length}/${symbols.length} valid quotes`)
         return quotes.filter(q => q.price > 0)
       }
 
