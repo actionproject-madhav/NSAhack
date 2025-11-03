@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Robinhood-style theme */
+@import './styles/robinhood-theme.css';
+
 @layer base {
   * {
     @apply border-gray-200;

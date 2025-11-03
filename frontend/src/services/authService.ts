@@ -81,25 +81,29 @@ class AuthService {
       console.log('Backend verification result:', result)
       
       if (result.success && result.user) {
-        console.log('Authentication successful! User:', result.user)
+        console.log('✅ Authentication successful! User:', result.user)
         
-        // Store user data in localStorage
+        // Store basic user data in localStorage
         localStorage.setItem('user', JSON.stringify(result.user))
-        console.log('User data stored in localStorage')
+        console.log('✅ User data stored in localStorage')
         
         // Check if user has already completed onboarding
         const hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
+        console.log('Onboarding status:', hasCompletedOnboarding)
         
         if (hasCompletedOnboarding) {
-          console.log('User has completed onboarding, loading profile and redirecting to dashboard...')
-          // Load full profile data
+          console.log('✅ User has completed onboarding, loading full profile...')
+          // Load full profile data with portfolio
           await this.loadUserProfile(result.user.id)
+          console.log('✅ Profile loaded, redirecting to dashboard...')
+          // Force page reload to ensure UserContext picks up the new user
           window.location.href = '/dashboard'
         } else {
-          console.log('User needs to complete onboarding...')
+          console.log('⚠️ User needs to complete onboarding...')
           window.location.href = '/onboarding'
         }
       } else {
+        console.error('❌ Authentication failed:', result.error)
         throw new Error(result.error || 'Authentication failed')
       }
     } catch (error) {

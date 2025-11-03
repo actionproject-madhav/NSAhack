@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
+  TrendingUp,
   Wallet,
   Plus
 } from 'lucide-react'

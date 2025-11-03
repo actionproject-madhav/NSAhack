@@ -80,7 +80,7 @@ const Dashboard = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-white dark:bg-black">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading your portfolio...</p>
         </div>
       </div>
@@ -111,7 +111,7 @@ const Dashboard = () => {
       </div>
       
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header - Robinhood Style */}
+        {/* Header */}
         <header className="bg-white dark:bg-black px-4 lg:px-6 py-4 flex-shrink-0 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -153,7 +153,7 @@ const Dashboard = () => {
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-semibold text-sm">
+                  <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                 )}
@@ -162,18 +162,18 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Main Content - Robinhood Clean Style */}
+        {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 lg:px-6 py-8">
 
-            {/* Portfolio Value - Large, Clean */}
+            {/* Portfolio Value */}
             <div className="mb-8">
-              <div className="text-5xl font-medium text-gray-900 dark:text-white mb-2">
+              <div className="text-4xl font-medium text-gray-900 dark:text-white mb-2">
                 ${user?.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
               </div>
               {portfolioChange !== 0 && (
-                <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {portfolioChange >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                <div className={`flex items-center gap-2 text-sm font-medium ${portfolioChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {portfolioChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
                   <span className="text-gray-500 dark:text-gray-400 font-normal">Today</span>
@@ -181,9 +181,9 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Portfolio Chart - Simple */}
+            {/* Portfolio Chart - Real Data */}
             <div className="mb-8">
-              <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <TradingViewMiniWidget 
                   symbol={user?.portfolio?.[0]?.ticker || 'SPY'} 
                   height="300px"
@@ -192,10 +192,10 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* User's Stocks - Clean List */}
+            {/* User's Stocks */}
             {user?.portfolio && user.portfolio.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Stocks</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Stocks</h2>
                 <div className="space-y-1">
                   {user.portfolio.map((stock) => {
                     const quote = userQuotes?.find(q => q.symbol === stock.ticker)
@@ -210,22 +210,30 @@ const Dashboard = () => {
                       <button
                         key={stock.ticker}
                         onClick={() => navigate(`/stock/${stock.ticker}`)}
-                        className="w-full px-0 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-colors"
                       >
-                        <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <Logo 
+                              company={stock.company}
+                              fallback={stock.ticker.charAt(0)}
+                              size={40}
+                            />
+                          </div>
+                          
                           <div className="text-left flex-1">
-                            <div className="font-medium text-gray-900 dark:text-white">{stock.ticker}</div>
+                            <div className="font-semibold text-gray-900 dark:text-white">{stock.ticker}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {stock.quantity} {stock.quantity === 1 ? 'Share' : 'Shares'}
+                              {stock.quantity} {stock.quantity === 1 ? 'share' : 'shares'}
                             </div>
                           </div>
                         </div>
                         
                         <div className="text-right">
-                          <div className="font-medium text-gray-900 dark:text-white">
+                          <div className="font-semibold text-gray-900 dark:text-white">
                             ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </div>
-                          <div className={`text-sm font-medium ${totalGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`text-sm font-medium ${totalGain >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                             {totalGain >= 0 ? '+' : ''}${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             {' '}({totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%)
                           </div>
@@ -237,13 +245,13 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Popular Stocks - Clean */}
+            {/* Popular Stocks - REAL DATA from Alpha Vantage */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Popular</h2>
                 <button 
                   onClick={() => navigate('/screener')}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
+                  className="text-sm text-emerald-500 hover:text-emerald-600 flex items-center gap-1"
                 >
                   See All
                   <ChevronRight className="w-4 h-4" />
@@ -252,7 +260,7 @@ const Dashboard = () => {
               
               {isLoadingPopular ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  Loading...
+                  Loading market data...
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -260,19 +268,26 @@ const Dashboard = () => {
                     <button
                       key={quote.symbol}
                       onClick={() => navigate(`/stock/${quote.symbol}`)}
-                      className="w-full px-0 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                      className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-colors"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                          <Logo 
+                            company={quote.symbol}
+                            fallback={quote.symbol.charAt(0)}
+                            size={40}
+                          />
+                        </div>
                         <div className="text-left">
-                          <div className="font-medium text-gray-900 dark:text-white">{quote.symbol}</div>
+                          <div className="font-semibold text-gray-900 dark:text-white">{quote.symbol}</div>
                         </div>
                       </div>
                       
                       <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-semibold text-gray-900 dark:text-white">
                           ${quote.price.toFixed(2)}
                         </div>
-                        <div className={`text-sm font-medium ${quote.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`text-sm font-medium ${quote.change >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                           {quote.change >= 0 ? '+' : ''}${Math.abs(quote.change).toFixed(2)}
                           {' '}({quote.change >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
                         </div>
@@ -299,10 +314,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Profile Modal - Robinhood Style */}
+      {/* Profile Modal */}
       {profileOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setProfileOpen(false)}>
-          <div className="bg-white dark:bg-black rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Profile</h2>
               <button 
@@ -322,7 +337,7 @@ const Dashboard = () => {
                     className="w-20 h-20 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold text-2xl">
+                  <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                 )}
@@ -332,15 +347,35 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {user?.goal && (
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Investment Goal</div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white capitalize">{user.goal}</div>
+                  </div>
+                )}
+
+                {user?.lifestyle && user.lifestyle.length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Favorite Brands</div>
+                    <div className="flex flex-wrap gap-2">
+                      {user.lifestyle.map((brand) => (
+                        <span key={brand} className="bg-white dark:bg-gray-700 px-3 py-1 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                          {brand}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {user?.portfolio && user.portfolio.length > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portfolio Value</div>
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                       ${user.totalValue?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {user.portfolio.length} {user.portfolio.length === 1 ? 'position' : 'positions'}
+                      {user.portfolio.length} {user.portfolio.length === 1 ? 'stock' : 'stocks'}
                     </div>
                   </div>
                 )}
@@ -352,20 +387,20 @@ const Dashboard = () => {
                     setProfileOpen(false)
                     navigate('/onboarding')
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors text-left"
                 >
                   <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Settings</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Edit Profile</span>
                 </button>
                 
                 <button 
                   onClick={async () => {
                     await authService.signOut()
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
                 >
-                  <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Log Out</span>
+                  <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">Sign Out</span>
                 </button>
               </div>
             </div>
@@ -380,4 +415,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-
