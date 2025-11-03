@@ -12,12 +12,13 @@ import TaxTreatyCalculator from '../components/TaxTreatyCalculator'
 import F1ComplianceTracker from '../components/F1ComplianceTracker'
 import Logo from '../components/Logo'
 import TradingViewMiniWidget from '../components/TradingViewMiniWidget'
+import ChatWidget from '../components/ChatWidget'
 
 // Popular stocks to show (these are real tickers)
 const POPULAR_STOCKS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD']
 
 const Dashboard = () => {
-  const { user } = useUser()
+  const { user, isLoading } = useUser()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -66,12 +67,25 @@ const Dashboard = () => {
     localStorage.setItem('darkMode', darkMode.toString())
   }, [darkMode])
 
-  // Redirect if not logged in
+  // Redirect if not logged in (but wait for loading to complete)
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
+      console.log('⚠️ No user found, redirecting to landing page...')
       navigate('/')
     }
-  }, [user, navigate])
+  }, [user, isLoading, navigate])
+
+  // Show loading while user context is initializing
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your portfolio...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!user) {
     return null
@@ -393,6 +407,9 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* AI Chat Widget */}
+      <ChatWidget />
     </div>
   )
 }

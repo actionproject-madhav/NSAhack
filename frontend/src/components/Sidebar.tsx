@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion'
 import { LayoutDashboard, Briefcase, TrendingUp, FileText, CreditCard, BarChart3, BookOpen, LogOut } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import authService from '../services/authService'
 
 const Sidebar = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  
+  const handleLogout = async () => {
+    await authService.signOut()
+  }
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -66,7 +71,10 @@ const Sidebar = () => {
 
       {/* Logout */}
       <div className="p-3 lg:p-4 border-t border-gray-200">
-        <button className="w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"
+        >
           <LogOut className="w-4 h-4 lg:w-5 lg:h-5" />
           <span className="text-xs lg:text-sm">Logout</span>
         </button>

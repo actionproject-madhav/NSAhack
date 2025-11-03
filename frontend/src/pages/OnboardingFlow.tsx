@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, MOCK_PRICES, generatePortfolioReason } from '../utils/mockData'
+import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, generatePortfolioReason } from '../utils/mockData'
 import Logo from '../components/Logo'
+import apiService from '../services/apiService'
 
 const OnboardingFlow = () => {
   const [step, setStep] = useState(1)
@@ -25,9 +26,25 @@ const OnboardingFlow = () => {
   }
 
   const generatePortfolio = async () => {
+    console.log('🔄 Generating portfolio with real stock prices...')
+    
+    // Get tickers for selected brands
+    const tickers = selectedBrands.map(brandName => {
+      const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)
+      return brand!.ticker
+    })
+    
+    // Fetch real-time stock prices from backend
+    const quotes = await apiService.getMultipleStockQuotes(tickers)
+    const quoteMap = new Map(quotes.map(q => [q.symbol, q]))
+    
+    console.log('📊 Received quotes for:', Array.from(quoteMap.keys()))
+    
+    // Build portfolio with real prices
     const portfolio = selectedBrands.map(brandName => {
       const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)!
-      const currentPrice = MOCK_PRICES[brand.ticker]
+      const quote = quoteMap.get(brand.ticker)
+      const currentPrice = quote?.price || 100 // Fallback if quote unavailable
       const quantity = Math.floor(1000 / currentPrice) // $1000 investment per stock
 
       return {
@@ -37,11 +54,11 @@ const OnboardingFlow = () => {
         avgPrice: currentPrice,
         currentPrice,
         reason: generatePortfolioReason(brand.name, selectedGoal),
-        logo: brand.logo // Keep fallback emoji for now, components will use Logo component
+        logo: brand.logo
       }
     })
 
-    const totalValue = portfolio.reduce((sum, item) => sum + (item.quantity * item.currentPrice), 0)
+    const totalValue = apiService.calculatePortfolioValue(portfolio)
 
     // Get user data from localStorage (set during Google auth)
     const storedUser = localStorage.getItem('user')
@@ -61,33 +78,23 @@ const OnboardingFlow = () => {
       totalValue
     }
 
-    // Save onboarding data to backend
+    // Save onboarding data to backend using API service
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-      const response = await fetch(`${API_BASE_URL}/auth/onboarding`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          user_id: user.id,
-          lifestyle_brands: selectedBrands,
-          investment_goal: selectedGoal,
-          language: selectedLanguage,
-          visa_status: visaStatus,
-          home_country: homeCountry,
-          portfolio: portfolio,
-          total_value: totalValue
-        })
+      const success = await apiService.updateOnboarding(user.id, {
+        lifestyle_brands: selectedBrands,
+        investment_goal: selectedGoal,
+        language: selectedLanguage,
+        visa_status: visaStatus,
+        home_country: homeCountry,
+        portfolio: portfolio,
+        total_value: totalValue
       })
-
-      const data = await response.json()
       
-      if (data.success) {
-        console.log('✅ Onboarding data saved to database!')
+      if (success) {
+        console.log('✅ Onboarding data saved to database with real stock prices!')
+        localStorage.setItem('user', JSON.stringify(user))
       } else {
-        console.error('❌ Failed to save onboarding data:', data.error)
+        console.error('❌ Failed to save onboarding data')
       }
     } catch (error) {
       console.error('❌ Error saving onboarding data:', error)

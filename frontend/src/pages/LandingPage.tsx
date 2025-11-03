@@ -1,8 +1,18 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useUser } from '../context/UserContext'
 
 const LandingPage = () => {
   const navigate = useNavigate()
+  const { user, isLoading } = useUser()
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      console.log('✅ User already authenticated, redirecting to dashboard...')
+      navigate('/dashboard')
+    }
+  }, [user, isLoading, navigate])
 
   return (
     <div className="min-h-screen relative overflow-hidden">

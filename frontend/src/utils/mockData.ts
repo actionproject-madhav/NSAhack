@@ -13,20 +13,7 @@ export const LIFESTYLE_BRANDS = [
   { name: 'Meta', ticker: 'META', logo: '📱' }
 ]
 
-export const MOCK_PRICES: Record<string, number> = {
-  'WMT': 165.50,
-  'SBUX': 98.75,
-  'NFLX': 445.20,
-  'AAPL': 175.30,
-  'AMZN': 142.80,
-  'TSLA': 242.15,
-  'NKE': 108.90,
-  'MCD': 285.40,
-  'DIS': 95.60,
-  'SPOT': 165.80,
-  'UBER': 58.25,
-  'META': 325.70
-}
+// REMOVED MOCK_PRICES - All prices now fetched from real APIs!
 
 export const INVESTMENT_GOALS = [
   {

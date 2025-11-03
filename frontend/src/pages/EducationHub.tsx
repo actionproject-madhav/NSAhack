@@ -426,7 +426,10 @@ const EducationHub: React.FC = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {COMPREHENSIVE_COURSES.slice(0, 3).map((course, index) => {
                     const isCompleted = completedCourses.includes(course.id)
-                    const progress = Math.floor(Math.random() * 100) // Mock progress
+                    const completedModulesCount = completedModules.filter(moduleId => 
+                      course.modules.some(m => m.id === moduleId)
+                    ).length
+                    const progress = Math.floor((completedModulesCount / course.modules.length) * 100)
                     const lessonsCount = course.modules.length
 
                     return (
@@ -470,10 +473,12 @@ const EducationHub: React.FC = () => {
 
                         <div className="flex items-center justify-between">
                           <div className="flex -space-x-2">
-                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs">+{Math.floor(Math.random() * 200) + 100}</div>
+                            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs">
+                              {completedModulesCount}/{lessonsCount}
+                            </div>
                           </div>
                           <button className="bg-lime-400 text-gray-900 px-4 py-2 rounded-xl font-medium text-sm hover:bg-lime-300 transition-colors">
-                            Continue
+                            {completedModulesCount > 0 ? 'Continue' : 'Start Course'}
                           </button>
                         </div>
                       </motion.div>

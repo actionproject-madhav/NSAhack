@@ -1,434 +1,218 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown, Plus, Settings, Info, TrendingUp, TrendingDown, Zap } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
-
-interface CryptoAsset {
-  id: number
-  name: string
-  symbol: string
-  logo: string
-  price: number
-  change1h: number
-  change24h: number
-  change7d: number
-  marketCap: number
-  volume24h: number
-  volume24hCrypto: number
-  circulatingSupply: number
-  trend: 'up' | 'down'
-}
+import apiService from '../services/apiService'
+import Logo from '../components/Logo'
 
 const PortfolioPage = () => {
-  const { user } = useUser()
+  const { user, refreshPortfolioPrices } = useUser()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('crypto51')
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Mock crypto data based on the image
-  const cryptoAssets: CryptoAsset[] = [
-    {
-      id: 1,
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      logo: '₿',
-      price: 88573.66,
-      change1h: 0.12,
-      change24h: -0.63,
-      change7d: 1.49,
-      marketCap: 8986754284,
-      volume24h: 64762993140,
-      volume24hCrypto: 645582,
-      circulatingSupply: 19795252,
-      trend: 'up'
-    },
-    {
-      id: 2,
-      name: 'Auto Token',
-      symbol: 'AUTO',
-      logo: '⚙️',
-      price: 12.45,
-      change1h: 2.34,
-      change24h: 5.67,
-      change7d: 12.89,
-      marketCap: 1567890123,
-      volume24h: 2345678901,
-      volume24hCrypto: 123456,
-      circulatingSupply: 125000000,
-      trend: 'up'
-    },
-    {
-      id: 3,
-      name: 'Infracoin',
-      symbol: 'INB',
-      logo: '🌙',
-      price: 0.89,
-      change1h: -1.23,
-      change24h: -3.45,
-      change7d: -8.76,
-      marketCap: 987654321,
-      volume24h: 3456789012,
-      volume24hCrypto: 234567,
-      circulatingSupply: 1110000000,
-      trend: 'down'
-    },
-    {
-      id: 4,
-      name: 'Blockport',
-      symbol: 'BPT',
-      logo: '🔵',
-      price: 2.34,
-      change1h: 0.56,
-      change24h: 1.78,
-      change7d: 4.32,
-      marketCap: 2345678901,
-      volume24h: 4567890123,
-      volume24hCrypto: 345678,
-      circulatingSupply: 1000000000,
-      trend: 'up'
-    },
-    {
-      id: 5,
-      name: 'Anchored',
-      symbol: 'AUR',
-      logo: '🟣',
-      price: 5.67,
-      change1h: -0.89,
-      change24h: -2.34,
-      change7d: -6.78,
-      marketCap: 3456789012,
-      volume24h: 5678901234,
-      volume24hCrypto: 456789,
-      circulatingSupply: 600000000,
-      trend: 'down'
-    },
-    {
-      id: 6,
-      name: 'Cobinhood',
-      symbol: 'COB',
-      logo: '🟢',
-      price: 0.78,
-      change1h: 1.45,
-      change24h: 3.67,
-      change7d: 9.12,
-      marketCap: 4567890123,
-      volume24h: 6789012345,
-      volume24hCrypto: 567890,
-      circulatingSupply: 800000000,
-      trend: 'up'
-    },
-    {
-      id: 7,
-      name: 'Trinity',
-      symbol: 'TNC',
-      logo: '🩷',
-      price: 1.23,
-      change1h: -0.67,
-      change24h: -1.89,
-      change7d: -4.56,
-      marketCap: 5678901234,
-      volume24h: 7890123456,
-      volume24hCrypto: 678901,
-      circulatingSupply: 900000000,
-      trend: 'down'
-    },
-    {
-      id: 8,
-      name: 'Belt Fin',
-      symbol: 'BELT',
-      logo: '🟠',
-      price: 3.45,
-      change1h: 0.89,
-      change24h: 2.12,
-      change7d: 5.67,
-      marketCap: 6789012345,
-      volume24h: 8901234567,
-      volume24hCrypto: 789012,
-      circulatingSupply: 700000000,
-      trend: 'up'
-    },
-    {
-      id: 9,
-      name: 'Near Protocol',
-      symbol: 'NEAR',
-      logo: '⚫',
-      price: 7.89,
-      change1h: -1.34,
-      change24h: -2.78,
-      change7d: -7.23,
-      marketCap: 7890123456,
-      volume24h: 9012345678,
-      volume24hCrypto: 890123,
-      circulatingSupply: 500000000,
-      trend: 'down'
-    },
-    {
-      id: 10,
-      name: 'Torn',
-      symbol: 'TORN',
-      logo: '⚫',
-      price: 4.56,
-      change1h: 0.78,
-      change24h: 1.89,
-      change7d: 4.23,
-      marketCap: 8901234567,
-      volume24h: 1234567890,
-      volume24hCrypto: 123456,
-      circulatingSupply: 400000000,
-      trend: 'up'
-    },
-    {
-      id: 11,
-      name: 'Ternio',
-      symbol: 'TERN',
-      logo: '🔵',
-      price: 0.67,
-      change1h: -0.45,
-      change24h: -1.23,
-      change7d: -3.45,
-      marketCap: 9012345678,
-      volume24h: 2345678901,
-      volume24hCrypto: 234567,
-      circulatingSupply: 1200000000,
-      trend: 'down'
-    },
-    {
-      id: 12,
-      name: 'Huobi BTC',
-      symbol: 'HBTC',
-      logo: '🔵',
-      price: 88573.66,
-      change1h: 0.12,
-      change24h: -0.63,
-      change7d: 1.49,
-      marketCap: 1234567890,
-      volume24h: 3456789012,
-      volume24hCrypto: 345678,
-      circulatingSupply: 13950,
-      trend: 'up'
-    }
-  ]
-
-  const formatNumber = (num: number) => {
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(1)}B`
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`
-    if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`
-    return `$${num.toFixed(2)}`
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await refreshPortfolioPrices()
+    setRefreshing(false)
   }
 
-  const formatCryptoNumber = (num: number, symbol: string) => {
-    if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M ${symbol}`
-    if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K ${symbol}`
-    return `${num.toLocaleString()} ${symbol}`
-  }
+  const totalValue = user?.totalValue || 0
+  const totalGainLoss = user?.portfolio?.reduce((total, stock) => {
+    const currentValue = stock.quantity * stock.currentPrice
+    const originalValue = stock.quantity * stock.avgPrice
+    return total + (currentValue - originalValue)
+  }, 0) || 0
+  
+  const totalGainLossPercent = totalValue > 0 
+    ? ((totalGainLoss / (totalValue - totalGainLoss)) * 100) 
+    : 0
 
-  if (!user) {
-    navigate('/')
-    return null
-  }
+  const isPositive = totalGainLoss >= 0
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900">My Picks</h1>
-              <ChevronDown className="w-5 h-5 text-gray-500 cursor-pointer" />
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                <Plus className="w-4 h-4" />
-                + New asset
-              </button>
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                <Settings className="w-4 h-4" />
-                Customise
-              </button>
-            </div>
-            </div>
-
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-8 border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('portfolio')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'portfolio' 
-                  ? 'text-gray-900 border-b-2 border-gray-900' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Portfolio</h1>
+            <p className="text-gray-600">Manage your investments and track performance</p>
+          </div>
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
             >
-              Portfolio
+              <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {refreshing ? 'Refreshing...' : 'Refresh Prices'}
             </button>
-            <button
-              onClick={() => setActiveTab('crypto51')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'crypto51' 
-                  ? 'text-gray-900 border-b-2 border-gray-900' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+            <button 
+              onClick={() => navigate('/trade')}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
             >
-              Crypto <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs ml-1">51</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('pairs')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'pairs' 
-                  ? 'text-gray-900 border-b-2 border-gray-900' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Pairs
-            </button>
-            <button
-              onClick={() => setActiveTab('traders')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'traders' 
-                  ? 'text-gray-900 border-b-2 border-gray-900' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Traders
+              <Plus className="w-4 h-4" />
+              Add Investment
             </button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Crypto Table */}
+        {/* Portfolio Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm font-medium">Total Value</span>
+              <Info className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </motion.div>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    #
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    1h%
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    24h%
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    7d%
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Market cap <Info className="inline w-3 h-3 ml-1" />
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Volume (24h) <Info className="inline w-3 h-3 ml-1" />
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Circulating supply <Info className="inline w-3 h-3 ml-1" />
-                  </th>
-                  
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {cryptoAssets.map((asset) => (
-                  <motion.tr
-                    key={asset.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: asset.id * 0.05 }}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium text-gray-900">{asset.id}</span>
-                </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-                          {asset.logo}
-              </div>
-              <div>
-                          <div className="text-sm font-medium text-gray-900">{asset.name}</div>
-                          <div className="text-sm text-gray-500">{asset.symbol}</div>
-              </div>
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm font-medium">Total Gain/Loss</span>
+              {isPositive ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
             </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        ${asset.price.toLocaleString()}
+            <div className={`text-3xl font-bold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+              {isPositive ? '+' : ''}${Math.abs(totalGainLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className={`text-sm mt-1 ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+              {isPositive ? '+' : ''}{totalGainLossPercent.toFixed(2)}%
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm font-medium">Holdings</span>
+              <Zap className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              {user?.portfolio?.length || 0}
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Active positions</div>
+          </motion.div>
         </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`flex items-center gap-1 text-sm font-medium ${
-                        asset.change1h >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {asset.change1h >= 0 ? 
-                          <TrendingUp className="w-3 h-3" /> :
-                          <TrendingDown className="w-3 h-3" />
-                        }
-                        {asset.change1h >= 0 ? '↑' : '↓'} {Math.abs(asset.change1h).toFixed(2)}%
-            </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`flex items-center gap-1 text-sm font-medium ${
-                        asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {asset.change24h >= 0 ? 
-                          <TrendingUp className="w-3 h-3" /> :
-                          <TrendingDown className="w-3 h-3" />
-                        }
-                        {asset.change24h >= 0 ? '↑' : '↓'} {Math.abs(asset.change24h).toFixed(2)}%
+
+        {/* Holdings List */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Your Holdings</h2>
           </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`flex items-center gap-1 text-sm font-medium ${
-                        asset.change7d >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {asset.change7d >= 0 ? 
-                          <TrendingUp className="w-3 h-3" /> :
-                          <TrendingDown className="w-3 h-3" />
-                        }
-                        {asset.change7d >= 0 ? '↑' : '↓'} {Math.abs(asset.change7d).toFixed(2)}%
+
+          {!user?.portfolio || user.portfolio.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Holdings Yet</h3>
+              <p className="text-gray-600 mb-6">Start building your portfolio by making your first investment</p>
+              <button 
+                onClick={() => navigate('/trade')}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 inline-flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Start Investing
+              </button>
             </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatNumber(asset.marketCap)}
-          </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div>{formatNumber(asset.volume24h)}</div>
-                        <div className="text-gray-500">{formatCryptoNumber(asset.volume24hCrypto, asset.symbol)}</div>
-          </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatCryptoNumber(asset.circulatingSupply, asset.symbol)}
-                  </div>
-                    </td>
-                    
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {user.portfolio.map((holding, index) => {
+                const currentValue = holding.quantity * holding.currentPrice
+                const originalValue = holding.quantity * holding.avgPrice
+                const gainLoss = currentValue - originalValue
+                const gainLossPercent = ((gainLoss / originalValue) * 100)
+                const isPositive = gainLoss >= 0
+
+                return (
+                  <motion.div
+                    key={holding.ticker}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => navigate(`/stock/${holding.ticker}`)}
+                    className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                          <Logo 
+                            company={holding.company}
+                            fallback={holding.ticker.charAt(0)}
+                            size={40}
+                          />
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-900">{holding.ticker}</h3>
+                            <span className="text-sm text-gray-500">{holding.company}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                            <span>{holding.quantity} shares</span>
+                            <span>·</span>
+                            <span>Avg ${holding.avgPrice.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900 text-lg">
+                          ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          {isPositive ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-red-500" />}
+                          <span className={`text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {isPositive ? '+' : ''}${Math.abs(gainLoss).toFixed(2)} ({isPositive ? '+' : ''}{gainLossPercent.toFixed(2)}%)
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          ${holding.currentPrice.toFixed(2)}/share
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
-        </motion.div>
+          )}
+        </div>
+
+        {/* Note about real data */}
+        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">Real-Time Data</h4>
+              <p className="text-sm text-blue-700">
+                All portfolio values and stock prices are fetched in real-time from market data. Prices automatically refresh every 5 minutes.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

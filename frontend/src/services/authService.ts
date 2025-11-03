@@ -23,6 +23,9 @@ class AuthService {
     if (this.isInitialized) return
 
     return new Promise((resolve, reject) => {
+      console.log('🔵 AuthService: Loading Google Sign-In script...')
+      console.log('🔵 Using Client ID:', GOOGLE_CLIENT_ID)
+      
       // Load Google Sign-In script
       const script = document.createElement('script')
       script.src = 'https://accounts.google.com/gsi/client'
@@ -30,8 +33,10 @@ class AuthService {
       script.defer = true
       
       script.onload = () => {
+        console.log(' Google Sign-In script loaded')
         // Initialize Google Sign-In
         if (window.google?.accounts?.id) {
+          console.log(' Google API available, initializing...')
           window.google.accounts.id.initialize({
             client_id: GOOGLE_CLIENT_ID,
             callback: this.handleGoogleResponse.bind(this),
@@ -39,8 +44,10 @@ class AuthService {
             cancel_on_tap_outside: false
           })
           this.isInitialized = true
+          console.log(' Google Sign-In initialized successfully')
           resolve()
         } else {
+          console.error(' Google Sign-In library not available')
           reject(new Error('Google Sign-In library not available'))
         }
       }
@@ -56,8 +63,12 @@ class AuthService {
   // Handle Google Sign-In response
   private async handleGoogleResponse(response: any) {
     console.log('=== Google Sign-In Response ===')
+    console.log(' handleGoogleResponse CALLED!')
     console.log('Full response:', response)
     console.log('Credential token:', response.credential ? 'Present' : 'Missing')
+    
+    // Alert to make sure this is being called
+    console.log(' GOOGLE AUTH CALLBACK TRIGGERED!')
     
     try {
       if (!response.credential) {
@@ -128,7 +139,7 @@ class AuthService {
         if (data.user) {
           // Store complete profile in localStorage
           localStorage.setItem('user', JSON.stringify(data.user))
-          console.log('✅ Full user profile loaded from database')
+          console.log(' Full user profile loaded from database')
         }
       }
     } catch (error) {
@@ -139,13 +150,17 @@ class AuthService {
   // Render Google Sign-In button
   async renderGoogleButton(elementId: string = 'google-signin-button'): Promise<void> {
     try {
+      console.log(` Rendering Google button in element: ${elementId}`)
       await this.initialize()
       
       const element = document.getElementById(elementId)
+      console.log(' Button element found:', !!element)
+      
       if (element && window.google?.accounts.id) {
         // Clear any existing content
         element.innerHTML = ''
         
+        console.log(' Calling renderButton...')
         window.google.accounts.id.renderButton(element, {
           theme: 'outline',
           size: 'large',
@@ -153,12 +168,14 @@ class AuthService {
           shape: 'rectangular',
           width: 300
         })
-        console.log('Google Sign-In button rendered successfully')
+        console.log(' Google Sign-In button rendered successfully')
       } else {
-        console.error('Element not found or Google Sign-In not available')
+        console.error(' Element not found or Google Sign-In not available')
+        console.error('Element:', element)
+        console.error('Google API:', window.google?.accounts?.id)
       }
     } catch (error) {
-      console.error('Failed to render Google button:', error)
+      console.error(' Failed to render Google button:', error)
       throw error
     }
   }

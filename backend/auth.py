@@ -273,7 +273,7 @@ def save_onboarding_data():
         if result.matched_count == 0:
             return jsonify({'error': 'User not found'}), 404
         
-        print(f"✅ Onboarding data saved for user: {user_id}")
+        print(f" Onboarding data saved for user: {user_id}")
         
         return jsonify({
             'success': True,
@@ -281,7 +281,7 @@ def save_onboarding_data():
         })
         
     except Exception as e:
-        print(f"❌ Error saving onboarding data: {e}")
+        print(f" Error saving onboarding data: {e}")
         return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/portfolio', methods=['POST'])
@@ -326,7 +326,7 @@ def update_portfolio():
         if result.matched_count == 0:
             return jsonify({'error': 'User not found'}), 404
         
-        print(f"✅ Portfolio updated for user: {user_id}")
+        print(f" Portfolio updated for user: {user_id}")
         
         return jsonify({
             'success': True,
@@ -334,7 +334,7 @@ def update_portfolio():
         })
         
     except Exception as e:
-        print(f"❌ Error updating portfolio: {e}")
+        print(f" Error updating portfolio: {e}")
         return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/stock-quote/<symbol>', methods=['GET'])
@@ -388,6 +388,64 @@ def get_stock_quote(symbol):
             'error': str(e)
         }), 500
 
+@auth_bp.route('/stock-details/<symbol>', methods=['GET'])
+def get_stock_details(symbol):
+    """Get detailed stock information using yfinance"""
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        
+        if not info:
+            return jsonify({
+                'success': False,
+                'error': 'Stock not found'
+            }), 404
+        
+        # Extract comprehensive stock details
+        details = {
+            'symbol': symbol,
+            'shortName': info.get('shortName', symbol),
+            'longName': info.get('longName', info.get('shortName', symbol)),
+            'fullExchangeName': info.get('fullExchangeName', info.get('exchange', 'N/A')),
+            'regularMarketPrice': info.get('regularMarketPrice', info.get('currentPrice', 0)),
+            'regularMarketChange': info.get('regularMarketChange', 0),
+            'regularMarketChangePercent': info.get('regularMarketChangePercent', 0),
+            'currency': info.get('currency', 'USD'),
+            'marketCap': info.get('marketCap', 0),
+            'volume': info.get('volume', info.get('regularMarketVolume', 0)),
+            'averageVolume': info.get('averageVolume', 0),
+            'peRatio': info.get('trailingPE', info.get('forwardPE', 0)),
+            'open': info.get('regularMarketOpen', info.get('open', 0)),
+            'high': info.get('dayHigh', info.get('regularMarketDayHigh', 0)),
+            'low': info.get('dayLow', info.get('regularMarketDayLow', 0)),
+            'previousClose': info.get('previousClose', info.get('regularMarketPreviousClose', 0)),
+            'divYield': info.get('dividendYield', 0),
+            'beta': info.get('beta', 0),
+            'eps': info.get('trailingEps', info.get('forwardEps', 0)),
+            'description': info.get('longBusinessSummary', info.get('description', '')),
+            'sector': info.get('sector', 'N/A'),
+            'industry': info.get('industry', 'N/A'),
+            'employees': info.get('fullTimeEmployees', 0),
+            'website': info.get('website', ''),
+            'fiftyTwoWeekHigh': info.get('fiftyTwoWeekHigh', 0),
+            'fiftyTwoWeekLow': info.get('fiftyTwoWeekLow', 0),
+            'priceToBook': info.get('priceToBook', 0),
+            'profitMargins': info.get('profitMargins', 0),
+            'debtToEquity': info.get('debtToEquity', 0)
+        }
+        
+        return jsonify({
+            'success': True,
+            'details': details
+        })
+            
+    except Exception as e:
+        print(f"Error fetching details for {symbol}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @auth_bp.route('/stock-quotes', methods=['POST'])
 def get_multiple_quotes():
     """Get multiple stock quotes at once using yfinance"""
@@ -424,10 +482,10 @@ def get_multiple_quotes():
                             'previousClose': prev_close
                         }
                         quotes.append(quote)
-                        print(f"  ✅ {symbol}: ${price:.2f}")
+                        print(f"   {symbol}: ${price:.2f}")
                         continue
                 except Exception as fast_error:
-                    print(f"  ⚠️ Fast info failed for {symbol}, trying regular info...")
+                    print(f"   Fast info failed for {symbol}, trying regular info...")
                 
                 # Fallback to regular info
                 info = ticker.info
@@ -441,13 +499,13 @@ def get_multiple_quotes():
                         'previousClose': info.get('previousClose', 0)
                     }
                     quotes.append(quote)
-                    print(f"  ✅ {symbol}: ${quote['price']:.2f}")
+                    print(f"   {symbol}: ${quote['price']:.2f}")
                     
             except Exception as e:
-                print(f"  ❌ Failed to get quote for {symbol}: {e}")
+                print(f"   Failed to get quote for {symbol}: {e}")
                 continue
         
-        print(f"✅ Successfully fetched {len(quotes)}/{len(symbols)} quotes")
+        print(f" Successfully fetched {len(quotes)}/{len(symbols)} quotes")
         
         return jsonify({
             'success': True,
@@ -455,7 +513,7 @@ def get_multiple_quotes():
         })
         
     except Exception as e:
-        print(f"❌ Error fetching multiple quotes: {e}")
+        print(f" Error fetching multiple quotes: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

@@ -1,64 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils/cn';
+import apiService from '../services/apiService';
 
-// Mock screener data - replace with real API data
-const mockScreenerData = [
-  {
-    symbol: "AAPL",
-    shortName: "Apple Inc.",
-    regularMarketPrice: 175.84,
-    regularMarketChange: 2.34,
-    regularMarketChangePercent: 1.35,
-    marketCap: 2800000000000,
-    volume: 45000000,
-    peRatio: 28.5,
-    sector: "Technology"
-  },
-  {
-    symbol: "MSFT",
-    shortName: "Microsoft Corporation",
-    regularMarketPrice: 338.11,
-    regularMarketChange: -1.23,
-    regularMarketChangePercent: -0.36,
-    marketCap: 2500000000000,
-    volume: 32000000,
-    peRatio: 32.1,
-    sector: "Technology"
-  },
-  {
-    symbol: "GOOGL",
-    shortName: "Alphabet Inc.",
-    regularMarketPrice: 125.32,
-    regularMarketChange: 0.87,
-    regularMarketChangePercent: 0.70,
-    marketCap: 1600000000000,
-    volume: 28000000,
-    peRatio: 24.8,
-    sector: "Communication Services"
-  },
-  {
-    symbol: "TSLA",
-    shortName: "Tesla, Inc.",
-    regularMarketPrice: 248.50,
-    regularMarketChange: 12.45,
-    regularMarketChangePercent: 5.27,
-    marketCap: 790000000000,
-    volume: 85000000,
-    peRatio: 65.2,
-    sector: "Consumer Cyclical"
-  },
-  {
-    symbol: "NVDA",
-    shortName: "NVIDIA Corporation",
-    regularMarketPrice: 875.30,
-    regularMarketChange: 15.20,
-    regularMarketChangePercent: 1.77,
-    marketCap: 2150000000000,
-    volume: 42000000,
-    peRatio: 68.5,
-    sector: "Technology"
-  }
+// Popular stocks to screen
+const POPULAR_SYMBOLS = [
+  'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD',
+  'NFLX', 'DIS', 'SBUX', 'NKE', 'WMT', 'JPM', 'V', 'MA'
 ];
 
 const formatCurrency = (value: number) => {
@@ -104,8 +52,43 @@ export default function MarketScreener() {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<keyof Stock>('marketCap');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const sortedData = [...mockScreenerData].sort((a, b) => {
+  // Fetch real stock data
+  useEffect(() => {
+    const fetchStocks = async () => {
+      setIsLoading(true);
+      try {
+        console.log('📊 Fetching real stock data for screener...');
+        const quotes = await apiService.getMultipleStockQuotes(POPULAR_SYMBOLS);
+        
+        // Transform quotes to stock data format with basic info
+        const stockData: Stock[] = quotes.map(quote => ({
+          symbol: quote.symbol,
+          shortName: quote.symbol, // Will be enhanced if needed
+          regularMarketPrice: quote.price,
+          regularMarketChange: quote.change,
+          regularMarketChangePercent: quote.changePercent,
+          marketCap: 0, // Simplified - not fetching full details for performance
+          volume: quote.volume || 0,
+          peRatio: 0,
+          sector: 'Technology' // Default sector
+        }));
+        
+        setStocks(stockData.filter(s => s.regularMarketPrice > 0));
+        console.log(`✅ Loaded ${stockData.length} stocks for screener`);
+      } catch (error) {
+        console.error('Error fetching screener data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStocks();
+  }, []);
+
+  const sortedData = [...stocks].sort((a, b) => {
     const aValue = a[sortBy];
     const bValue = b[sortBy];
     
@@ -131,12 +114,21 @@ export default function MarketScreener() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="w-full p-12 text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-600">Loading real-time market data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-gray-900">Market Screener</h2>
         <p className="text-sm text-gray-600">
-          Top performing stocks by market cap
+          Live stock data - Click any row to view details
         </p>
       </div>
       

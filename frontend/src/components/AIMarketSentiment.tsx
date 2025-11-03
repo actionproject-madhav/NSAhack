@@ -19,6 +19,8 @@ const AIMarketSentiment = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'sentiment' | 'time' | 'ticker'>('sentiment')
 
+  // ⚠️ WARNING: This is SIMULATED/DEMO data for illustration purposes
+  // Real news sentiment would require integrating with a news API
   const mockSentimentData: SentimentData[] = [
     {
       ticker: 'DGNX',
@@ -140,12 +142,27 @@ const AIMarketSentiment = () => {
 
   return (
     <div className="space-y-6">
+      {/* SIMULATED DATA WARNING */}
+      <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-xl">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-yellow-900 mb-1">⚠️ SIMULATED DATA - FOR DEMONSTRATION ONLY</div>
+            <div className="text-sm text-yellow-800">
+              This page displays simulated news sentiment data for demonstration purposes. 
+              Real news sentiment would require integration with a news API. 
+              All stock trading data elsewhere in the app (prices, portfolios) is 100% real.
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Analysis Controls */}
       <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">StockTitan News Sentiment Engine</h3>
-            <p className="text-sm text-gray-600">Scrapes today's financial news and analyzes sentiment using FinBERT + VADER + Custom Rules</p>
+            <h3 className="text-lg font-semibold text-gray-900">StockTitan News Sentiment Engine (Demo)</h3>
+            <p className="text-sm text-gray-600">Demo: Simulated sentiment analysis (Real API integration not implemented)</p>
           </div>
           <motion.button
             onClick={runSentimentAnalysis}

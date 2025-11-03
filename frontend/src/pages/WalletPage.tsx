@@ -1,503 +1,227 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Search, 
-  ChevronDown, 
-  Download, 
-  Grid3X3, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  BarChart3, 
+  DollarSign, 
   TrendingUp, 
   TrendingDown, 
   ArrowUpRight, 
-  ArrowDownLeft, 
-  Pencil,
-  Zap,
-  ChevronRight,
-  MoreVertical,
-  DollarSign, 
-  Wallet
+  ArrowDownLeft,
+  Wallet,
+  Plus
 } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
 
-interface Transaction {
-  id: string
-  paymentName: string
-  amount: number
-  date: Date
-  status: 'completed' | 'failed'
-  type: 'income' | 'expense'
-  icon: string
-}
-
 const WalletPage = () => {
   const { user } = useUser()
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All Status')
-  const [timeFilter, setTimeFilter] = useState('Latest')
-  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
 
-  // Mock transaction data based on the image
-  const transactions: Transaction[] = [
-    {
-      id: 'TXN-24020110',
-      paymentName: 'Transfer from Bank',
-      amount: 980,
-      date: new Date('2025-02-29T21:41:00'),
-      status: 'completed',
-      type: 'income',
-      icon: '🏦'
-    },
-    {
-      id: 'TXN-24020109',
-      paymentName: 'Youtube Premium',
-      amount: -20,
-      date: new Date('2025-02-29T21:41:00'),
-      status: 'completed',
-      type: 'expense',
-      icon: '📺'
-    },
-    {
-      id: 'TXN-24020108',
-      paymentName: 'Internet',
-      amount: -120,
-      date: new Date('2025-02-29T13:56:00'),
-      status: 'completed',
-      type: 'expense',
-      icon: '🌐'
-    },
-    {
-      id: 'TXN-24020107',
-      paymentName: 'Transfer from Bank',
-      amount: 1000,
-      date: new Date('2025-02-29T11:36:00'),
-      status: 'completed',
-      type: 'income',
-      icon: '🏦'
-    },
-    {
-      id: 'TXN-24020106',
-      paymentName: 'Transfer from Bank',
-      amount: 1200,
-      date: new Date('2025-02-29T11:25:00'),
-      status: 'completed',
-      type: 'income',
-      icon: '🏦'
-    },
-    {
-      id: 'TXN-24020105',
-      paymentName: 'Starbucks Coffee',
-      amount: -12,
-      date: new Date('2025-02-29T09:41:00'),
-      status: 'completed',
-      type: 'expense',
-      icon: '☕'
-    },
-    {
-      id: 'TXN-24020104',
-      paymentName: 'Salary (Freelance)',
-      amount: 100,
-      date: new Date('2025-02-28T22:12:00'),
-      status: 'completed',
-      type: 'income',
-      icon: '💼'
-    },
-    {
-      id: 'TXN-24020103',
-      paymentName: 'Crypto Investment',
-      amount: 1000,
-      date: new Date('2025-02-28T22:12:00'),
-      status: 'completed',
-      type: 'income',
-      icon: '₿'
-    },
-    {
-      id: 'TXN-24020102',
-      paymentName: 'Amazon Purchase',
-      amount: -30,
-      date: new Date('2025-02-27T22:12:00'),
-      status: 'completed',
-      type: 'expense',
-      icon: '📦'
-    },
-    {
-      id: 'TXN-24020101',
-      paymentName: 'Spotify Premium',
-      amount: -40,
-      date: new Date('2025-02-27T08:00:00'),
-      status: 'failed',
-      type: 'expense',
-      icon: '🎵'
-    }
-  ]
-
-  const totalTransactions = 125430
-  const totalIncome = 92000
-  const totalExpenses = 58500
-
-  const formatDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
-    }
-    const timeOptions: Intl.DateTimeFormatOptions = { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }
-    return `${date.toLocaleDateString('en-US', options)} · ${date.toLocaleTimeString('en-US', timeOptions)}`
-  }
-
-  const getStatusBadge = (status: string) => {
-    if (status === 'completed') {
-      return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Completed</span>
-    } else {
-      return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Failed</span>
-    }
-  }
-
-  const toggleTransactionSelection = (id: string) => {
-    if (selectedTransactions.includes(id)) {
-      setSelectedTransactions(selectedTransactions.filter(t => t !== id))
-    } else {
-      setSelectedTransactions([...selectedTransactions, id])
-    }
-  }
-
-  if (!user) {
-    navigate('/')
-    return null
-  }
+  const totalValue = user?.totalValue || 0
+  const cashBalance = 10000 // Starting virtual cash for practice trading
+  const availableCash = cashBalance - (totalValue || 0)
+  const totalAssets = cashBalance
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-            <div className="flex items-center gap-3">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                <Pencil className="w-4 h-4" />
-                Ask FinLit AI
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Wallet</h1>
+            <p className="text-gray-600">Manage your funds and track transactions</p>
+          </div>
+          
+          <button 
+            onClick={() => navigate('/trade')}
+            className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Invest Funds
+          </button>
+        </div>
+
+        {/* Balance Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-xl shadow-lg text-white"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Wallet className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-medium opacity-90">Total Balance</span>
+            </div>
+            <div className="text-3xl font-bold mb-1">
+              ${totalAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-sm opacity-75">Available for trading</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <ArrowDownLeft className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-600">Available Cash</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              ${availableCash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-sm text-gray-500">Ready to invest</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-600">Invested</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-sm text-gray-500">In {user?.portfolio?.length || 0} positions</div>
+          </motion.div>
+        </div>
+
+        {/* Portfolio Summary */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Your Portfolio</h2>
+          </div>
+          
+          {!user?.portfolio || user.portfolio.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Investments Yet</h3>
+              <p className="text-gray-600 mb-6">You have ${availableCash.toFixed(2)} available to invest</p>
+              <button 
+                onClick={() => navigate('/trade')}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 inline-flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Start Investing
               </button>
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                <Download className="w-4 h-4" />
-                Export Report
-              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {user.portfolio.map((stock) => {
+                const currentValue = stock.quantity * stock.currentPrice
+                const originalValue = stock.quantity * stock.avgPrice
+                const gainLoss = currentValue - originalValue
+                const isProfit = gainLoss >= 0
+
+                return (
+                  <div
+                    key={stock.ticker}
+                    onClick={() => navigate(`/stock/${stock.ticker}`)}
+                    className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold">
+                          {stock.ticker.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{stock.ticker}</h3>
+                          <p className="text-sm text-gray-600">{stock.quantity} shares × ${stock.currentPrice.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900">
+                          ${currentValue.toFixed(2)}
+                        </div>
+                        <div className={`text-sm ${isProfit ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {isProfit ? '+' : ''}${gainLoss.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button 
+            onClick={() => navigate('/trade')}
+            className="p-6 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-emerald-200 transition-colors">
+                <Plus className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-1">Invest</h3>
+              <p className="text-sm text-gray-600">Add to your portfolio</p>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/portfolio')}
+            className="p-6 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-200 transition-colors">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-1">Portfolio</h3>
+              <p className="text-sm text-gray-600">View all holdings</p>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/learn')}
+            className="p-6 bg-white border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-purple-200 transition-colors">
+                <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-1">Learn</h3>
+              <p className="text-sm text-gray-600">Investment courses</p>
+            </div>
+          </button>
+        </div>
+
+        {/* Info Banner */}
+        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-blue-900 mb-1">Real Portfolio Data</h4>
+              <p className="text-sm text-blue-700">
+                Your wallet shows your actual portfolio balance. All stock values are updated in real-time from market data. Start with ${cashBalance.toFixed(2)} virtual cash to practice investing.
+              </p>
             </div>
           </div>
-        </motion.div>
-
-                 {/* Summary Cards */}
-         <div className="grid md:grid-cols-3 gap-6 mb-8">
-           {/* Portfolio Value */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                 <BarChart3 className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                 <h3 className="text-sm text-gray-500">Portfolio Value</h3>
-                 <p className="text-2xl font-bold text-gray-900">${totalTransactions.toLocaleString()}</p>
-                  </div>
-                </div>
-             <p className="text-sm text-green-600 font-medium">↑ 12.5% compared to last month</p>
-              </motion.div>
-
-           {/* Trading Profits */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                 <TrendingUp className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                 <h3 className="text-sm text-gray-500">Trading Profits</h3>
-                 <p className="text-2xl font-bold text-gray-900">${totalIncome.toLocaleString()}</p>
-                  </div>
-                </div>
-             <p className="text-sm text-green-600 font-medium">↑ 15.5% compared to last month</p>
-              </motion.div>
-
-           {/* Trading Losses */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-             className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                 <TrendingDown className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                 <h3 className="text-sm text-gray-500">Trading Losses</h3>
-                 <p className="text-2xl font-bold text-gray-900">${totalExpenses.toLocaleString()}</p>
-                  </div>
-                </div>
-             <p className="text-sm text-red-600 font-medium">↓ 8.5% compared to last month</p>
-              </motion.div>
-            </div>
-
-        {/* Main Content and Sidebar */}
-        <div className="flex gap-8">
-          {/* Main Content - Transactions Table */}
-          <div className="flex-1">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"
-            >
-              {/* Table Header with Search and Filters */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Transactions</h2>
-                  <div className="flex items-center gap-3">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <Download className="w-4 h-4 text-gray-500" />
-                </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <Grid3X3 className="w-4 h-4 text-gray-500" />
-                </button>
-              </div>
-              </div>
-
-                    <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search..."
-                      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option>All Status</option>
-                    <option>Completed</option>
-                    <option>Failed</option>
-                  </select>
-                  <select
-                    value={timeFilter}
-                    onChange={(e) => setTimeFilter(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option>Latest</option>
-                    <option>Oldest</option>
-                    <option>This Week</option>
-                    <option>This Month</option>
-                  </select>
-              </div>
-            </div>
-
-              {/* Transactions Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-4 text-left">
-                        <input
-                          type="checkbox"
-                          checked={selectedTransactions.length === transactions.length}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedTransactions(transactions.map(t => t.id))
-                            } else {
-                              setSelectedTransactions([])
-                            }
-                          }}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaction ID
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Payment Name
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-left"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {transactions.map((transaction, index) => (
-                      <motion.tr
-                        key={transaction.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedTransactions.includes(transaction.id)}
-                            onChange={() => toggleTransactionSelection(transaction.id)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{transaction.id}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-lg">
-                              {transaction.icon}
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">{transaction.paymentName}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${
-                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {transaction.type === 'income' ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-500">{formatDate(transaction.date)}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(transaction.status)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                            <MoreVertical className="w-4 h-4 text-gray-400" />
-                </button>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Show data 10 of 200</span>
-                  <div className="flex items-center gap-2">
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{"<<"}</button>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{"<"}</button>
-                    <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded">1</button>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">2</button>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">3</button>
-                    <span className="px-3 py-1 text-sm text-gray-500">...</span>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">10</button>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{">"}</button>
-                    <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">{">>"}</button>
-                  </div>
-                </div>
-                  </div>
-            </motion.div>
-                </div>
-
-          {/* Right Sidebar */}
-          <div className="w-80 space-y-6">
-            {/* Category Breakdown */}
-                    <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Category Breakdown</h3>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </div>
-              
-              {/* Donut Chart Placeholder */}
-              <div className="w-32 h-32 mx-auto mb-4 relative">
-                <div className="w-full h-full rounded-full border-8 border-blue-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600">125K</p>
-                    <p className="text-xs text-gray-500">Total Balance</p>
-                  </div>
-                </div>
-                <div className="absolute inset-0 rounded-full border-8 border-blue-600" style={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%)' }}></div>
-              </div>
-              
-              {/* Legend */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  <span className="text-sm text-gray-600">Income</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-200 rounded-full"></div>
-                  <span className="text-sm text-gray-600">Expense</span>
-                        </div>
-                          </div>
-              
-              {/* Insight */}
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Pencil className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <p className="text-sm text-blue-800">Your dining expense increased by 20% compared to last month</p>
-                          </div>
-                        </div>
-            </motion.div>
-
-            {/* AI Insight */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900">AI Insight</h3>
-                      </div>
-
-              <div className="bg-blue-600 text-white p-4 rounded-lg mb-4">
-                <p className="text-sm leading-relaxed">
-                  You have saved $1,200 this month. Based on your spending habits, allocating an additional 5% to savings can help you reach your financial goal faster.
-                        </p>
-                      </div>
-              
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-                Auto Save Now &gt;
-              </button>
-                    </motion.div>
-
-
-                </div>
-            </div>
+        </div>
       </div>
     </div>
   )

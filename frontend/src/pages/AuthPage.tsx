@@ -26,25 +26,28 @@ const AuthPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock authentication - always succeed and navigate to onboarding
-    console.log('Mock authentication successful for:', isLogin ? 'login' : 'signup')
-    navigate('/onboarding')
+    // Email/password authentication not implemented - use Google Sign-In
+    alert('Please use Google Sign-In button below for authentication')
   }
 
   useEffect(() => {
+    console.log('🔵 AuthPage: Initializing Google Sign-In...')
+    
     // Initialize Google Sign-In when component mounts
     const initializeGoogle = async () => {
       try {
         // Small delay to ensure DOM is ready
         setTimeout(async () => {
           try {
+            console.log('🔵 AuthPage: Rendering Google button...')
             await authService.renderGoogleButton('google-signin-button')
+            console.log('✅ AuthPage: Google button rendered')
           } catch (error) {
-            console.error('Failed to render Google button:', error)
+            console.error('❌ Failed to render Google button:', error)
           }
         }, 500)
       } catch (error) {
-        console.error('Failed to initialize Google Sign-In:', error)
+        console.error('❌ Failed to initialize Google Sign-In:', error)
       }
     }
     
@@ -68,9 +71,8 @@ const AuthPage = () => {
     if (provider === 'Google') {
       handleGoogleLogin()
     } else {
-      // Mock social login for other providers
-      console.log(`Mock ${provider} authentication successful`)
-      navigate('/onboarding')
+      // Other social login providers not yet implemented
+      alert(`${provider} sign-in coming soon! Please use Google Sign-In for now.`)
     }
   }
 
@@ -236,23 +238,10 @@ const AuthPage = () => {
             </div>
 
             <div className="mt-3 space-y-2">
-              {/* Google Sign-In Button Container */}
+              {/* Google Sign-In Button Container - Google will render its button here */}
               <div className="w-full flex justify-center">
-                <div id="google-signin-button" ref={googleButtonRef} className="min-h-[44px] w-full max-w-xs">
-                  {/* Fallback button if Google Sign-In doesn't load */}
-                  <button 
-                    onClick={() => handleGoogleLogin()}
-                    disabled={isLoading}
-                    className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  >
-                    <Logo 
-                      company="Google" 
-                      fallback="G" 
-                      size={18} 
-                      className="mr-2"
-                    />
-                    <span>{isLoading ? 'Signing in...' : 'Sign in with Google'}</span>
-                  </button>
+                <div id="google-signin-button" ref={googleButtonRef} className="w-full flex justify-center">
+                  {/* Loading placeholder */}
                 </div>
               </div>
 

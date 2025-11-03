@@ -3,8 +3,9 @@ import { motion } from 'framer-motion'
 import { Send, Wand2, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { MOCK_PRICES, LIFESTYLE_BRANDS } from '../utils/mockData'
+import { LIFESTYLE_BRANDS } from '../utils/mockData'
 import Navigation from '../components/Navigation'
+import apiService from '../services/apiService'
 
 type Risk = 'low' | 'medium' | 'high'
 type Horizon = 'short' | 'medium' | 'long'
@@ -27,14 +28,16 @@ const TradePage = () => {
   const [budget, setBudget] = useState<number | null>(null)
   const [themes, setThemes] = useState<string[]>([])
   const [activated, setActivated] = useState(false)
+  const [stockPrices, setStockPrices] = useState<Record<string, number>>({})
+  const [loadingPrices, setLoadingPrices] = useState(false)
   const endRef = useRef<HTMLDivElement | null>(null)
 
   // Seed conversation
   useEffect(() => {
     const firstName = user?.name ? user.name.split(' ')[0] : 'there'
     setMessages([
-      { id: 'm0', role: 'assistant', content: `Hi ${firstName}! I’m your AI Auto-Trader. I’ll set up a mock monthly investing plan for you.` },
-      { id: 'm1', role: 'assistant', content: 'First, what’s your risk tolerance?', options: [
+      { id: 'm0', role: 'assistant', content: `Hi ${firstName}! I'm your AI Auto-Trader. I'll help you set up a personalized monthly investing plan with real stock prices.` },
+      { id: 'm1', role: 'assistant', content: "First, what's your risk tolerance?", options: [
         { label: 'Low', value: 'low' },
         { label: 'Medium', value: 'medium' },
         { label: 'High', value: 'high' },
@@ -122,20 +125,45 @@ const TradePage = () => {
     return selectedBrands.map((brand, i) => {
       const pct = allocations[i] || 0
       const dollars = Math.round((pct / 100) * b)
-      const price = MOCK_PRICES[brand.ticker]
+      const price = stockPrices[brand.ticker] || 100 // Use real price or fallback
       const qty = Math.max(0, Math.floor(dollars / price))
       return { brand, pct, dollars, price, qty }
     })
-  }, [selectedBrands, allocations, budget])
+  }, [selectedBrands, allocations, budget, stockPrices])
 
-  const showPlan = () => {
-    addAssistant(`Here’s your mock plan: Risk ${risk}, Horizon ${horizon}, Budget $${budget}/mo.`)
-    const lines = plan.map(p => `${p.brand.name}: ${p.pct}% ($${p.dollars}/mo) ~${p.qty} shares/mo @ $${p.price}`)
-    addAssistant(lines.join('\n'))
-    addAssistant('Ready to activate auto-trade?', [
-      { label: 'Activate plan', value: 'activate' },
-      { label: 'Adjust later', value: 'later' },
-    ])
+  const showPlan = async () => {
+    // Fetch real stock prices before showing plan
+    setLoadingPrices(true)
+    addAssistant('Fetching real-time stock prices...')
+    
+    try {
+      const tickers = selectedBrands.map(b => b.ticker)
+      const quotes = await apiService.getMultipleStockQuotes(tickers)
+      
+      const prices: Record<string, number> = {}
+      quotes.forEach(q => {
+        if (q.price > 0) {
+          prices[q.symbol] = q.price
+        }
+      })
+      setStockPrices(prices)
+      
+      // Wait a moment for plan to recalculate with new prices
+      setTimeout(() => {
+        addAssistant(`Here's your plan: Risk ${risk}, Horizon ${horizon}, Budget $${budget}/mo.`)
+        const lines = plan.map(p => `${p.brand.name}: ${p.pct}% ($${p.dollars}/mo) ~${p.qty} shares/mo @ $${p.price.toFixed(2)}`)
+        addAssistant(lines.join('\n'))
+        addAssistant('Ready to activate auto-trade?', [
+          { label: 'Activate plan', value: 'activate' },
+          { label: 'Adjust later', value: 'later' },
+        ])
+        setLoadingPrices(false)
+      }, 500)
+    } catch (error) {
+      console.error('Error fetching stock prices:', error)
+      addAssistant('Error fetching real-time prices. Using approximate values.')
+      setLoadingPrices(false)
+    }
   }
 
   const activate = () => {
@@ -220,7 +248,7 @@ const TradePage = () => {
         </div>
 
         {/* Footer action after plan */}
-        {risk && horizon && budget != null && messages.some(m => m.content.includes('mock plan')) && (
+        {risk && horizon && budget != null && messages.some(m => m.content.includes('your plan')) && (
           <button onClick={activate} className="mt-4 w-full btn-primary flex items-center justify-center gap-2">
             <Check className="w-4 h-4" /> {activated ? 'Plan activated' : 'Activate Auto-Trade'}
           </button>
