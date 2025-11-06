@@ -156,6 +156,9 @@ const AuthPage = () => {
                 setSplineLoaded(true)
               }}
             />
+            
+            {/* Cover Spline watermark at bottom-right */}
+            <div className="absolute bottom-0 right-0 w-48 h-16 bg-black z-50 pointer-events-none" />
           </>
         )}
       </div>
