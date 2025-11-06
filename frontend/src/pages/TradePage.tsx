@@ -194,30 +194,30 @@ const TradePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
       <Navigation />
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <img src="/orb.gif" alt="orb" className="w-12 h-12 rounded-full object-cover" />
           <div>
-            <div className="text-xs text-gray-500 flex items-center gap-1"><Wand2 className="w-3 h-3" /> AI Auto-Trading</div>
-            <h1 className="text-xl font-semibold">Personalized AI Assistant</h1>
+            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><Wand2 className="w-3 h-3" /> AI Auto-Trading</div>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Personalized AI Assistant</h1>
           </div>
         </div>
 
         {/* Chat window */}
-        <div className="card h-[65vh] flex flex-col">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 h-[65vh] flex flex-col transition-colors">
           <div className="flex-1 overflow-y-auto pr-1">
             {messages.map(m => (
               <motion.div key={m.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
-                <div className={`max-w-[80%] rounded-2xl px-4 py-3 whitespace-pre-wrap ${m.role === 'assistant' ? 'bg-gray-100 text-gray-900' : 'bg-black text-white ml-auto'}`}>
+                <div className={`max-w-[80%] rounded-2xl px-4 py-3 whitespace-pre-wrap ${m.role === 'assistant' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 ml-auto'}`}>
                   {m.content}
                 </div>
                 {m.options && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {m.options.map(o => (
-                      <button key={o.label} onClick={() => chooseOption(o)} className="px-3 py-1.5 rounded-full border border-gray-300 text-sm hover:bg-gray-50">
+                      <button key={o.label} onClick={() => chooseOption(o)} className="px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors">
                         {o.label}
                       </button>
                     ))}
@@ -227,21 +227,21 @@ const TradePage = () => {
             ))}
             {/* Live selections (themes) */}
             {themes.length > 0 && (!risk || !horizon || budget == null ? null : (
-              <div className="mb-2 text-xs text-gray-500">Selected themes: {themes.join(', ')}</div>
+              <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Selected themes: {themes.join(', ')}</div>
             ))}
             <div ref={endRef} />
           </div>
 
           {/* Composer */}
-          <div className="pt-3 border-t mt-2 flex items-center gap-2">
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-800 mt-2 flex items-center gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={risk && horizon && budget != null ? 'Type "activate" to confirm or say anything...' : 'Type your answer…'}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSend() }}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 transition-colors"
             />
-            <button onClick={handleSend} className="btn-primary inline-flex items-center gap-2">
+            <button onClick={handleSend} className="px-6 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 inline-flex items-center gap-2 transition-colors">
               <Send className="w-4 h-4" /> Send
             </button>
           </div>
@@ -249,7 +249,7 @@ const TradePage = () => {
 
         {/* Footer action after plan */}
         {risk && horizon && budget != null && messages.some(m => m.content.includes('your plan')) && (
-          <button onClick={activate} className="mt-4 w-full btn-primary flex items-center justify-center gap-2">
+          <button onClick={activate} className="mt-4 w-full px-6 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center justify-center gap-2 transition-colors">
             <Check className="w-4 h-4" /> {activated ? 'Plan activated' : 'Activate Auto-Trade'}
           </button>
         )}

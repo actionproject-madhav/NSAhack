@@ -17,37 +17,37 @@ const WalletPage = () => {
   const totalAssets = cashBalance
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header - Robinhood Minimal */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
           <div>
-            <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Buying Power</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Buying Power</h1>
           </div>
           
           <button 
             onClick={() => navigate('/trade')}
-            className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 flex items-center gap-2"
+            className="px-6 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Invest
           </button>
         </div>
 
-        {/* Balance Cards - Robinhood Minimal */}
+        {/* Balance Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Balance</span>
-            <div className="text-3xl font-bold text-black dark:text-white mt-2">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
               ${totalAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Available Cash</span>
-            <div className="text-3xl font-bold text-black dark:text-white mt-2">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
               ${availableCash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Ready to invest</div>

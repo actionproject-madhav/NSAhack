@@ -17,7 +17,7 @@ function App() {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<LandingPage />} />

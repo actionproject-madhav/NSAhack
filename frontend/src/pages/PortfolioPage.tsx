@@ -31,21 +31,21 @@ const PortfolioPage = () => {
   const isPositive = totalGainLoss >= 0
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header - Robinhood Minimal */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
           <div>
-            <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Portfolio</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Portfolio</h1>
           </div>
           
           <div className="flex gap-3">
             <button 
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-4 py-2 bg-white dark:bg-black border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center gap-2 disabled:opacity-50 text-black dark:text-white"
+              className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2 disabled:opacity-50 text-gray-900 dark:text-gray-100 transition-colors"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               {refreshing ? 'Refreshing...' : 'Refresh'}

@@ -1,16 +1,15 @@
-import { Bell, Menu, LogOut, Settings, X, Moon, Sun, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
+import { Bell, Settings, X, Moon, Sun, TrendingUp, TrendingDown, ChevronRight, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { useState, useEffect } from 'react'
 import authService from '../services/authService'
-import Sidebar from '../components/Sidebar'
+import Navigation from '../components/Navigation'
 import { StockSearch } from '../components/StockSearch'
 import { SearchResult } from '../services/alphaVantageApi'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import InternationalStudentAlerts from '../components/InternationalStudentAlerts'
 import TaxTreatyCalculator from '../components/TaxTreatyCalculator'
 import F1ComplianceTracker from '../components/F1ComplianceTracker'
-import Logo from '../components/Logo'
 import TradingViewMiniWidget from '../components/TradingViewMiniWidget'
 import ChatWidget from '../components/ChatWidget'
 
@@ -20,7 +19,6 @@ const POPULAR_STOCKS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META',
 const Dashboard = () => {
   const { user, isLoading } = useUser()
   const navigate = useNavigate()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
@@ -96,215 +94,185 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="h-screen bg-white dark:bg-black flex overflow-hidden transition-colors">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
+      {/* Navigation */}
+      <Navigation />
       
-      {/* Left Sidebar */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50 lg:z-auto`}>
-        <Sidebar />
-      </div>
-      
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header - Robinhood Style */}
-        <header className="bg-white dark:bg-black px-4 lg:px-6 py-4 flex-shrink-0 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 text-gray-600 dark:text-gray-400"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden md:block">
-                <StockSearch
-                  onStockSelect={handleStockSearch}
-                  placeholder="Search"
-                  className="w-48"
+      {/* Top Bar with Dark Mode & Profile */}
+      <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 sticky top-16 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-end gap-3">
+            <button 
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors">
+              <Bell className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={() => setProfileOpen(true)}
+              className="hover:opacity-80 transition-opacity"
+            >
+              {user?.picture ? (
+                <img 
+                  src={user.picture} 
+                  alt={user.name} 
+                  className="w-8 h-8 rounded-full object-cover"
                 />
-              </div>
-              
-              <button 
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-
-              <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors">
-                <Bell className="w-5 h-5" />
-              </button>
-              
-              <button 
-                onClick={() => setProfileOpen(true)}
-                className="hover:opacity-80 transition-opacity"
-              >
-                {user?.picture ? (
-                  <img 
-                    src={user.picture} 
-                    alt={user.name} 
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-semibold text-sm">
-                    {user?.name?.charAt(0) || 'U'}
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content - Robinhood Clean Style */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 lg:px-6 py-8">
-
-            {/* Portfolio Value - Large, Clean */}
-            <div className="mb-8">
-              <div className="text-5xl font-medium text-gray-900 dark:text-white mb-2">
-                ${user?.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-              </div>
-              {portfolioChange !== 0 && (
-                <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {portfolioChange >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                  <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
-                  <span className="text-gray-500 dark:text-gray-400 font-normal">Today</span>
-                </div>
-              )}
-            </div>
-
-            {/* Portfolio Chart - Simple */}
-            <div className="mb-8">
-              <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-                <TradingViewMiniWidget 
-                  symbol={user?.portfolio?.[0]?.ticker || 'SPY'} 
-                  height="300px"
-                  theme={darkMode ? 'dark' : 'light'}
-                />
-              </div>
-            </div>
-
-            {/* User's Stocks - Clean List */}
-            {user?.portfolio && user.portfolio.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Stocks</h2>
-                <div className="space-y-1">
-                  {user.portfolio.map((stock) => {
-                    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
-                    const currentPrice = quote?.price || stock.currentPrice
-                    const change = quote?.change || 0
-                    const changePercent = quote?.changePercent || 0
-                    const currentValue = stock.quantity * currentPrice
-                    const totalGain = currentValue - (stock.quantity * stock.avgPrice)
-                    const totalGainPercent = ((totalGain / (stock.quantity * stock.avgPrice)) * 100)
-
-                    return (
-                      <button
-                        key={stock.ticker}
-                        onClick={() => navigate(`/stock/${stock.ticker}`)}
-                        className="w-full px-0 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="text-left flex-1">
-                            <div className="font-medium text-gray-900 dark:text-white">{stock.ticker}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {stock.quantity} {stock.quantity === 1 ? 'Share' : 'Shares'}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </div>
-                          <div className={`text-sm font-medium ${totalGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {totalGain >= 0 ? '+' : ''}${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            {' '}({totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%)
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Popular Stocks - Clean */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Popular</h2>
-                <button 
-                  onClick={() => navigate('/screener')}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
-                >
-                  See All
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              
-              {isLoadingPopular ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  Loading...
-                </div>
               ) : (
-                <div className="space-y-1">
-                  {popularQuotes?.slice(0, 8).map((quote) => (
-                    <button
-                      key={quote.symbol}
-                      onClick={() => navigate(`/stock/${quote.symbol}`)}
-                      className="w-full px-0 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900 dark:text-white">{quote.symbol}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          ${quote.price.toFixed(2)}
-                        </div>
-                        <div className={`text-sm font-medium ${quote.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {quote.change >= 0 ? '+' : ''}${Math.abs(quote.change).toFixed(2)}
-                          {' '}({quote.change >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                <div className="w-8 h-8 bg-gray-900 dark:bg-gray-100 rounded-full flex items-center justify-center text-white dark:text-gray-900 font-semibold text-sm">
+                  {user?.name?.charAt(0) || 'U'}
                 </div>
               )}
-            </div>
-
-            {/* International Student Section */}
-            {user?.visaStatus && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">International Student Tools</h2>
-                <div className="space-y-4">
-                  <InternationalStudentAlerts />
-                  <F1ComplianceTracker />
-                  <TaxTreatyCalculator />
-                </div>
-              </div>
-            )}
-
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Profile Modal - Robinhood Style */}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
+
+        {/* Portfolio Value - Large, Clean */}
+        <div className="mb-8">
+          <div className="text-5xl font-medium text-gray-900 dark:text-gray-100 mb-2">
+            ${user?.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+          </div>
+          {portfolioChange !== 0 && (
+            <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+              {portfolioChange >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+              <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
+              <span className="text-gray-500 dark:text-gray-400 font-normal">Today</span>
+            </div>
+          )}
+        </div>
+
+        {/* Portfolio Chart - Simple */}
+        <div className="mb-8">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+            <TradingViewMiniWidget 
+              symbol={user?.portfolio?.[0]?.ticker || 'SPY'} 
+              height="300px"
+              theme={darkMode ? 'dark' : 'light'}
+            />
+          </div>
+        </div>
+
+        {/* User's Stocks - Clean List */}
+        {user?.portfolio && user.portfolio.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Stocks</h2>
+            <div className="space-y-1">
+              {user.portfolio.map((stock) => {
+                const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+                const currentPrice = quote?.price || stock.currentPrice
+                const change = quote?.change || 0
+                const changePercent = quote?.changePercent || 0
+                const currentValue = stock.quantity * currentPrice
+                const totalGain = currentValue - (stock.quantity * stock.avgPrice)
+                const totalGainPercent = ((totalGain / (stock.quantity * stock.avgPrice)) * 100)
+
+                return (
+                  <button
+                    key={stock.ticker}
+                    onClick={() => navigate(`/stock/${stock.ticker}`)}
+                    className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors rounded-lg"
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="text-left flex-1">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{stock.ticker}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {stock.quantity} {stock.quantity === 1 ? 'Share' : 'Shares'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className={`text-sm font-medium ${totalGain >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                        {totalGain >= 0 ? '+' : ''}${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {' '}({totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%)
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Popular Stocks - Clean */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Popular</h2>
+            <button 
+              onClick={() => navigate('/screener')}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-1"
+            >
+              See All
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          
+          {isLoadingPopular ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              Loading...
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {popularQuotes?.slice(0, 8).map((quote) => (
+                <button
+                  key={quote.symbol}
+                  onClick={() => navigate(`/stock/${quote.symbol}`)}
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{quote.symbol}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      ${quote.price.toFixed(2)}
+                    </div>
+                    <div className={`text-sm font-medium ${quote.change >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                      {quote.change >= 0 ? '+' : ''}${Math.abs(quote.change).toFixed(2)}
+                      {' '}({quote.change >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* International Student Section */}
+        {user?.visaStatus && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">International Student Tools</h2>
+            <div className="space-y-4">
+              <InternationalStudentAlerts />
+              <F1ComplianceTracker />
+              <TaxTreatyCalculator />
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Profile Modal - Clean Style */}
       {profileOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setProfileOpen(false)}>
-          <div className="bg-white dark:bg-black rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Profile</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Profile</h2>
               <button 
                 onClick={() => setProfileOpen(false)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -322,21 +290,21 @@ const Dashboard = () => {
                     className="w-20 h-20 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold text-2xl">
+                  <div className="w-20 h-20 bg-gray-900 dark:bg-gray-100 rounded-full flex items-center justify-center text-white dark:text-gray-900 font-bold text-2xl">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                 )}
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{user?.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{user?.name}</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">{user?.email}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {user?.portfolio && user.portfolio.length > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portfolio Value</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       ${user.totalValue?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -352,7 +320,7 @@ const Dashboard = () => {
                     setProfileOpen(false)
                     navigate('/onboarding')
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors text-left"
                 >
                   <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Settings</span>
@@ -362,7 +330,7 @@ const Dashboard = () => {
                   onClick={async () => {
                     await authService.signOut()
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors text-left"
                 >
                   <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Log Out</span>
