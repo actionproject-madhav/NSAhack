@@ -15,21 +15,38 @@ function TradingViewMiniWidget({ symbol, height = "300px", theme = "light" }: Tr
     // Clear any existing content
     container.current.innerHTML = '';
 
+    // Determine exchange based on symbol (most common US stocks)
+    let fullSymbol = symbol;
+    
+    // NASDAQ stocks
+    const nasdaqStocks = ['AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'TSLA', 'META', 'NVDA', 'AMD', 'NFLX', 'INTC', 'CSCO', 'ADBE', 'AVGO', 'PYPL'];
+    // NYSE stocks
+    const nyseStocks = ['JPM', 'V', 'WMT', 'JNJ', 'PG', 'UNH', 'MA', 'HD', 'DIS', 'BAC', 'VZ', 'PFE', 'KO', 'NKE', 'MCD'];
+    
+    if (nasdaqStocks.includes(symbol)) {
+      fullSymbol = `NASDAQ:${symbol}`;
+    } else if (nyseStocks.includes(symbol)) {
+      fullSymbol = `NYSE:${symbol}`;
+    } else {
+      // Default to just the symbol (TradingView will auto-detect)
+      fullSymbol = symbol;
+    }
+
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
     script.type = "text/javascript";
     script.async = true;
     script.innerHTML = JSON.stringify({
-      "symbol": `NASDAQ:${symbol}`,
+      "symbol": fullSymbol,
       "width": "100%",
       "height": "100%",
       "locale": "en",
       "dateRange": "12M",
       "colorTheme": theme,
-      "trendLineColor": "rgba(41, 98, 255, 1)",
-      "underLineColor": "rgba(41, 98, 255, 0.3)",
-      "underLineBottomColor": "rgba(41, 98, 255, 0)",
-      "isTransparent": false,
+      "trendLineColor": theme === 'dark' ? "rgba(255, 255, 255, 1)" : "rgba(0, 0, 0, 1)",
+      "underLineColor": theme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+      "underLineBottomColor": "rgba(0, 0, 0, 0)",
+      "isTransparent": true,
       "autosize": true,
       "largeChartUrl": ""
     });

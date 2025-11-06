@@ -15,6 +15,19 @@ function TradingViewWidget({ symbol, height = "400px", theme = "light" }: Tradin
     // Clear any existing content
     container.current.innerHTML = '';
 
+    // Smart exchange detection
+    let fullSymbol = symbol;
+    const nasdaqStocks = ['AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'TSLA', 'META', 'NVDA', 'AMD', 'NFLX', 'INTC', 'CSCO', 'ADBE', 'AVGO', 'PYPL', 'QCOM', 'TXN', 'SBUX'];
+    const nyseStocks = ['JPM', 'V', 'WMT', 'JNJ', 'PG', 'UNH', 'MA', 'HD', 'DIS', 'BAC', 'VZ', 'PFE', 'KO', 'NKE', 'MCD', 'CVX', 'XOM', 'GS', 'GE', 'IBM'];
+    
+    if (nasdaqStocks.includes(symbol)) {
+      fullSymbol = `NASDAQ:${symbol}`;
+    } else if (nyseStocks.includes(symbol)) {
+      fullSymbol = `NYSE:${symbol}`;
+    } else {
+      fullSymbol = symbol; // TradingView will auto-detect
+    }
+
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
@@ -32,11 +45,11 @@ function TradingViewWidget({ symbol, height = "400px", theme = "light" }: Tradin
       "locale": "en",
       "save_image": true,
       "style": "1",
-      "symbol": `NASDAQ:${symbol}`,
+      "symbol": fullSymbol,
       "theme": theme,
       "timezone": "Etc/UTC",
-      "backgroundColor": theme === 'light' ? "#ffffff" : "#1e1e1e",
-      "gridColor": theme === 'light' ? "rgba(46, 46, 46, 0.06)" : "rgba(255, 255, 255, 0.1)",
+      "backgroundColor": theme === 'light' ? "#ffffff" : "#000000",
+      "gridColor": theme === 'light' ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.06)",
       "watchlist": [],
       "withdateranges": false,
       "compareSymbols": [],

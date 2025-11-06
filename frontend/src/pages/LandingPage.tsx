@@ -63,52 +63,43 @@ const LandingPage = () => {
         </div>
 
         {/* Navigation */}
-        <motion.nav
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] md:w-auto backdrop-blur-xl bg-white/70 dark:bg-black/70 rounded-full px-4 md:px-6 py-3 shadow-lg border border-gray-200/50 dark:border-gray-800/50"
-        >
-          <div className="flex items-center justify-between md:space-x-8">
-            <div className="flex items-center space-x-2">
-              <motion.div
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.3 }}
-                className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg"
-              >
-                <span className="text-white font-bold text-xs md:text-sm">F</span>
-              </motion.div>
-              <span className="text-gray-900 dark:text-white font-semibold text-base md:text-lg">FinLit</span>
+        <nav className="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
+                <span className="text-white dark:text-black font-bold text-sm">F</span>
+              </div>
+              <span className="text-black dark:text-white font-bold text-xl">FinLit</span>
             </div>
 
-            <div className="hidden lg:flex items-center space-x-6 text-sm font-medium">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Features</a>
-              <a href="#invest" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Invest</a>
-              <a href="#learn" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Learn</a>
+            {/* Center Links */}
+            <div className="hidden md:flex items-center space-x-8 text-sm">
+              <a href="#features" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Features</a>
+              <a href="#about" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">About</a>
             </div>
 
-            <div className="flex items-center space-x-2 md:space-x-3">
+            {/* Right Actions */}
+            <div className="flex items-center space-x-3">
               <button
                 onClick={toggleDarkMode}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:scale-110 transition-transform text-lg md:text-xl"
+                className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-900 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
               >
                 {isDark ? '☀️' : '🌙'}
               </button>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => navigate('/auth')}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
               >
                 Get Started
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.nav>
+        </nav>
 
         {/* Hero Section */}
-        <div className="relative z-10 pt-24 md:pt-32 pb-10 md:pb-20 px-4 md:px-6">
+        <div className="relative z-10 pt-12 md:pt-20 pb-10 md:pb-20 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             
             {/* Hero Text */}

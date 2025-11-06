@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
 import TradingViewWidget from '../components/TradingViewWidget'
-import Navigation from '../components/Navigation'
-import StockAnalysisChat from '../components/StockAnalysisChat'
-import InternationalStudentAlerts from '../components/InternationalStudentAlerts'
-import F1StockCompliance from '../components/F1StockCompliance'
 import apiService from '../services/apiService'
 import { useUser } from '../context/UserContext'
 
@@ -16,13 +13,9 @@ const formatCurrency = (value: number) => {
 };
 
 const formatLargeNumber = (value: number) => {
-  if (value >= 1e12) {
-    return `${(value / 1e12).toFixed(2)}T`;
-  } else if (value >= 1e9) {
-    return `${(value / 1e9).toFixed(2)}B`;
-  } else if (value >= 1e6) {
-    return `${(value / 1e6).toFixed(2)}M`;
-  }
+  if (value >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
+  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
   return `${value}`;
 };
 
@@ -33,15 +26,9 @@ export default function StockDetailPage() {
   const [stock, setStock] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isAnalysisChatOpen, setIsAnalysisChatOpen] = useState(false)
-  const [complianceStatus, setComplianceStatus] = useState<{ isCompliant: boolean; warnings: string[] }>({
-    isCompliant: true,
-    warnings: []
-  })
-  const [tradeQuantity, setTradeQuantity] = useState(10)
-  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy')
+  const [tradeQuantity, setTradeQuantity] = useState(1)
+  const [darkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
 
-  // Fetch real stock data from API
   useEffect(() => {
     const fetchStockDetails = async () => {
       if (!symbol) return
@@ -50,17 +37,14 @@ export default function StockDetailPage() {
       setError(null)
       
       try {
-        console.log(`📊 Fetching real stock details for ${symbol}...`)
         const details = await apiService.getStockDetails(symbol)
         
-        if (details) {
+        if (details && details.regularMarketPrice > 0) {
           setStock(details)
-          console.log(`✅ Loaded real data for ${symbol}`)
         } else {
           setError('Stock not found')
         }
       } catch (err) {
-        console.error('Error fetching stock details:', err)
         setError('Failed to load stock data')
       } finally {
         setIsLoading(false)
@@ -70,35 +54,49 @@ export default function StockDetailPage() {
     fetchStockDetails()
   }, [symbol])
 
-  // Loading state
+  const handleBuy = () => {
+    if (!user) {
+      alert('Please log in to trade')
+      return
+    }
+
+    updatePortfolio({
+      ticker: stock.symbol,
+      company: stock.shortName,
+      quantity: tradeQuantity,
+      avgPrice: stock.regularMarketPrice,
+      currentPrice: stock.regularMarketPrice,
+      reason: 'Manual purchase',
+      logo: '📈'
+    })
+    
+    alert(`Successfully bought ${tradeQuantity} ${tradeQuantity === 1 ? 'share' : 'shares'} of ${stock.symbol}!`)
+    navigate('/portfolio')
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-            <h1 className="text-2xl font-bold mb-4">Loading {symbol}...</h1>
-            <p className="text-gray-600">Fetching real-time stock data...</p>
-          </div>
+      <div className="h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black dark:border-white mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading {symbol}...</p>
         </div>
       </div>
     )
   }
 
-  // Error state
   if (error || !stock) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Stock Not Found</h1>
-            <p className="text-gray-600">{error || 'The requested stock symbol could not be found.'}</p>
-            <button onClick={() => navigate('/screener')} className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg">
-              Back to Screener
-            </button>
-          </div>
+      <div className="h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-black dark:text-white mb-4">Stock Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{error || 'Invalid symbol'}</p>
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+          >
+            Back to Dashboard
+          </button>
         </div>
       </div>
     );
@@ -106,275 +104,131 @@ export default function StockDetailPage() {
 
   const isPositive = stock.regularMarketChange >= 0;
 
-  const handleAnalyzeClick = () => {
-    setIsAnalysisChatOpen(true)
-  }
-
-  const handleComplianceCheck = (isCompliant: boolean, warnings: string[]) => {
-    setComplianceStatus({ isCompliant, warnings })
-  }
-
-  const handleTrade = () => {
-    if (!user) {
-      alert('Please log in to trade')
-      return
-    }
-
-    if (tradeType === 'buy') {
-      updatePortfolio({
-        ticker: stock.symbol,
-        company: stock.shortName,
-        quantity: tradeQuantity,
-        avgPrice: stock.regularMarketPrice,
-        currentPrice: stock.regularMarketPrice,
-        reason: 'Manual purchase',
-        logo: '📈'
-      })
-      alert(`Successfully added ${tradeQuantity} shares of ${stock.symbol} to your portfolio!`)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors flex">
+      {/* Left Sidebar - Stock Info */}
+      <div className="hidden lg:block w-80 border-r border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm">Back</span>
+        </button>
+
+        <h1 className="text-2xl font-bold text-black dark:text-white mb-2">{stock.shortName}</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <span>{stock.symbol}</span>
+          <span>•</span>
+          <span>{stock.fullExchangeName?.split(' ')[0] || 'NYSE'}</span>
+        </div>
+
+        {/* Key Stats */}
+        <div className="space-y-4">
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Market Cap</div>
+            <div className="text-sm font-medium text-black dark:text-white">{formatLargeNumber(stock.marketCap)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">P/E Ratio</div>
+            <div className="text-sm font-medium text-black dark:text-white">{stock.peRatio?.toFixed(2) || 'N/A'}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">52 Week High</div>
+            <div className="text-sm font-medium text-black dark:text-white">{formatCurrency(stock.fiftyTwoWeekHigh || 0)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">52 Week Low</div>
+            <div className="text-sm font-medium text-black dark:text-white">{formatCurrency(stock.fiftyTwoWeekLow || 0)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Volume</div>
+            <div className="text-sm font-medium text-black dark:text-white">{formatLargeNumber(stock.volume)}</div>
+          </div>
+        </div>
+
+        {/* About */}
+        {stock.description && (
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+            <h3 className="text-sm font-semibold text-black dark:text-white mb-3">About</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              {stock.description.slice(0, 300)}...
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Header */}
+        <div className="lg:hidden border-b border-gray-200 dark:border-gray-800 p-4">
           <button 
-            onClick={() => navigate('/screener')}
-            className="text-gray-600 hover:text-gray-900 flex items-center gap-2 mb-4"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-4"
           >
-            ← Back to Screener
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm">Back</span>
           </button>
-          
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{stock.shortName}</h1>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <span className="font-medium">{stock.symbol}</span>
-                <span>•</span>
-                <span>{stock.fullExchangeName}</span>
-                <span>•</span>
-                <span>{stock.sector}</span>
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <div className="text-3xl font-bold text-gray-900">
-                {formatCurrency(stock.regularMarketPrice)}
-              </div>
-              <div className={`text-lg font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {isPositive ? '+' : ''}{stock.regularMarketChange.toFixed(2)} ({isPositive ? '+' : ''}{stock.regularMarketChangePercent.toFixed(2)}%)
-              </div>
-            </div>
+          <h1 className="text-xl font-bold text-black dark:text-white">{stock.shortName}</h1>
+          <div className="text-sm text-gray-500 dark:text-gray-400">{stock.symbol}</div>
+        </div>
+
+        {/* Price Header */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="text-4xl font-medium text-black dark:text-white mb-2">
+            {formatCurrency(stock.regularMarketPrice)}
+          </div>
+          <div className={`flex items-center gap-2 text-base font-medium ${isPositive ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+            {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+            <span>{isPositive ? '+' : ''}{stock.regularMarketChange?.toFixed(2)}</span>
+            <span>({isPositive ? '+' : ''}{stock.regularMarketChangePercent?.toFixed(2)}%)</span>
+            <span className="text-gray-500 dark:text-gray-400 font-normal text-sm">Today</span>
           </div>
         </div>
 
-        {/* Main Chart */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <TradingViewWidget symbol={stock.symbol} />
+        {/* Chart */}
+        <div className="flex-1 p-6">
+          <div className="h-full bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+            <TradingViewWidget 
+              symbol={stock.symbol} 
+              height="100%"
+              theme={darkMode ? 'dark' : 'light'}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column - Stock Info */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Key Statistics */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="font-semibold text-lg mb-4">Key Statistics</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <div className="text-sm text-gray-600">Market Cap</div>
-                  <div className="font-semibold">{formatLargeNumber(stock.marketCap)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">P/E Ratio</div>
-                  <div className="font-semibold">{stock.peRatio.toFixed(2)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">Volume</div>
-                  <div className="font-semibold">{formatLargeNumber(stock.volume)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">Open</div>
-                  <div className="font-semibold">{formatCurrency(stock.open)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">High</div>
-                  <div className="font-semibold">{formatCurrency(stock.high)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">Low</div>
-                  <div className="font-semibold">{formatCurrency(stock.low)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">Previous Close</div>
-                  <div className="font-semibold">{formatCurrency(stock.previousClose)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">52W High</div>
-                  <div className="font-semibold">{formatCurrency(stock.fiftyTwoWeekHigh || 0)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">52W Low</div>
-                  <div className="font-semibold">{formatCurrency(stock.fiftyTwoWeekLow || 0)}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Company Information */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="font-semibold text-lg mb-4">About {stock.shortName}</h3>
-              <div className="space-y-4">
-                <p className="text-gray-700">{stock.description}</p>
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div>
-                    <div className="text-sm text-gray-600">Industry</div>
-                    <div className="font-medium">{stock.industry}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Sector</div>
-                    <div className="font-medium">{stock.sector}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Employees</div>
-                    <div className="font-medium">{stock.employees?.toLocaleString() || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Website</div>
-                    {stock.website && (
-                      <a href={stock.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        Visit Site
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Trading & Alerts */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* International Student Alerts */}
-            {user?.visaStatus && (
-              <InternationalStudentAlerts
-                ticker={stock.symbol}
-                tradeAmount={stock.regularMarketPrice * tradeQuantity}
-                tradeType={tradeType}
+        {/* Buy Panel */}
+        <div className="border-t border-gray-200 dark:border-gray-800 p-6 bg-white dark:bg-black">
+          <div className="max-w-md mx-auto">
+            <div className="mb-4">
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Shares</label>
+              <input
+                type="number"
+                value={tradeQuantity}
+                onChange={(e) => setTradeQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                min="1"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white"
               />
-            )}
+            </div>
 
-            {/* Trade Panel */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="font-semibold text-lg mb-4">Trade {stock.symbol}</h3>
-              
-              <div className="space-y-4">
-                {/* Buy/Sell Toggle */}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setTradeType('buy')}
-                    className={`px-4 py-2 rounded-lg font-medium ${
-                      tradeType === 'buy' 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Buy
-                  </button>
-                  <button
-                    onClick={() => setTradeType('sell')}
-                    className={`px-4 py-2 rounded-lg font-medium ${
-                      tradeType === 'sell' 
-                        ? 'bg-red-600 text-white' 
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Sell
-                  </button>
-                </div>
-
-                {/* Quantity */}
-                <div>
-                  <label className="text-sm text-gray-600 mb-2 block">Quantity (shares)</label>
-                  <input
-                    type="number"
-                    value={tradeQuantity}
-                    onChange={(e) => setTradeQuantity(parseInt(e.target.value) || 1)}
-                    min="1"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-
-                {/* Total */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total</span>
-                    <span className="text-xl font-bold text-gray-900">
-                      {formatCurrency(stock.regularMarketPrice * tradeQuantity)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Trade Button */}
-                <button
-                  onClick={handleTrade}
-                  className={`w-full py-3 rounded-lg font-semibold text-white ${
-                    tradeType === 'buy' 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
-                >
-                  {tradeType === 'buy' ? 'Buy' : 'Sell'} {stock.symbol}
-                </button>
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Total</span>
+                <span className="text-xl font-bold text-black dark:text-white">
+                  {formatCurrency(stock.regularMarketPrice * tradeQuantity)}
+                </span>
               </div>
             </div>
 
-            {/* F-1 Compliance Check */}
-            {user?.visaStatus && (
-              <F1StockCompliance
-                ticker={stock.symbol}
-                tradeAmount={stock.regularMarketPrice * tradeQuantity}
-                tradeType={tradeType}
-                onComplianceCheck={handleComplianceCheck}
-              />
-            )}
-
-            {/* AI Analysis Button */}
             <button
-              onClick={handleAnalyzeClick}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold"
+              onClick={handleBuy}
+              className="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
-              🤖 AI Analysis
+              Buy {stock.symbol}
             </button>
           </div>
         </div>
-
-        {/* Real Data Notice */}
-        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h4 className="font-medium text-green-900 mb-1">Real-Time Data</h4>
-              <p className="text-sm text-green-700">
-                All stock data on this page is fetched in real-time from Yahoo Finance. Prices, statistics, and company information are current and accurate.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
-
-      {/* AI Analysis Chat */}
-      {isAnalysisChatOpen && (
-        <StockAnalysisChat
-          symbol={stock.symbol}
-          companyName={stock.shortName}
-          currentPrice={stock.regularMarketPrice}
-          onClose={() => setIsAnalysisChatOpen(false)}
-        />
-      )}
     </div>
   )
 }
-
