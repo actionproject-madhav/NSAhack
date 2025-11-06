@@ -79,8 +79,23 @@ const AuthPage = () => {
   return (
     <div className="relative h-screen bg-black overflow-hidden">
       
+      {/* Hide Spline Watermark */}
+      <style>{`
+        /* Hide Spline watermark */
+        #spline-watermark,
+        [id*="spline"],
+        canvas + div,
+        canvas ~ div a,
+        canvas ~ div[style*="position: absolute"][style*="bottom"],
+        div[style*="z-index: 100000"] {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+        }
+      `}</style>
+      
       {/* 3D Spline Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 [&_*]:pointer-events-none [&_canvas]:pointer-events-auto">
         {splineError ? (
           // Fallback gradient background if Spline fails
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-black to-blue-900">
