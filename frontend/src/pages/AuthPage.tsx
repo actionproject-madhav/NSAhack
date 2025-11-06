@@ -9,7 +9,7 @@ const SplineWrapper = ({ onLoad, onError }: { onLoad: () => void; onError: () =>
   try {
     return (
       <Spline 
-        scene="https://prod.spline.design/363e9f32-e88e-4cdc-b515-d81a49112bfd/scene.splinecode"
+        scene="https://prod.spline.design/TAxK4wrLSa-FcNjL/scene.splinecode"
         onLoad={onLoad}
         onError={onError}
       />
@@ -27,7 +27,7 @@ const AuthPage = () => {
     password: ''
   })
   const [splineLoaded, setSplineLoaded] = useState(false)
-  const [splineError, setSplineError] = useState(false) // Try Spline first, fallback if it fails
+  const [splineError, setSplineError] = useState(false) // Try new Spline URL
   const [googleButtonRendered, setGoogleButtonRendered] = useState(false)
   const navigate = useNavigate()
   const googleButtonRef = useRef<HTMLDivElement>(null)
@@ -132,12 +132,11 @@ const AuthPage = () => {
       {/* 3D Spline Background */}
       <div className="absolute inset-0 z-0 [&_*]:pointer-events-none [&_canvas]:pointer-events-auto">
         {splineError ? (
-          // Fallback gradient background if Spline fails
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-black to-blue-900">
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          // Fallback dark gradient if Spline fails
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-black to-gray-900">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-600 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-700 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
           </div>
         ) : (
@@ -147,12 +146,12 @@ const AuthPage = () => {
             )}
             <SplineWrapper 
               onLoad={() => {
-                console.log(' Spline loaded')
+                console.log('✅ Spline loaded')
                 setSplineLoaded(true)
                 setSplineError(false)
               }}
               onError={() => {
-                console.error(' Spline failed to load, using fallback background')
+                console.error('❌ Spline failed to load, using fallback background')
                 setSplineError(true)
                 setSplineLoaded(true)
               }}
