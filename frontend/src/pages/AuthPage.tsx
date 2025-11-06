@@ -9,7 +9,7 @@ const SplineWrapper = ({ onLoad, onError }: { onLoad: () => void; onError: () =>
   try {
     return (
       <Spline 
-        scene="https://prod.spline.design/eKDX1S3hy3D6e9bl/scene.splinecode"
+        scene="https://prod.spline.design/d215d0e6-50be-4158-8b01-bb18d1930506/scene.splinecode"
         onLoad={onLoad}
         onError={onError}
       />
@@ -100,16 +100,32 @@ const AuthPage = () => {
       
       {/* Hide Spline Watermark */}
       <style>{`
-        /* Hide Spline watermark */
+        /* Aggressively hide Spline watermark and "Built with Spline" text */
         #spline-watermark,
         [id*="spline"],
+        [class*="spline"],
         canvas + div,
+        canvas ~ div,
         canvas ~ div a,
-        canvas ~ div[style*="position: absolute"][style*="bottom"],
-        div[style*="z-index: 100000"] {
+        canvas ~ a,
+        div[style*="position: absolute"][style*="bottom"],
+        div[style*="position: fixed"][style*="bottom"],
+        div[style*="z-index: 100000"],
+        div[style*="z-index: 99999"],
+        a[href*="spline.design"],
+        a[target="_blank"][rel*="noopener"] {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
+          pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
+        
+        /* Hide any text containing "Built" or "Spline" */
+        *:not(script):not(style) {
+          font-size: inherit;
         }
       `}</style>
       
