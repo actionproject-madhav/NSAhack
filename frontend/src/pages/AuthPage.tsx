@@ -9,7 +9,7 @@ const SplineWrapper = ({ onLoad, onError }: { onLoad: () => void; onError: () =>
   try {
     return (
       <Spline 
-        scene="https://prod.spline.design/eKDX1S3hy3D6e9bl/scene.splinecode"
+        scene="https://prod.spline.design/363e9f32-e88e-4cdc-b515-d81a49112bfd/scene.splinecode"
         onLoad={onLoad}
         onError={onError}
       />
@@ -152,7 +152,7 @@ const AuthPage = () => {
                 setSplineError(false)
               }}
               onError={() => {
-                console.error('❌ Spline failed to load, using fallback background')
+                console.error(' Spline failed to load, using fallback background')
                 setSplineError(true)
                 setSplineLoaded(true)
               }}
