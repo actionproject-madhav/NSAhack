@@ -1,13 +1,38 @@
+import { useState, useEffect } from 'react'
 import { Plus, Wallet as WalletIcon } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import tradingService from '../services/tradingService'
 
 const WalletPage = () => {
   const { user } = useUser()
   const navigate = useNavigate()
+  const [cashBalance, setCashBalance] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (user) {
+      loadWalletData()
+    }
+  }, [user])
+
+  const loadWalletData = async () => {
+    if (!user) return
+    
+    setIsLoading(true)
+    try {
+      const balance = await tradingService.getCashBalance(user.id)
+      setCashBalance(balance)
+    } catch (error) {
+      console.error('Failed to load wallet data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const totalValue = user?.totalValue || 0
+  const totalAccountValue = totalValue + cashBalance
 
   return (
     <Layout>
@@ -28,15 +53,29 @@ const WalletPage = () => {
           </button>
         </div>
 
-        {/* Portfolio Value Card */}
-        <div className="mb-8">
-          <div className="bg-white dark:bg-gray-900 p-8 rounded-lg border border-gray-200 dark:border-gray-800">
+        {/* Account Overview */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+            <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Account Value</span>
+            <div className="text-3xl font-bold text-black dark:text-white mt-2">
+              ${totalAccountValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Portfolio Value</span>
-            <div className="text-5xl font-bold text-black dark:text-white mt-2">
+            <div className="text-3xl font-bold text-black dark:text-white mt-2">
               ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {user?.portfolio?.length || 0} {user?.portfolio?.length === 1 ? 'position' : 'positions'}
+            </div>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+            <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Available Cash</span>
+            <div className="text-3xl font-bold text-green-600 dark:text-green-500 mt-2">
+              ${cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
         </div>

@@ -5,17 +5,20 @@ import { useUser } from '../context/UserContext'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import Spline from '@splinetool/react-spline'
+import tradingService from '../services/tradingService'
 
 // Popular stocks for quick trading
 const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD']
 
 const TradePage = () => {
-  const { user, updatePortfolio } = useUser()
+  const { user, setUser } = useUser()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [splineError, setSplineError] = useState(false)
+  const [cashBalance, setCashBalance] = useState<number | null>(null)
+  const [isBuying, setIsBuying] = useState(false)
 
   // Get real-time quotes for popular stocks
   const { quotes, isLoading } = useRealTimeQuotes({
@@ -24,25 +27,66 @@ const TradePage = () => {
     enabled: true
   })
 
-  const handleBuyStock = (ticker: string, price: number) => {
+  // Load cash balance on mount
+  useEffect(() => {
+    if (user) {
+      loadCashBalance()
+    }
+  }, [user])
+
+  const loadCashBalance = async () => {
+    if (!user) return
+    try {
+      const balance = await tradingService.getCashBalance(user.id)
+      setCashBalance(balance)
+    } catch (error) {
+      console.error('Failed to load cash balance:', error)
+    }
+  }
+
+  const handleBuyStock = async (ticker: string, price: number) => {
     if (!user) {
       alert('Please log in to trade')
       navigate('/auth')
       return
     }
 
-    updatePortfolio({
-      ticker: ticker,
-      company: ticker,
-      quantity: quantity,
-      avgPrice: price,
-      currentPrice: price,
-      reason: 'Manual purchase',
-      logo: '📈'
-    })
+    const totalCost = price * quantity
 
-    alert(`Successfully bought ${quantity} ${quantity === 1 ? 'share' : 'shares'} of ${ticker}!`)
-    navigate('/portfolio')
+    if (cashBalance !== null && cashBalance < totalCost) {
+      alert(`Insufficient funds! You need $${totalCost.toFixed(2)} but only have $${cashBalance.toFixed(2)}`)
+      return
+    }
+
+    setIsBuying(true)
+    try {
+      const result = await tradingService.buyStock(user.id, ticker, quantity)
+      
+      // Update local cash balance
+      if (result.new_balance !== undefined) {
+        setCashBalance(result.new_balance)
+      }
+
+      // Refresh user data
+      if (setUser && user) {
+        const portfolioData = await tradingService.getPortfolio(user.id)
+        setUser({
+          ...user,
+          portfolio: portfolioData.portfolio,
+          totalValue: portfolioData.portfolio_value
+        })
+      }
+
+      alert(result.message || `Successfully bought ${quantity} ${quantity === 1 ? 'share' : 'shares'} of ${ticker}!`)
+      
+      // Reset quantity
+      setQuantity(1)
+      setSelectedStock(null)
+    } catch (error: any) {
+      alert(error.message || 'Failed to complete purchase')
+    } finally {
+      setIsBuying(false)
+    }
   }
 
   const filteredQuotes = searchQuery
@@ -88,8 +132,20 @@ const TradePage = () => {
         
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">Trade</h1>
-          <p className="text-gray-600 dark:text-gray-400">Buy stocks with real-time market prices</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-black dark:text-white mb-2">Trade</h1>
+              <p className="text-gray-600 dark:text-gray-400">Paper trading with real-time market prices</p>
+            </div>
+            {cashBalance !== null && (
+              <div className="text-right">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Available Cash</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-500">
+                  ${cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -167,10 +223,20 @@ const TradePage = () => {
                     </div>
                     <button
                       onClick={() => handleBuyStock(quote.symbol, quote.price)}
-                      className="mt-5 px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2"
+                      disabled={isBuying}
+                      className="mt-5 px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Plus className="w-4 h-4" />
-                      Buy
+                      {isBuying ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white dark:border-black" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" />
+                          Buy
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -195,10 +261,15 @@ const TradePage = () => {
 
         {/* Info Box */}
         <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
-          <h3 className="font-bold text-black dark:text-white mb-2">Real-Time Trading</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            All prices are fetched in real-time from Yahoo Finance. Click "View Full Details" to see complete stock information and interactive charts before buying.
+          <h3 className="font-bold text-black dark:text-white mb-2">Paper Trading Simulation</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Practice trading with real market data and no financial risk. You start with $10,000 in virtual cash.
           </p>
+          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+            <li>All prices are real-time from Yahoo Finance</li>
+            <li>Transactions are recorded in your portfolio</li>
+            <li>Perfect for learning without financial risk</li>
+          </ul>
         </div>
       </div>
       </Layout>

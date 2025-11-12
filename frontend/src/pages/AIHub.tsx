@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import { aiHubApi, DailyBrief, StockAnalysis, TrendingStock, InternationalStock } from '../services/aiHubApi'
+import ReactMarkdown from 'react-markdown'
 
 const AIHub = () => {
   const [dailyBrief, setDailyBrief] = useState<DailyBrief | null>(null)
@@ -124,9 +125,20 @@ const AIHub = () => {
 
           {!loadingBrief && dailyBrief && (
             <div className="prose dark:prose-invert max-w-none">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                {dailyBrief.summary}
-              </p>
+              <div className="text-gray-700 dark:text-gray-300 leading-relaxed markdown-content">
+                <ReactMarkdown
+                  components={{
+                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-black dark:text-white mt-4 mb-2" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-3 text-gray-700 dark:text-gray-300" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-semibold text-black dark:text-white" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-2" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-2" {...props} />,
+                    li: ({node, ...props}) => <li className="text-gray-700 dark:text-gray-300" {...props} />
+                  }}
+                >
+                  {dailyBrief.summary}
+                </ReactMarkdown>
+              </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 Based on {dailyBrief.news_count} recent market news articles
               </p>
@@ -191,9 +203,20 @@ const AIHub = () => {
               </div>
 
               <div className="prose dark:prose-invert max-w-none">
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                  {stockAnalysis.analysis}
-                </p>
+                <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({node, ...props}) => <h2 className="text-lg font-bold text-black dark:text-white mt-3 mb-2" {...props} />,
+                      p: ({node, ...props}) => <p className="mb-3 text-gray-700 dark:text-gray-300" {...props} />,
+                      strong: ({node, ...props}) => <strong className="font-semibold text-black dark:text-white" {...props} />,
+                      ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1" {...props} />,
+                      li: ({node, ...props}) => <li className="text-gray-700 dark:text-gray-300" {...props} />
+                    }}
+                  >
+                    {stockAnalysis.analysis}
+                  </ReactMarkdown>
+                </div>
               </div>
 
               <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -254,7 +277,7 @@ const AIHub = () => {
               </div>
             )}
           </div>
-
+          
           {/* International Stocks */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
             <h2 className="text-xl font-bold text-black dark:text-white mb-4">

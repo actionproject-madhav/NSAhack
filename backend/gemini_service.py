@@ -4,7 +4,7 @@ from datetime import datetime
 class GeminiService:
     def __init__(self, api_key):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('models/gemini-2.5-flash')
     
     def generate_daily_brief(self, market_news):
         """Generate daily market brief from news"""
