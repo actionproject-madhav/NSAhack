@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
-import Navigation from '../components/Navigation'
+import Layout from '../components/Layout'
 
 const WalletPage = () => {
   const { user } = useUser()
@@ -17,9 +17,7 @@ const WalletPage = () => {
   const totalAssets = cashBalance
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
-      <Navigation />
-      
+    <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
@@ -124,7 +122,7 @@ const WalletPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }
 

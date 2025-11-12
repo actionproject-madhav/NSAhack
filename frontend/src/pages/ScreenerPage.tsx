@@ -1,11 +1,10 @@
 import React from 'react';
 import MarketScreener from '../components/MarketScreener';
-import Navigation from '../components/Navigation';
+import Layout from '../components/Layout';
 
 export default function ScreenerPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
-      <Navigation />
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
@@ -20,6 +19,6 @@ export default function ScreenerPage() {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

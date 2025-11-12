@@ -4,7 +4,7 @@ import { Send, Wand2, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { LIFESTYLE_BRANDS } from '../utils/mockData'
-import Navigation from '../components/Navigation'
+import Layout from '../components/Layout'
 import apiService from '../services/apiService'
 
 type Risk = 'low' | 'medium' | 'high'
@@ -194,8 +194,7 @@ const TradePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
-      <Navigation />
+    <Layout>
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -254,7 +253,7 @@ const TradePage = () => {
           </button>
         )}
       </div>
-    </div>
+    </Layout>
   )
 }
 

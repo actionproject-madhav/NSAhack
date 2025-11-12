@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Trophy, Target, BookOpen, Check, Lock, ChevronRight, Clock, BarChart3 } from 'lucide-react'
+import Layout from '../components/Layout'
 import { allUnits, Unit, Lesson } from './Curriculumdata'
 import LessonView from '../components/LessonView'
 import QuizView from '../components/QuizView'
@@ -74,7 +75,7 @@ const EducationHub: React.FC = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setShowQuizResult(false)
-    } else {
+      } else {
       completeLesson()
     }
   }
@@ -90,7 +91,7 @@ const EducationHub: React.FC = () => {
     const xpEarned = questionsCorrect * 10
 
     setUserProgress(prev => ({
-      ...prev,
+                  ...prev,
       completedLessons: [...prev.completedLessons, selectedLesson.id],
       totalXP: prev.totalXP + xpEarned,
       lastActivityDate: new Date().toISOString()
@@ -111,50 +112,15 @@ const EducationHub: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors flex">
-      {/* Left Sidebar */}
-      <div className="hidden lg:block w-64 border-r border-gray-200 dark:border-gray-800">
-        <div className="sticky top-0 p-6">
-          <button
-            onClick={() => window.location.href = '/dashboard'}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back</span>
-          </button>
-
-          {/* Stats */}
-          <div className="space-y-4">
-            <div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Streak</div>
-              <div className="text-2xl font-bold text-black dark:text-white">{userProgress.currentStreak} days</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total XP</div>
-              <div className="text-2xl font-bold text-black dark:text-white">{userProgress.totalXP}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Progress</div>
-              <div className="text-2xl font-bold text-black dark:text-white">{accuracy}%</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Completed</div>
-              <div className="text-2xl font-bold text-black dark:text-white">{completedCount}/{totalLessons}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <AnimatePresence mode="wait">
+    <Layout>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <AnimatePresence mode="wait">
             {viewMode === 'path' && (
-              <motion.div
+            <motion.div
                 key="path"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               >
                 {/* Header */}
                 <div className="mb-12">
@@ -164,7 +130,7 @@ const EducationHub: React.FC = () => {
                   <p className="text-lg text-gray-600 dark:text-gray-400">
                     Master investing fundamentals step by step
                   </p>
-                </div>
+                        </div>
 
                 {/* Learning Path */}
                 <div className="space-y-12">
@@ -185,8 +151,8 @@ const EducationHub: React.FC = () => {
                           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                             {unit.description}
                           </p>
-                        </div>
-                      </div>
+                </div>
+              </div>
 
                       {/* Lessons */}
                       <div className="relative pl-8 space-y-6">
@@ -196,7 +162,7 @@ const EducationHub: React.FC = () => {
                           const isLocked = lesson.locked
                           const isCompleted = lesson.completed
 
-                          return (
+                        return (
                             <div key={lesson.id} className="relative">
                               {/* Status Indicator */}
                               <div className="absolute -left-8 top-6">
@@ -214,7 +180,7 @@ const EducationHub: React.FC = () => {
                                   ) : (
                                     <Target className="w-5 h-5 text-white dark:text-black" />
                                   )}
-                                </div>
+                            </div>
                               </div>
 
                               {/* Lesson Card */}
@@ -240,26 +206,26 @@ const EducationHub: React.FC = () => {
                                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <Clock className="w-4 h-4" />
                                         {lesson.estimatedMinutes} min
-                                      </div>
+                            </div>
                                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <Trophy className="w-4 h-4" />
                                         {lesson.content.practiceQuestions.length * 10} XP
-                                      </div>
-                                    </div>
-                                  </div>
+                    </div>
+                  </div>
+                </div>
                                   {!isLocked && (
                                     <ChevronRight className="w-6 h-6 text-gray-400 mt-1" />
                                   )}
-                                </div>
-                              </div>
-                            </div>
+                  </div>
+                </div>
+              </div>
                           )
                         })}
                       </div>
                     </div>
                   ))}
-                </div>
-              </motion.div>
+              </div>
+            </motion.div>
             )}
 
             {viewMode === 'lesson' && selectedLesson && (
@@ -280,11 +246,10 @@ const EducationHub: React.FC = () => {
                 onNext={handleNextQuestion}
                 onExit={handleBackToPath}
               />
-            )}
-          </AnimatePresence>
-        </div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </Layout>
   )
 }
 

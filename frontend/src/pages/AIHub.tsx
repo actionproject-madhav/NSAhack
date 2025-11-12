@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Globe, Zap, Clock, Target, RefreshCw, Search, BarChart3 } from 'lucide-react'
-import Navigation from '../components/Navigation'
+import Layout from '../components/Layout'
 import AIMarketSentiment from '../components/AIMarketSentiment'
 
 const AIHub = () => {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
-      <Navigation />
-
+    <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -32,7 +30,7 @@ const AIHub = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }
 
