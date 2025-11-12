@@ -17,12 +17,12 @@ const StockCard = ({ stock }: StockCardProps) => {
   // Company logos based on the design
   const getCompanyLogo = (symbol: string) => {
     switch (symbol) {
-      case 'NVDA': return '🔥'
-      case 'META': return '📱'
-      case 'TSLA': return '⚡'
-      case 'AAPL': return '🍎'
-      case 'SHOP': return '🛍️'
-      default: return '📈'
+      case 'NVDA': return ''
+      case 'META': return ''
+      case 'TSLA': return ''
+      case 'AAPL': return ''
+      case 'SHOP': return ''
+      default: return ''
     }
   }
 

@@ -7,6 +7,8 @@ from database import ReceiptDatabase
 import uuid
 import os
 from auth import auth_bp
+from ai_hub import ai_hub_bp
+
 
 # Optional imports for OCR functionality
 try:
@@ -37,6 +39,8 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Lax for development
 
 # Register auth blueprint
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(ai_hub_bp, url_prefix='/api/ai')
+
 
 # Initialize database
 db = ReceiptDatabase()
@@ -90,19 +94,19 @@ POPULAR_COMPANIES = {
         'name': 'Apple Inc',
         'ticker': 'AAPL',
         'variations': ['apple', 'aapl', 'apple inc', 'apple store'],
-        'logo': '🍎'
+        'logo': ''
     },
     'amazon': {
         'name': 'Amazon.com Inc',
         'ticker': 'AMZN',
         'variations': ['amazon', 'amzn', 'amazon.com', 'amazon fresh', 'whole foods'],
-        'logo': '📦'
+        'logo': ''
     },
     'mcdonalds': {
         'name': 'McDonald\'s Corporation',
         'ticker': 'MCD',
         'variations': ['mcdonalds', 'mcd', 'mcdonald\'s', 'mc donalds'],
-        'logo': '🍟'
+        'logo': ''
     },
     'cocacola': {
         'name': 'The Coca-Cola Company',
@@ -114,73 +118,73 @@ POPULAR_COMPANIES = {
         'name': 'Tesla Inc',
         'ticker': 'TSLA',
         'variations': ['tesla', 'tsla', 'tesla motors'],
-        'logo': '🚗'
+        'logo': ''
     },
     'microsoft': {
         'name': 'Microsoft Corporation',
         'ticker': 'MSFT',
         'variations': ['microsoft', 'msft', 'xbox'],
-        'logo': '💻'
+        'logo': ''
     },
     'netflix': {
         'name': 'Netflix Inc',
         'ticker': 'NFLX',
         'variations': ['netflix', 'nflx'],
-        'logo': '📺'
+        'logo': ''
     },
     'uber': {
         'name': 'Uber Technologies Inc',
         'ticker': 'UBER',
         'variations': ['uber', 'uber eats'],
-        'logo': '🚕'
+        'logo': ''
     },
     'spotify': {
         'name': 'Spotify Technology SA',
         'ticker': 'SPOT',
         'variations': ['spotify', 'spot'],
-        'logo': '🎵'
+        'logo': ''
     },
     'meta': {
         'name': 'Meta Platforms Inc',
         'ticker': 'META',
         'variations': ['meta', 'facebook', 'fb', 'instagram', 'whatsapp'],
-        'logo': '📱'
+        'logo': ''
     },
     'disney': {
         'name': 'The Walt Disney Company',
         'ticker': 'DIS',
         'variations': ['disney', 'dis', 'walt disney', 'disneyland', 'disney world'],
-        'logo': '🏰'
+        'logo': ''
     },
     'costco': {
         'name': 'Costco Wholesale Corporation',
         'ticker': 'COST',
         'variations': ['costco', 'cost', 'costco wholesale'],
-        'logo': '🏪'
+        'logo': ''
     },
     'homedepot': {
         'name': 'The Home Depot Inc',
         'ticker': 'HD',
         'variations': ['home depot', 'hd', 'homedepot'],
-        'logo': '🔨'
+        'logo': ''
     },
     'cvs': {
         'name': 'CVS Health Corporation',
         'ticker': 'CVS',
         'variations': ['cvs', 'cvs pharmacy', 'cvs health'],
-        'logo': '💊'
+        'logo': ''
     },
     'walgreens': {
         'name': 'Walgreens Boots Alliance Inc',
         'ticker': 'WBA',
         'variations': ['walgreens', 'wba', 'walgreen'],
-        'logo': '💊'
+        'logo': ''
     },
     'chipotle': {
         'name': 'Chipotle Mexican Grill Inc',
         'ticker': 'CMG',
         'variations': ['chipotle', 'cmg'],
-        'logo': '🌯'
+        'logo': ''
     }
 }
 

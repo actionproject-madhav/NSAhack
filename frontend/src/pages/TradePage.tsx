@@ -55,25 +55,32 @@ const TradePage = () => {
     <>
       {/* Spline 3D Background - Outside Layout */}
       {!splineError && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          opacity: 0.3,
-          pointerEvents: 'none',
-          zIndex: 1
-        }}>
-          <Spline 
-            scene="https://prod.spline.design/h7c4yHQYVyL4bjdf/scene.splinecode"
-            onLoad={() => console.log('✅ Spline loaded on Trade page')}
-            onError={(error) => {
-              console.log('❌ Spline failed to load:', error)
-              setSplineError(true)
-            }}
+        <>
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            opacity: 0.3,
+            pointerEvents: 'none',
+            zIndex: 1
+          }}>
+            <Spline 
+              scene="https://prod.spline.design/h7c4yHQYVyL4bjdf/scene.splinecode"
+              onLoad={() => console.log('✅ Spline loaded on Trade page')}
+              onError={(error) => {
+                console.log('❌ Spline failed to load:', error)
+                setSplineError(true)
+              }}
+            />
+          </div>
+          
+          {/* Cover Spline watermark in bottom right */}
+          <div 
+            className="fixed bottom-0 right-0 w-[200px] h-[80px] bg-white dark:bg-black z-[2] pointer-events-none"
           />
-        </div>
+        </>
       )}
 
       <Layout>
