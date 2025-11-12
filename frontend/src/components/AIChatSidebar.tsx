@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Sparkles, Minimize2, Maximize2, Loader2, Plus } from 'lucide-react'
+import { Send, Sparkles, Loader2 } from 'lucide-react'
 import GeminiService from '../services/geminiService'
 import { useUser } from '../context/UserContext'
 
@@ -16,7 +16,6 @@ const AIChatSidebar = () => {
     }
   ])
   const [inputValue, setInputValue] = useState('')
-  const [isMinimized, setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -111,155 +110,113 @@ const AIChatSidebar = () => {
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col h-full transition-all duration-300 ${
-      isMinimized ? 'w-16' : 'w-80'
-    }`}>
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          {!isMinimized && (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white dark:text-black" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
-          >
-            {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
-          </button>
-        </div>
+    <div className="bg-white dark:bg-gray-900 flex flex-col h-full">
+      {/* AI Orb at top middle */}
+      <div className="flex justify-center p-4 border-b border-gray-200 dark:border-gray-800">
+        <img 
+          src="/orb.gif" 
+          alt="AI Orb" 
+          className="w-20 h-20 rounded-full object-cover"
+        />
       </div>
 
-      {!isMinimized && (
-        <>
-          {/* AI Orb at top middle */}
-          <div className="flex justify-center p-4">
-            <img 
-              src="/orb.gif" 
-              alt="AI Orb" 
-              className="w-24 h-24 rounded-full object-cover"
-            />
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <AnimatePresence>
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-                >
-                  <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
-                    {message.isBot && (
-                      <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <Sparkles className="w-3 h-3 text-white dark:text-black" />
-                      </div>
-                    )}
-                    <div
-                      className={`p-3 rounded-2xl text-sm ${
-                        message.isBot
-                          ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md'
-                          : 'bg-black dark:bg-white text-white dark:text-black rounded-tr-md'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.text}</p>
-                      <p className={`text-xs mt-1 opacity-60 ${
-                        message.isBot ? 'text-gray-500' : 'text-gray-300'
-                      }`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            
-            {/* Loading indicator */}
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
-              >
-                <div className="flex gap-2 max-w-[85%]">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <AnimatePresence>
+          {messages.map((message) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+            >
+              <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                {message.isBot && (
                   <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <Sparkles className="w-3 h-3 text-white dark:text-black" />
                   </div>
-                  <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-md">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Thinking...</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 dark:placeholder-gray-500"
-                  rows={1}
-                  style={{
-                    minHeight: '44px',
-                    maxHeight: '100px',
-                    height: 'auto'
-                  }}
-                  onInput={(e) => {
-                    const target = e.target as HTMLTextAreaElement
-                    target.style.height = 'auto'
-                    target.style.height = Math.min(target.scrollHeight, 100) + 'px'
-                  }}
-                />
-              </div>
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isLoading}
-                className="p-3 bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-w-[44px]"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
                 )}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Minimized State */}
-      {isMinimized && (
-        <div className="flex-1 flex flex-col items-center justify-center p-2">
+                <div
+                  className={`p-3 rounded-2xl text-sm ${
+                    message.isBot
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md'
+                      : 'bg-black dark:bg-white text-white dark:text-black rounded-tr-md'
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+                  <p className={`text-xs mt-1 opacity-60 ${
+                    message.isBot ? 'text-gray-500' : 'text-gray-300'
+                  }`}>
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {/* Loading indicator */}
+        {isLoading && (
           <motion.div
-            className="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2 cursor-pointer"
-            whileHover={{ scale: 1.1 }}
-            onClick={() => setIsMinimized(false)}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start"
           >
-            <Plus className="w-5 h-5 text-white" />
+            <div className="flex gap-2 max-w-[85%]">
+              <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <Sparkles className="w-3 h-3 text-white dark:text-black" />
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-md">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Thinking...</span>
+                </div>
+              </div>
+            </div>
           </motion.div>
-          <p className="text-xs text-gray-500 mt-2 writing-mode-vertical text-center">AI Chat</p>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask me anything..."
+              disabled={isLoading}
+              className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 dark:placeholder-gray-500"
+              rows={1}
+              style={{
+                minHeight: '44px',
+                maxHeight: '100px',
+                height: 'auto'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement
+                target.style.height = 'auto'
+                target.style.height = Math.min(target.scrollHeight, 100) + 'px'
+              }}
+            />
+          </div>
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isLoading}
+            className="p-3 bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-w-[44px]"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }

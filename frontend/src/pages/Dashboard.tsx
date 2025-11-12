@@ -58,7 +58,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="flex h-full">
+      <div className="flex h-full relative">
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 py-8">
@@ -150,10 +150,37 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* AI Chat Sidebar - Right side */}
-        <div className="flex-shrink-0 w-96 border-l border-gray-200 dark:border-gray-800 h-full overflow-hidden">
-          <AIChatSidebar />
-        </div>
+        {/* Floating AI Chat Button */}
+        {!showAIChat && (
+          <button
+            onClick={() => setShowAIChat(true)}
+            className="fixed bottom-6 right-6 w-14 h-14 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center z-50"
+            aria-label="Open AI Assistant"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* AI Chat Sidebar - Toggleable */}
+        {showAIChat && (
+          <div className="fixed right-0 top-0 h-full w-96 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-2xl z-50 flex flex-col">
+            {/* Close Button */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+              <h3 className="font-semibold text-black dark:text-white">AI Assistant</h3>
+              <button
+                onClick={() => setShowAIChat(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                aria-label="Close AI Assistant"
+              >
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+            {/* AI Chat Content */}
+            <div className="flex-1 overflow-hidden">
+              <AIChatSidebar />
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   )
