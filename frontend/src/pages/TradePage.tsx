@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
+import Spline from '@splinetool/react-spline'
 
 // Popular stocks for quick trading
 const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD']
@@ -51,7 +52,15 @@ const TradePage = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Spline 3D Background */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+        <Spline 
+          scene="https://prod.spline.design/066e3cb5-d6b2-44d1-b66b-baed78928fee/scene.splinecode"
+          onError={(error) => console.log('Spline failed to load:', error)}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
         
         {/* Header */}
         <div className="mb-8">
