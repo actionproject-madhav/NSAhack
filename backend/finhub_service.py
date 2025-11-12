@@ -51,3 +51,4 @@ class FinnhubService:
         """Get company profile information"""
         data = self._make_request('stock/profile2', {'symbol': ticker})
         return data
+

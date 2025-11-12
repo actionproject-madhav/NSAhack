@@ -2,12 +2,15 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Sparkles, Minimize2, Maximize2, Loader2, Plus } from 'lucide-react'
 import GeminiService from '../services/geminiService'
+import { useUser } from '../context/UserContext'
 
 const AIChatSidebar = () => {
+  const { user } = useUser()
+  
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! How can I help you today?",
+      text: "Hi! I'm your personalized AI investment assistant. I have full access to your portfolio and can provide insights based on your actual holdings. How can I help you today?",
       isBot: true,
       timestamp: new Date()
     }
@@ -43,21 +46,34 @@ const AIChatSidebar = () => {
     try {
       console.log('🔵 AIChatSidebar: Sending message to Gemini...')
       
-      // Create context for the dashboard - generic investment advice
+      // Build portfolio context
+      const portfolioContext = user?.portfolio?.length ? 
+        user.portfolio.map(p => `${p.ticker}: ${p.quantity} shares at $${p.currentPrice.toFixed(2)} (avg cost: $${p.avgPrice.toFixed(2)})`).join(', ') :
+        'No holdings yet'
+      
+      const portfolioValue = user?.totalValue || 0
+      const hasPositions = (user?.portfolio?.length || 0) > 0
+      
+      // Create context for personalized advice
       const context = {
         userLevel: 'beginner' as const,
-        // Add dashboard-specific context
         dashboardContext: true
       }
 
-      // Build investment-focused prompt
+      // Build personalized investment prompt with actual portfolio data
       const investmentPrompt = `${currentInput}
 
-      Context: You are helping a user on their investment dashboard. They can see their portfolio performance, stock holdings (likely NVDA, META, TSLA, AAPL, AMD), and market data. They have a portfolio value around $14,000+ and are looking for practical investment advice.
+      Context: You are a personalized AI investment assistant helping a user with their portfolio.
 
-      Please provide helpful, actionable investment guidance. Keep responses conversational and engaging, using emojis appropriately. Focus on education and practical tips while reminding users this is not professional financial advice.`
+      User's Current Portfolio:
+      - Holdings: ${portfolioContext}
+      - Portfolio Value: $${portfolioValue.toFixed(2)}
+      - Number of Positions: ${user?.portfolio?.length || 0}
+      ${hasPositions ? '- The user has an active portfolio and is learning to invest' : '- The user is just starting out and has not made any trades yet'}
 
-      console.log('🔵 AIChatSidebar: Calling GeminiService.generateContent...')
+      Please provide personalized, helpful advice based on their actual portfolio. Be specific about their holdings when relevant. Keep responses conversational and engaging, using emojis appropriately. Focus on education and practical tips. Remind them this is educational content, not professional financial advice.`
+
+      console.log('🔵 AIChatSidebar: Calling GeminiService with portfolio context...')
       const aiResponse = await GeminiService.generateContent(investmentPrompt, context)
       console.log('✅ AIChatSidebar: Got response from Gemini:', aiResponse.substring(0, 100))
       
@@ -95,25 +111,25 @@ const AIChatSidebar = () => {
   }
 
   return (
-    <div className={`bg-white border-l border-gray-200 flex flex-col h-full transition-all duration-300 ${
+    <div className={`bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col h-full transition-all duration-300 ${
       isMinimized ? 'w-16' : 'w-80'
     }`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex-shrink-0">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
         <div className="flex items-center justify-between">
           {!isMinimized && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                <Plus className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white dark:text-black" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Personalised AI Assistant</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
               </div>
             </div>
           )}
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
           >
             {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
           </button>
@@ -144,15 +160,15 @@ const AIChatSidebar = () => {
                 >
                   <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
                     {message.isBot && (
-                      <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <Plus className="w-3 h-3 text-white" />
+                      <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <Sparkles className="w-3 h-3 text-white dark:text-black" />
                       </div>
                     )}
                     <div
                       className={`p-3 rounded-2xl text-sm ${
                         message.isBot
-                          ? 'bg-gray-100 text-gray-900 rounded-tl-md'
-                          : 'bg-black text-white rounded-tr-md'
+                          ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md'
+                          : 'bg-black dark:bg-white text-white dark:text-black rounded-tr-md'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{message.text}</p>
@@ -175,10 +191,10 @@ const AIChatSidebar = () => {
                 className="flex justify-start"
               >
                 <div className="flex gap-2 max-w-[85%]">
-                  <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Plus className="w-3 h-3 text-white" />
+                  <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="w-3 h-3 text-white dark:text-black" />
                   </div>
-                  <div className="bg-gray-100 text-gray-900 p-3 rounded-2xl rounded-tl-md">
+                  <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-md">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span className="text-sm">Thinking...</span>
@@ -192,7 +208,7 @@ const AIChatSidebar = () => {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <textarea
@@ -201,7 +217,7 @@ const AIChatSidebar = () => {
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me anything..."
                   disabled={isLoading}
-                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 dark:placeholder-gray-500"
                   rows={1}
                   style={{
                     minHeight: '44px',
