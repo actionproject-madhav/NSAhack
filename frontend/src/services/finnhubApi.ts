@@ -102,13 +102,16 @@ class StockAPI {
 
   async getCompanyProfile(symbol: string): Promise<any> {
     try {
-      const response = await fetch(`${BASE_URL}/stock/profile2?symbol=${symbol}&token=${API_KEY}`)
+      const response = await fetch(`${API_BASE_URL}/auth/stock-profile/${symbol}`, {
+        credentials: 'include'
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
 
-      return await response.json()
+      const data = await response.json()
+      return data.success ? data.profile : null
     } catch (error) {
       console.error(`Failed to fetch profile for ${symbol}:`, error)
       return null

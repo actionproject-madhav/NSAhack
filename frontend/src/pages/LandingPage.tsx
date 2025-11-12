@@ -173,24 +173,8 @@ const LandingPage = () => {
                 className="relative z-20"
               >
                 <div className="relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 p-1.5 md:p-2">
-                  <div className="aspect-video rounded-xl md:rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center relative overflow-hidden">
-                    
-                    {/* ✅ Your dashboard screenshot */}
+                  <div className="aspect-video rounded-xl md:rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
                     <img src="/dashboard.png" alt="Dashboard Preview" className="w-full h-full object-cover" />
-                    
-                    {/* Placeholder removed - using real screenshot */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-600/5" />
-                    <div className="text-center z-10 p-4 md:p-8">
-                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                        <svg className="w-8 h-8 md:w-12 md:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium text-sm md:text-base mb-2">Dashboard Preview</p>
-                      <p className="text-gray-400 dark:text-gray-500 text-xs md:text-sm">
-                        Add: /public/images/dashboard-screenshot.png
-                      </p>
-                    </div>
                   </div>
                 </div>
               </motion.div>
