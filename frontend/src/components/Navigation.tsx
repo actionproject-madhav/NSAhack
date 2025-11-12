@@ -1,116 +1,219 @@
-import { motion } from 'framer-motion'
-import { Home, TrendingUp, BookOpen, User, Menu, X, Search, Brain, GraduationCap } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import CommandMenu from './CommandMenu'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Menu, X, Home, Briefcase, Wallet, BarChart3, BookOpen, Brain, Moon, Sun, LogOut, Settings, User } from 'lucide-react'
+import { useUser } from '../context/UserContext'
+import authService from '../services/authService'
 
 const Navigation = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user } = useUser()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/trade', icon: TrendingUp, label: 'Trade' },
-    { path: '/screener', icon: Search, label: 'Screener' },
-    { path: '/ai-hub', icon: Brain, label: 'AI Hub' },
-    { path: '/education-hub', icon: GraduationCap, label: 'Education Hub' },
+    { path: '/portfolio', icon: Briefcase, label: 'Portfolio' },
+    { path: '/wallet', icon: Wallet, label: 'Wallet' },
+    { path: '/trade', icon: BarChart3, label: 'Trade' },
     { path: '/learn', icon: BookOpen, label: 'Learn' },
+    { path: '/ai-hub', icon: Brain, label: 'AI Hub' },
   ]
 
   const isActive = (path: string) => location.pathname === path
 
+  const toggleDarkMode = () => {
+    const newMode = !darkMode
+    setDarkMode(newMode)
+    localStorage.setItem('darkMode', newMode.toString())
+    if (newMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 transition-colors">
+      {/* Main Navigation Bar */}
+      <nav className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 transition-colors">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
+            
             {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate('/dashboard')}
-            >
-              <div className="w-8 h-8 bg-gray-900 dark:bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-white dark:text-gray-900 font-bold text-sm">F</span>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
+                <span className="text-white dark:text-black font-bold text-sm">F</span>
               </div>
-              <span className="font-bold text-xl text-gray-900 dark:text-gray-100">FinLit</span>
-            </motion.div>
+              <span className="font-bold text-xl text-black dark:text-white">FinLit</span>
+            </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-1">
               {navItems.map((item) => (
-                <motion.button
+                <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors relative ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                     isActive(item.path)
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900'
+                      ? 'bg-black dark:bg-white text-white dark:text-black font-semibold'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'
                   }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </motion.button>
+                  <span className="text-sm">{item.label}</span>
+                </button>
               ))}
             </div>
 
-            {/* Search and Profile */}
-            <div className="hidden md:flex items-center gap-4">
-              <CommandMenu />
-              <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                <User className="w-5 h-5" />
+            {/* Right Side - Dark Mode & Profile */}
+            <div className="flex items-center gap-3">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+              >
+                {darkMode ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
+              </button>
+
+              {/* Profile Button */}
+              {user ? (
+                <button
+                  onClick={() => setProfileOpen(true)}
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  {user.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-semibold text-sm">
+                      {user.name?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
+
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6 text-black dark:text-white" /> : <Menu className="w-6 h-6 text-black dark:text-white" />}
               </button>
             </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950"
-          >
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
             <div className="px-4 py-4 space-y-2">
               {navItems.map((item) => (
                 <button
                   key={item.path}
                   onClick={() => {
                     navigate(item.path)
-                    setIsMobileMenuOpen(false)
+                    setMobileMenuOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
                     isActive(item.path)
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900'
+                      ? 'bg-black dark:bg-white text-white dark:text-black font-semibold'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
                 </button>
               ))}
-              <button className="w-full flex items-center gap-3 px-3 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors">
-                <User className="w-5 h-5" />
-                <span className="font-medium">Profile</span>
-              </button>
             </div>
-          </motion.div>
+          </div>
         )}
       </nav>
+
+      {/* Profile Modal */}
+      {profileOpen && user && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setProfileOpen(false)}>
+          <div className="bg-white dark:bg-black rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-black dark:text-white">Profile</h2>
+              <button 
+                onClick={() => setProfileOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* User Info with Avatar */}
+              <div className="flex flex-col items-center text-center">
+                {/* Large Avatar */}
+                {user.picture ? (
+                  <img 
+                    src={user.picture} 
+                    alt={user.name} 
+                    className="w-24 h-24 rounded-full object-cover mb-4"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold text-4xl mb-4">
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                <h3 className="text-2xl font-bold text-black dark:text-white mb-1">{user.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{user.email}</p>
+              </div>
+
+              {/* Portfolio Stats */}
+              {user.portfolio && user.portfolio.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                  <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portfolio Value</div>
+                  <div className="text-2xl font-bold text-black dark:text-white">
+                    ${user.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {user.portfolio.length} {user.portfolio.length === 1 ? 'position' : 'positions'}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-800">
+                <button 
+                  onClick={() => {
+                    setProfileOpen(false)
+                    navigate('/onboarding')
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                >
+                  <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-black dark:text-white">Settings</span>
+                </button>
+                
+                <button 
+                  onClick={async () => {
+                    await authService.signOut()
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                >
+                  <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-black dark:text-white">Log Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
