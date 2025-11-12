@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import authService from '../services/authService'
 import apiService from '../services/apiService'
+import tradingService from '../services/tradingService'
 
 interface User {
   id: string
@@ -29,8 +30,7 @@ interface PortfolioItem {
 interface UserContextType {
   user: User | null
   setUser: (user: User | null) => void
-  updatePortfolio: (item: PortfolioItem) => void
-  refreshPortfolioPrices: () => Promise<void>
+  refreshUserData: () => Promise<void>
   isLoading: boolean
 }
 
@@ -63,30 +63,35 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userId = currentUser.id || currentUser.email
         
         if (!userId) {
-          console.warn('No user ID or email found, using localStorage data')
+          console.warn('No user ID or email found')
           setUser({
             ...currentUser,
-            portfolio: currentUser.portfolio || [],
-            totalValue: currentUser.totalValue || 0
+            portfolio: [],
+            totalValue: 0
           })
           setIsLoading(false)
           return
         }
 
-        console.log(' Loading user profile from database...')
+        console.log('Loading user profile from database...')
         const dbUser = await apiService.getUserProfile(userId)
         
         if (dbUser) {
-          // Map database fields to User interface
-          let portfolio = dbUser.portfolio || []
+          // ONLY load portfolio from trading API (real purchases only)
+          let portfolio = []
+          let totalValue = 0
           
-          // Sync portfolio with real-time stock prices
-          if (portfolio.length > 0) {
-            console.log(' Syncing portfolio with real-time prices...')
-            portfolio = await apiService.syncPortfolioWithRealPrices(portfolio)
+          try {
+            const portfolioData = await tradingService.getPortfolio(userId)
+            portfolio = portfolioData.portfolio || []
+            totalValue = portfolioData.portfolio_value || 0
+            console.log('Loaded real portfolio from trading API:', portfolio.length, 'positions')
+          } catch (error) {
+            console.warn('Trading API error, portfolio will be empty until trades are made')
+            // Keep empty - user has not made any trades yet
+            portfolio = []
+            totalValue = 0
           }
-          
-          const totalValue = apiService.calculatePortfolioValue(portfolio)
           
           const fullUser: User = {
             id: dbUser._id || userId,
@@ -103,25 +108,24 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
           
           setUser(fullUser)
-          // Update localStorage with full profile
+          // Store in localStorage for quick access
           localStorage.setItem('user', JSON.stringify(fullUser))
-          console.log(' Loaded full user profile from database with real-time prices')
+          console.log('User profile loaded - Portfolio:', portfolio.length, 'positions')
         } else {
-          // Fallback to localStorage data if database fetch fails
-          console.warn(' Could not load from database, using localStorage')
+          console.warn('Could not load from database')
           setUser({
             ...currentUser,
-            portfolio: currentUser.portfolio || [],
-            totalValue: currentUser.totalValue || 0
+            portfolio: [],
+            totalValue: 0
           })
         }
       } catch (error) {
-        console.error(' Error loading profile from database:', error)
-        // Fallback to localStorage data
+        console.error('Error loading profile from database:', error)
+        // No fallback - show empty portfolio if error
         setUser({
           ...currentUser,
-          portfolio: currentUser.portfolio || [],
-          totalValue: currentUser.totalValue || 0
+          portfolio: [],
+          totalValue: 0
         })
       } finally {
         setIsLoading(false)
@@ -130,70 +134,39 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     loadUserProfile()
     
-    // Set up periodic refresh of portfolio prices (every 5 minutes)
+    // Set up periodic refresh of portfolio (every 2 minutes)
     const refreshInterval = setInterval(() => {
-      refreshPortfolioPrices()
-    }, 5 * 60 * 1000)
+      if (user) {
+        refreshUserData()
+      }
+    }, 2 * 60 * 1000)
     
     return () => clearInterval(refreshInterval)
   }, [])
 
-  const updatePortfolio = async (item: PortfolioItem) => {
+  const refreshUserData = async () => {
     if (!user) return
     
-    const existingIndex = user.portfolio.findIndex(p => p.ticker === item.ticker)
-    let newPortfolio = [...user.portfolio]
-    
-    if (existingIndex >= 0) {
-      newPortfolio[existingIndex] = item
-    } else {
-      newPortfolio.push(item)
-    }
-    
-    const totalValue = apiService.calculatePortfolioValue(newPortfolio)
-    
-    const updatedUser = {
-      ...user,
-      portfolio: newPortfolio,
-      totalValue
-    }
-    
-    setUser(updatedUser)
-    
-    // Sync to database
     try {
-      await apiService.updatePortfolio(user.id, newPortfolio, totalValue)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      console.log(' Portfolio updated in database')
-    } catch (error) {
-      console.error(' Error updating portfolio in database:', error)
-    }
-  }
-  
-  const refreshPortfolioPrices = async () => {
-    if (!user || !user.portfolio || user.portfolio.length === 0) return
-    
-    try {
-      console.log(' Refreshing portfolio prices...')
-      const updatedPortfolio = await apiService.syncPortfolioWithRealPrices(user.portfolio)
-      const totalValue = apiService.calculatePortfolioValue(updatedPortfolio)
+      console.log('Refreshing user data from trading API...')
+      const portfolioData = await tradingService.getPortfolio(user.id)
       
       const updatedUser = {
         ...user,
-        portfolio: updatedPortfolio,
-        totalValue
+        portfolio: portfolioData.portfolio || [],
+        totalValue: portfolioData.portfolio_value || 0
       }
       
       setUser(updatedUser)
       localStorage.setItem('user', JSON.stringify(updatedUser))
-      console.log(' Portfolio prices refreshed')
+      console.log('User data refreshed:', portfolioData.portfolio.length, 'positions, $' + portfolioData.portfolio_value.toFixed(2))
     } catch (error) {
-      console.error(' Error refreshing portfolio prices:', error)
+      console.error('Error refreshing user data:', error)
     }
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, updatePortfolio, refreshPortfolioPrices, isLoading }}>
+    <UserContext.Provider value={{ user, setUser, refreshUserData, isLoading }}>
       {children}
     </UserContext.Provider>
   )

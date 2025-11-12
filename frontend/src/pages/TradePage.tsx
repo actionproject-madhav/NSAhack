@@ -11,7 +11,7 @@ import tradingService from '../services/tradingService'
 const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD']
 
 const TradePage = () => {
-  const { user, setUser } = useUser()
+  const { user, refreshUserData } = useUser()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
@@ -67,15 +67,8 @@ const TradePage = () => {
         setCashBalance(result.new_balance)
       }
 
-      // Refresh user data
-      if (setUser && user) {
-        const portfolioData = await tradingService.getPortfolio(user.id)
-        setUser({
-          ...user,
-          portfolio: portfolioData.portfolio,
-          totalValue: portfolioData.portfolio_value
-        })
-      }
+      // Refresh all user data from trading API
+      await refreshUserData()
 
       alert(result.message || `Successfully bought ${quantity} ${quantity === 1 ? 'share' : 'shares'} of ${ticker}!`)
       

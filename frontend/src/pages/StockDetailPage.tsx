@@ -22,11 +22,12 @@ const formatLargeNumber = (value: number) => {
 export default function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const navigate = useNavigate();
-  const { user, updatePortfolio } = useUser();
+  const { user, setUser, refreshUserData } = useUser();
   const [stock, setStock] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tradeQuantity, setTradeQuantity] = useState(1)
+  const [isBuying, setIsBuying] = useState(false)
   const [darkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
 
   useEffect(() => {
@@ -54,24 +55,28 @@ export default function StockDetailPage() {
     fetchStockDetails()
   }, [symbol])
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (!user) {
       alert('Please log in to trade')
+      navigate('/auth')
       return
     }
 
-    updatePortfolio({
-      ticker: stock.symbol,
-      company: stock.shortName,
-      quantity: tradeQuantity,
-      avgPrice: stock.regularMarketPrice,
-      currentPrice: stock.regularMarketPrice,
-      reason: 'Manual purchase',
-      logo: '📈'
-    })
-    
-    alert(`Successfully bought ${tradeQuantity} ${tradeQuantity === 1 ? 'share' : 'shares'} of ${stock.symbol}!`)
-    navigate('/portfolio')
+    setIsBuying(true)
+    try {
+      const tradingService = (await import('../services/tradingService')).default
+      const result = await tradingService.buyStock(user.id, stock.symbol, tradeQuantity)
+      
+      // Refresh user data to show new portfolio
+      await refreshUserData()
+
+      alert(result.message || `Successfully bought ${tradeQuantity} ${tradeQuantity === 1 ? 'share' : 'shares'} of ${stock.symbol}!`)
+      navigate('/portfolio')
+    } catch (error: any) {
+      alert(error.message || 'Failed to complete purchase. Please check your cash balance.')
+    } finally {
+      setIsBuying(false)
+    }
   }
 
   if (isLoading) {

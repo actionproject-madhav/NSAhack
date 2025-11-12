@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 const PortfolioPage = () => {
-  const { user, refreshPortfolioPrices } = useUser()
+  const { user, refreshUserData } = useUser()
   const navigate = useNavigate()
   const [refreshing, setRefreshing] = useState(false)
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    await refreshPortfolioPrices()
+    await refreshUserData()
     setRefreshing(false)
   }
 
