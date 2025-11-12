@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { X, Check, Trophy, ArrowRight } from 'lucide-react'
-import { Lesson } from '../pages/curriculumData'
+import { Lesson } from '../pages/Curriculumdata'
 
 interface QuizViewProps {
   lesson: Lesson;
@@ -28,7 +28,6 @@ const QuizView: React.FC<QuizViewProps> = ({
   const selectedAnswer = quizAnswers.get(currentQuestion.id)
   const isCorrect = selectedAnswer === currentQuestion.correctAnswer
 
-  // Calculate total score
   const correctAnswers = Array.from(quizAnswers.entries()).filter(([qId, answer]) => {
     const q = questions.find(qu => qu.id === qId)
     return q && answer === q.correctAnswer
@@ -48,7 +47,7 @@ const QuizView: React.FC<QuizViewProps> = ({
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={onExit}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
           >
             <X className="w-5 h-5" />
             Exit
@@ -62,7 +61,7 @@ const QuizView: React.FC<QuizViewProps> = ({
         {/* Progress Bar */}
         <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-blue-500"
+            className="h-full bg-black dark:bg-white"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
@@ -71,7 +70,7 @@ const QuizView: React.FC<QuizViewProps> = ({
       </div>
 
       {/* Question Card */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-lg">
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-8 border border-gray-200 dark:border-gray-800">
         {/* Question */}
         <div className="mb-8">
           <div className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm font-medium rounded-full mb-4">
@@ -80,7 +79,7 @@ const QuizView: React.FC<QuizViewProps> = ({
              currentQuestion.type === 'calculation' ? 'Calculation' :
              'Scenario'}
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-2xl font-bold text-black dark:text-white">
             {currentQuestion.question}
           </h2>
         </div>
@@ -98,28 +97,28 @@ const QuizView: React.FC<QuizViewProps> = ({
                 key={index}
                 onClick={() => !showResult && onAnswerSelect(currentQuestion.id, index)}
                 disabled={showResult}
-                className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
+                className={`w-full text-left p-5 rounded-lg border-2 transition-all ${
                   showCorrect
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
+                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-800'
                     : showIncorrect
-                    ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
+                    ? 'border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 opacity-50'
                     : isSelected && !showResult
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                    : 'border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                } ${showResult && !isCorrectAnswer && !isSelected ? 'opacity-50' : ''}`}
+                    ? 'border-black dark:border-white bg-gray-50 dark:bg-gray-800'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-black dark:hover:border-white hover:bg-gray-50 dark:hover:bg-gray-800'
+                } ${showResult && !isCorrectAnswer && !isSelected ? 'opacity-30' : ''}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-lg text-gray-900 dark:text-gray-100 pr-4">
+                  <span className="text-lg text-black dark:text-white pr-4">
                     {option}
                   </span>
                   {showResult && (
                     <div className="flex-shrink-0">
                       {isCorrectAnswer ? (
-                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                          <Check className="w-5 h-5 text-white" />
+                        <div className="w-8 h-8 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                          <Check className="w-5 h-5 text-white dark:text-black" />
                         </div>
                       ) : isSelected ? (
-                        <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-gray-400 dark:bg-gray-600 flex items-center justify-center">
                           <X className="w-5 h-5 text-white" />
                         </div>
                       ) : null}
@@ -136,24 +135,18 @@ const QuizView: React.FC<QuizViewProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-6 rounded-xl border-2 ${
-              isCorrect
-                ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
-                : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900'
-            }`}
+            className="p-6 rounded-lg border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
           >
             <div className="flex items-start gap-3 mb-3">
-              {isCorrect ? (
-                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 text-white" />
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold">i</span>
-                </div>
-              )}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isCorrect ? 'bg-black dark:bg-white' : 'bg-gray-400 dark:bg-gray-600'}`}>
+                {isCorrect ? (
+                  <Check className="w-5 h-5 text-white dark:text-black" />
+                ) : (
+                  <span className="text-white font-bold">!</span>
+                )}
+              </div>
               <div>
-                <p className="font-bold text-gray-900 dark:text-gray-100 mb-2">
+                <p className="font-bold text-black dark:text-white mb-2">
                   {isCorrect ? 'Correct!' : 'Not quite right'}
                 </p>
                 <p className="text-gray-800 dark:text-gray-200">
@@ -177,7 +170,7 @@ const QuizView: React.FC<QuizViewProps> = ({
             </div>
             <button
               onClick={onNext}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+              className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-bold rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2"
             >
               {isLastQuestion ? 'Complete Lesson' : 'Next Question'}
               <ArrowRight className="w-5 h-5" />
@@ -186,12 +179,12 @@ const QuizView: React.FC<QuizViewProps> = ({
         )}
       </div>
 
-      {/* Score Display (only show after answering) */}
+      {/* Score Display */}
       {showResult && (
         <div className="mt-6 text-center">
           <div className="inline-flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-6 py-3 rounded-full">
             <span className="text-gray-600 dark:text-gray-400">Current Score:</span>
-            <span className="font-bold text-gray-900 dark:text-gray-100">
+            <span className="font-bold text-black dark:text-white">
               {correctAnswers} / {currentQuestionIndex + 1}
             </span>
           </div>
