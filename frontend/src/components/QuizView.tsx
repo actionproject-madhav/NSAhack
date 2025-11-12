@@ -91,7 +91,6 @@ const QuizView: React.FC<QuizViewProps> = ({
             const isCorrectAnswer = index === currentQuestion.correctAnswer
             const showCorrect = showResult && isCorrectAnswer
             const showIncorrect = showResult && isSelected && !isCorrectAnswer
-
             return (
               <button
                 key={index}
@@ -156,7 +155,6 @@ const QuizView: React.FC<QuizViewProps> = ({
             </div>
           </motion.div>
         )}
-
         {/* Continue Button */}
         {showResult && (
           <motion.div

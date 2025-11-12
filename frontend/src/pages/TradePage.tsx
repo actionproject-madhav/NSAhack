@@ -52,22 +52,31 @@ const TradePage = () => {
     : quotes
 
   return (
-    <Layout>
-      <div className="relative">
-        {/* Spline 3D Background */}
-        {!splineError && (
-          <div className="fixed inset-0 z-0 opacity-30 pointer-events-none">
-            <Spline 
-              scene="https://prod.spline.design/Gw-NICpOQhEjqkJi/scene.splinecode"
-              onLoad={() => console.log('✅ Spline loaded on Trade page')}
-              onError={(error) => {
-                console.log('Spline failed to load:', error)
-                setSplineError(true)
-              }}
-            />
-          </div>
-        )}
+    <>
+      {/* Spline 3D Background - Outside Layout */}
+      {!splineError && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          opacity: 0.3,
+          pointerEvents: 'none',
+          zIndex: 1
+        }}>
+          <Spline 
+            scene="https://prod.spline.design/h7c4yHQYVyL4bjdf/scene.splinecode"
+            onLoad={() => console.log('✅ Spline loaded on Trade page')}
+            onError={(error) => {
+              console.log('❌ Spline failed to load:', error)
+              setSplineError(true)
+            }}
+          />
+        </div>
+      )}
 
+      <Layout>
         <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
         
         {/* Header */}
@@ -184,9 +193,9 @@ const TradePage = () => {
             All prices are fetched in real-time from Yahoo Finance. Click "View Full Details" to see complete stock information and interactive charts before buying.
           </p>
         </div>
-        </div>
       </div>
-    </Layout>
+      </Layout>
+    </>
   )
 }
 
