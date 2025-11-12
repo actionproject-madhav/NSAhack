@@ -158,18 +158,28 @@ const Navigation = () => {
             <div className="p-6 space-y-6">
               {/* User Info with Avatar */}
               <div className="flex flex-col items-center text-center">
-                {/* Large Avatar */}
-                {user.picture ? (
-                  <img 
-                    src={user.picture} 
-                    alt={user.name} 
-                    className="w-24 h-24 rounded-full object-cover mb-4"
-                  />
-                ) : (
-                  <div className="w-24 h-24 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold text-4xl mb-4">
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
-                )}
+                {/* Large Avatar - Always show initials or picture */}
+                <div className="mb-4">
+                  {user.picture && user.picture.length > 0 ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-800"
+                      onError={(e) => {
+                        // If image fails to load, hide it and show initial instead
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  ) : null}
+                  
+                  {/* Fallback Initial (Always render as backup) */}
+                  {(!user.picture || user.picture.length === 0) && (
+                    <div className="w-24 h-24 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-bold text-4xl shadow-lg">
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                </div>
+                
                 <h3 className="text-2xl font-bold text-black dark:text-white mb-1">{user.name}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{user.email}</p>
               </div>
