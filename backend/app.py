@@ -27,7 +27,7 @@ app = Flask(__name__, static_folder='../frontend/dist')
 
 # Configure CORS
 CORS(app, 
-     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000", "https://finlit-uyv5.onrender.com"],
+     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000", "https://finlit-nsa.onrender.com"],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
