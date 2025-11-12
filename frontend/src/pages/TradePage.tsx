@@ -15,6 +15,7 @@ const TradePage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
+  const [splineError, setSplineError] = useState(false)
 
   // Get real-time quotes for popular stocks
   const { quotes, isLoading } = useRealTimeQuotes({
@@ -52,15 +53,22 @@ const TradePage = () => {
 
   return (
     <Layout>
-      {/* Spline 3D Background */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-        <Spline 
-          scene="https://prod.spline.design/066e3cb5-d6b2-44d1-b66b-baed78928fee/scene.splinecode"
-          onError={(error) => console.log('Spline failed to load:', error)}
-        />
-      </div>
+      <div className="relative">
+        {/* Spline 3D Background */}
+        {!splineError && (
+          <div className="fixed inset-0 z-0 opacity-30 pointer-events-none">
+            <Spline 
+              scene="https://prod.spline.design/Gw-NICpOQhEjqkJi/scene.splinecode"
+              onLoad={() => console.log('✅ Spline loaded on Trade page')}
+              onError={(error) => {
+                console.log('Spline failed to load:', error)
+                setSplineError(true)
+              }}
+            />
+          </div>
+        )}
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
         
         {/* Header */}
         <div className="mb-8">
@@ -175,6 +183,7 @@ const TradePage = () => {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             All prices are fetched in real-time from Yahoo Finance. Click "View Full Details" to see complete stock information and interactive charts before buying.
           </p>
+        </div>
         </div>
       </div>
     </Layout>
