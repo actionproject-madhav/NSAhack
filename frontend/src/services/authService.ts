@@ -130,9 +130,17 @@ class AuthService {
   private async checkOnboardingStatus(userId: string): Promise<boolean> {
     try {
       console.log(`Checking onboarding status at: ${API_BASE_URL}/auth/user/${userId}`)
+      
+      // Increased timeout for Render cold starts
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
       const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
       
       console.log('Onboarding check response status:', response.status)
       
@@ -149,7 +157,7 @@ class AuthService {
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error)
-      // On error, assume user needs onboarding
+      // On error, assume user needs onboarding (safer default)
       return false
     }
   }
@@ -231,16 +239,24 @@ class AuthService {
     console.log('API URL:', `${API_BASE_URL}/auth/verify-token`)
     console.log('Token length:', token.length)
     console.log('Token preview:', token.substring(0, 50) + '...')
+    console.log('⚠️ Note: Backend may be cold (Render free tier). This may take 30-60 seconds...')
     
     try {
+      // Increased timeout for Render cold starts (free tier can take 50+ seconds)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 90000) // 90 second timeout
+      
       const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ token }),
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       console.log('Response status:', response.status)
       console.log('Response headers:', [...response.headers.entries()])
@@ -261,6 +277,23 @@ class AuthService {
       }
     } catch (error) {
       console.error('Network/parsing error:', error)
+      
+      // Check if it's a timeout/abort error (backend cold start)
+      if (error instanceof Error && error.name === 'AbortError') {
+        return {
+          success: false,
+          error: 'Backend is taking too long to respond. Please try again in a moment (Render free tier cold start).'
+        }
+      }
+      
+      // Check if it's a connection error (backend not responding)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          success: false,
+          error: 'Cannot connect to backend. The server may be starting up (Render free tier). Please wait 30-60 seconds and try again.'
+        }
+      }
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Network error'

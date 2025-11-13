@@ -29,6 +29,7 @@ const AuthPage = () => {
   const [splineLoaded, setSplineLoaded] = useState(false)
   const [splineError, setSplineError] = useState(false) // Try new Spline URL
   const [googleButtonRendered, setGoogleButtonRendered] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   const navigate = useNavigate()
   const googleButtonRef = useRef<HTMLDivElement>(null)
 
