@@ -1,5 +1,6 @@
 // Comprehensive API service for all backend operations
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+// Normalize API base URL (remove trailing slash to prevent double slashes)
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '')
 
 export interface PortfolioItem {
   ticker: string

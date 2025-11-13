@@ -37,9 +37,11 @@ CORS_ORIGINS = [
     "http://localhost:3000",
     FRONTEND_BASE,  # Frontend URL from environment
     "https://finlit-nsa.onrender.com",  # Explicit production frontend
+    "https://finlit-nsa.onrender.com/",  # With trailing slash (just in case)
 ]
 
-# Remove duplicates while preserving order
+# Remove duplicates and normalize (remove trailing slashes)
+CORS_ORIGINS = [origin.rstrip('/') for origin in CORS_ORIGINS]
 CORS_ORIGINS = list(dict.fromkeys(CORS_ORIGINS))
 
 print("=" * 60)

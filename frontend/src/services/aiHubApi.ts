@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+// Normalize API base URL (remove trailing slash to prevent double slashes)
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 export interface DailyBrief {
   summary: string;
