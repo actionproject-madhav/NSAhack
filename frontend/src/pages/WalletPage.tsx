@@ -4,12 +4,23 @@ import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import tradingService from '../services/tradingService'
+import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 
 const WalletPage = () => {
-  const { user } = useUser()
+  const { user, refreshUserData } = useUser()
   const navigate = useNavigate()
   const [cashBalance, setCashBalance] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Get user's portfolio symbols for real-time quotes
+  const userSymbols = user?.portfolio?.map(p => p.ticker) || []
+  
+  // Get real-time quotes for user's portfolio
+  const { quotes: userQuotes } = useRealTimeQuotes({
+    symbols: userSymbols,
+    refreshInterval: 60000, // Update every minute
+    enabled: userSymbols.length > 0
+  })
 
   useEffect(() => {
     if (user) {
@@ -24,6 +35,8 @@ const WalletPage = () => {
     try {
       const balance = await tradingService.getCashBalance(user.id)
       setCashBalance(balance)
+      // Refresh portfolio data to get latest prices
+      await refreshUserData()
     } catch (error) {
       console.error('Failed to load wallet data:', error)
     } finally {
@@ -31,7 +44,13 @@ const WalletPage = () => {
     }
   }
 
-  const totalValue = user?.totalValue || 0
+  // Calculate total value using real-time quotes
+  const totalValue = user?.portfolio?.reduce((total, stock) => {
+    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+    const currentPrice = quote?.price || stock.currentPrice
+    return total + (stock.quantity * currentPrice)
+  }, 0) || 0
+  
   const totalAccountValue = totalValue + cashBalance
 
   return (
@@ -106,7 +125,13 @@ const WalletPage = () => {
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-800">
               {user.portfolio.map((stock) => {
-                const currentValue = stock.quantity * stock.currentPrice
+                // Use real-time quote if available, otherwise fallback to stock.currentPrice
+                const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+                const currentPrice = quote?.price || stock.currentPrice
+                const priceChange = quote?.change || 0
+                const priceChangePercent = quote?.changePercent || 0
+                
+                const currentValue = stock.quantity * currentPrice
                 const originalValue = stock.quantity * stock.avgPrice
                 const gainLoss = currentValue - originalValue
                 const gainLossPercent = (gainLoss / originalValue) * 100
@@ -122,7 +147,12 @@ const WalletPage = () => {
                       <div>
                         <h3 className="font-semibold text-black dark:text-white text-lg">{stock.ticker}</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {stock.quantity} {stock.quantity === 1 ? 'share' : 'shares'} × ${stock.currentPrice.toFixed(2)}
+                          {stock.quantity} {stock.quantity === 1 ? 'share' : 'shares'} × ${currentPrice.toFixed(2)}
+                          {quote && (
+                            <span className={`ml-2 ${priceChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                              {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
+                            </span>
+                          )}
                         </p>
                       </div>
                       <div className="text-right">

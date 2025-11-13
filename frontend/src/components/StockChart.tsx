@@ -39,9 +39,9 @@ export const StockChart: React.FC<StockChartProps> = ({
       console.log(`Received ${chartData.length} data points for ${symbol}`)
       
       if (!chartData || chartData.length === 0) {
-        // Fallback to mock data if API fails
-        const mockData = generateMockData(symbol, timeframe)
-        setData(mockData)
+        // Show error if API fails - no mock data
+        setError('Failed to load chart data')
+        setData([])
         return
       }
       
@@ -77,33 +77,12 @@ export const StockChart: React.FC<StockChartProps> = ({
       setData(filteredData)
     } catch (err) {
       console.error('Failed to fetch chart data:', err)
-      // Fallback to mock data
-      const mockData = generateMockData(symbol, timeframe)
-      setData(mockData)
+      setError('Failed to load chart data. Please try again.')
+      // Don't use mock data - show error instead
+      setData([])
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const generateMockData = (symbol: string, timeframe: string): TimeSeriesData[] => {
-    const basePrice = 150 + Math.random() * 100
-    const dataPoints = timeframe === '1D' ? 78 : 30
-    const mockData: TimeSeriesData[] = []
-    
-    for (let i = 0; i < dataPoints; i++) {
-      const timestamp = new Date(Date.now() - (dataPoints - i) * 5 * 60 * 1000).toISOString()
-      const price = basePrice + (Math.random() - 0.5) * 10
-      mockData.push({
-        timestamp,
-        open: price,
-        high: price + Math.random() * 2,
-        low: price - Math.random() * 2,
-        close: price + (Math.random() - 0.5) * 1,
-        volume: Math.floor(Math.random() * 1000000)
-      })
-    }
-    
-    return mockData
   }
 
   useEffect(() => {

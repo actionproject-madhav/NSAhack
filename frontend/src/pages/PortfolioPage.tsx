@@ -4,11 +4,22 @@ import { RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 
 const PortfolioPage = () => {
   const { user, refreshUserData } = useUser()
   const navigate = useNavigate()
   const [refreshing, setRefreshing] = useState(false)
+
+  // Get user's portfolio symbols for real-time quotes
+  const userSymbols = user?.portfolio?.map(p => p.ticker) || []
+  
+  // Get real-time quotes for user's portfolio
+  const { quotes: userQuotes } = useRealTimeQuotes({
+    symbols: userSymbols,
+    refreshInterval: 60000, // Update every minute
+    enabled: userSymbols.length > 0
+  })
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -16,9 +27,17 @@ const PortfolioPage = () => {
     setRefreshing(false)
   }
 
-  const totalValue = user?.totalValue || 0
+  // Calculate total value using real-time quotes
+  const totalValue = user?.portfolio?.reduce((total, stock) => {
+    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+    const currentPrice = quote?.price || stock.currentPrice
+    return total + (stock.quantity * currentPrice)
+  }, 0) || 0
+  
   const totalGainLoss = user?.portfolio?.reduce((total, stock) => {
-    const currentValue = stock.quantity * stock.currentPrice
+    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+    const currentPrice = quote?.price || stock.currentPrice
+    const currentValue = stock.quantity * currentPrice
     const originalValue = stock.quantity * stock.avgPrice
     return total + (currentValue - originalValue)
   }, 0) || 0
@@ -110,7 +129,13 @@ const PortfolioPage = () => {
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-800">
               {user.portfolio.map((holding, index) => {
-                const currentValue = holding.quantity * holding.currentPrice
+                // Use real-time quote if available, otherwise fallback to holding.currentPrice
+                const quote = userQuotes?.find(q => q.symbol === holding.ticker)
+                const currentPrice = quote?.price || holding.currentPrice
+                const priceChange = quote?.change || 0
+                const priceChangePercent = quote?.changePercent || 0
+                
+                const currentValue = holding.quantity * currentPrice
                 const originalValue = holding.quantity * holding.avgPrice
                 const gainLoss = currentValue - originalValue
                 const gainLossPercent = ((gainLoss / originalValue) * 100)
@@ -141,7 +166,12 @@ const PortfolioPage = () => {
                           {isPositive ? '+' : ''}${Math.abs(gainLoss).toFixed(2)} ({isPositive ? '+' : ''}{gainLossPercent.toFixed(2)}%)
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          ${holding.currentPrice.toFixed(2)}/share
+                          ${currentPrice.toFixed(2)}/share
+                          {quote && (
+                            <span className={`ml-2 ${priceChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                              {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

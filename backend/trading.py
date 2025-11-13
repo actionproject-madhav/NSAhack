@@ -31,6 +31,10 @@ def get_real_stock_price(ticker):
 def get_balance():
     """Get user's cash balance"""
     try:
+        # Check if database is connected
+        if db.client is None:
+            return jsonify({'error': 'Database not connected'}), 500
+        
         user_id = request.args.get('user_id')
         if not user_id:
             return jsonify({'error': 'user_id required'}), 400
@@ -69,6 +73,9 @@ def get_balance():
 def buy_stock():
     """Execute a buy order"""
     try:
+        # Check if database is connected
+        if db.client is None:
+            return jsonify({'error': 'Database not connected'}), 500
         data = request.get_json()
         user_id = data.get('user_id')
         ticker = data.get('ticker', '').upper()
@@ -113,54 +120,19 @@ def buy_stock():
                 'available': user['cash_balance']
             }), 400
         
-        # Get current portfolio
-        portfolio = user.get('portfolio', [])
-        
-        # Update or add to portfolio
-        existing_position = None
-        for i, position in enumerate(portfolio):
-            if position['ticker'] == ticker:
-                existing_position = i
-                break
-        
-        if existing_position is not None:
-            # Update existing position
-            old_qty = portfolio[existing_position]['quantity']
-            old_avg = portfolio[existing_position]['avgPrice']
-            new_qty = old_qty + quantity
-            new_avg = ((old_qty * old_avg) + (quantity * current_price)) / new_qty
-            
-            portfolio[existing_position]['quantity'] = new_qty
-            portfolio[existing_position]['avgPrice'] = new_avg
-            portfolio[existing_position]['currentPrice'] = current_price
-        else:
-            # Add new position
-            portfolio.append({
-                'ticker': ticker,
-                'company': ticker,
-                'quantity': quantity,
-                'avgPrice': current_price,
-                'currentPrice': current_price,
-                'reason': 'Paper trading purchase',
-                'logo': ''
-            })
-        
         # Calculate new cash balance
         new_cash_balance = user['cash_balance'] - total_cost
         
-        # Calculate total portfolio value
-        total_value = sum(p['quantity'] * p['currentPrice'] for p in portfolio)
-        
-        # Update user in database
+        # Update user cash balance (portfolio is calculated from transactions, not stored)
         users.update_one(
             {'_id': user['_id']},
             {'$set': {
                 'cash_balance': new_cash_balance,
-                'portfolio': portfolio,
-                'total_value': total_value,
                 'updated_at': datetime.now(timezone.utc)
             }}
         )
+        
+        # Note: Portfolio is now built from transactions, not stored in user document
         
         # Record transaction
         transaction = {
@@ -174,6 +146,27 @@ def buy_stock():
         }
         transactions.insert_one(transaction)
         
+        # Calculate portfolio value after purchase (for response)
+        user_obj_id = str(user['_id'])
+        all_transactions_after = list(transactions.find({'user_id': user_obj_id}).sort('timestamp', 1))
+        
+        holdings_after = {}
+        for tx in all_transactions_after:
+            ticker_tx = tx['ticker']
+            if ticker_tx not in holdings_after:
+                holdings_after[ticker_tx] = {'quantity': 0}
+            
+            if tx['type'] == 'buy':
+                holdings_after[ticker_tx]['quantity'] += tx['quantity']
+            elif tx['type'] == 'sell':
+                holdings_after[ticker_tx]['quantity'] -= tx['quantity']
+        
+        portfolio_value = sum(
+            h['quantity'] * (get_real_stock_price(t) or 0)
+            for t, h in holdings_after.items() 
+            if h['quantity'] > 0
+        )
+        
         return jsonify({
             'success': True,
             'message': f'Successfully bought {quantity} shares of {ticker}',
@@ -184,7 +177,7 @@ def buy_stock():
                 'total': total_cost
             },
             'new_balance': new_cash_balance,
-            'portfolio_value': total_value
+            'portfolio_value': portfolio_value
         })
         
     except Exception as e:
@@ -195,6 +188,9 @@ def buy_stock():
 def sell_stock():
     """Execute a sell order"""
     try:
+        # Check if database is connected
+        if db.client is None:
+            return jsonify({'error': 'Database not connected'}), 500
         data = request.get_json()
         user_id = data.get('user_id')
         ticker = data.get('ticker', '').upper()
@@ -215,24 +211,34 @@ def sell_stock():
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        # Get portfolio
-        portfolio = user.get('portfolio', [])
+        # Build current portfolio from transactions to check holdings
+        user_obj_id = str(user['_id'])
+        all_transactions = list(transactions.find({'user_id': user_obj_id}).sort('timestamp', 1))
         
-        # Find position
-        position_index = None
-        for i, position in enumerate(portfolio):
-            if position['ticker'] == ticker:
-                position_index = i
-                break
+        # Calculate current holdings from transactions
+        holdings = {}
+        for tx in all_transactions:
+            ticker_tx = tx['ticker']
+            if ticker_tx not in holdings:
+                holdings[ticker_tx] = {'quantity': 0, 'total_cost': 0}
+            
+            if tx['type'] == 'buy':
+                holdings[ticker_tx]['quantity'] += tx['quantity']
+                holdings[ticker_tx]['total_cost'] += tx['total']
+            elif tx['type'] == 'sell':
+                sold_qty = tx['quantity']
+                remaining_qty = holdings[ticker_tx]['quantity']
+                if remaining_qty > 0:
+                    avg_cost_per_share = holdings[ticker_tx]['total_cost'] / remaining_qty
+                    holdings[ticker_tx]['quantity'] -= sold_qty
+                    holdings[ticker_tx]['total_cost'] -= (avg_cost_per_share * sold_qty)
         
-        if position_index is None:
-            return jsonify({'error': f'You do not own any {ticker} shares'}), 400
-        
-        # Check if user has enough shares
-        if portfolio[position_index]['quantity'] < quantity:
+        # Check if user owns enough shares
+        current_quantity = holdings.get(ticker, {}).get('quantity', 0)
+        if current_quantity < quantity:
             return jsonify({
                 'error': 'Insufficient shares',
-                'owned': portfolio[position_index]['quantity'],
+                'owned': current_quantity,
                 'requested': quantity
             }), 400
         
@@ -244,34 +250,20 @@ def sell_stock():
         # Calculate total proceeds
         total_proceeds = current_price * quantity
         
-        # Update position
-        portfolio[position_index]['quantity'] -= quantity
-        portfolio[position_index]['currentPrice'] = current_price
-        
-        # Remove position if quantity is zero
-        if portfolio[position_index]['quantity'] == 0:
-            portfolio.pop(position_index)
-        
-        # Update cash balance
+        # Update cash balance (portfolio is calculated from transactions, not stored)
         new_cash_balance = user.get('cash_balance', STARTING_CASH) + total_proceeds
         
-        # Calculate total portfolio value
-        total_value = sum(p['quantity'] * p['currentPrice'] for p in portfolio)
-        
-        # Update user in database
         users.update_one(
             {'_id': user['_id']},
             {'$set': {
                 'cash_balance': new_cash_balance,
-                'portfolio': portfolio,
-                'total_value': total_value,
                 'updated_at': datetime.now(timezone.utc)
             }}
         )
         
         # Record transaction
         transaction = {
-            'user_id': str(user['_id']),
+            'user_id': user_obj_id,
             'type': 'sell',
             'ticker': ticker,
             'quantity': quantity,
@@ -280,6 +272,20 @@ def sell_stock():
             'timestamp': datetime.now(timezone.utc)
         }
         transactions.insert_one(transaction)
+        
+        # Calculate portfolio value after sale (for response)
+        holdings_after_sale = holdings.copy()
+        if ticker in holdings_after_sale:
+            holdings_after_sale[ticker]['quantity'] -= quantity
+            if holdings_after_sale[ticker]['quantity'] > 0:
+                avg_cost = holdings_after_sale[ticker]['total_cost'] / holdings_after_sale[ticker]['quantity']
+                holdings_after_sale[ticker]['total_cost'] -= (avg_cost * quantity)
+        
+        portfolio_value = sum(
+            h['quantity'] * (get_real_stock_price(t) or 0)
+            for t, h in holdings_after_sale.items() 
+            if h['quantity'] > 0
+        )
         
         return jsonify({
             'success': True,
@@ -291,7 +297,7 @@ def sell_stock():
                 'total': total_proceeds
             },
             'new_balance': new_cash_balance,
-            'portfolio_value': total_value
+            'portfolio_value': portfolio_value
         })
         
     except Exception as e:
@@ -302,6 +308,9 @@ def sell_stock():
 def get_transactions():
     """Get user's transaction history"""
     try:
+        # Check if database is connected
+        if db.client is None:
+            return jsonify({'error': 'Database not connected'}), 500
         user_id = request.args.get('user_id')
         limit = int(request.args.get('limit', 50))
         
@@ -332,14 +341,18 @@ def get_transactions():
 
 @trading_bp.route('/portfolio', methods=['GET'])
 def get_portfolio():
-    """Get user's current portfolio with real-time prices"""
+    """Get user's current portfolio built from actual transactions only (no mock/onboarding data)"""
     try:
+        # Check if database is connected
+        if db.client is None:
+            return jsonify({'error': 'Database not connected'}), 500
         user_id = request.args.get('user_id')
         
         if not user_id:
             return jsonify({'error': 'user_id required'}), 400
         
         users = get_user_collection()
+        transactions = get_transactions_collection()
         
         # Find user
         try:
@@ -350,9 +363,51 @@ def get_portfolio():
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        portfolio = user.get('portfolio', [])
+        # Build portfolio from ACTUAL TRANSACTIONS ONLY (no onboarding/mock data)
+        user_obj_id = str(user['_id'])
+        all_transactions = list(transactions.find({'user_id': user_obj_id}).sort('timestamp', 1))
         
-        # Update current prices
+        # Calculate holdings from transactions
+        holdings = {}  # {ticker: {quantity, total_cost, transactions}}
+        
+        for tx in all_transactions:
+            ticker = tx['ticker']
+            if ticker not in holdings:
+                holdings[ticker] = {'quantity': 0, 'total_cost': 0, 'transactions': []}
+            
+            if tx['type'] == 'buy':
+                holdings[ticker]['quantity'] += tx['quantity']
+                holdings[ticker]['total_cost'] += tx['total']
+                holdings[ticker]['transactions'].append(tx)
+            elif tx['type'] == 'sell':
+                # Calculate average cost for sold shares (FIFO)
+                sold_qty = tx['quantity']
+                remaining_qty = holdings[ticker]['quantity']
+                
+                if remaining_qty > 0:
+                    avg_cost_per_share = holdings[ticker]['total_cost'] / remaining_qty
+                    holdings[ticker]['quantity'] -= sold_qty
+                    holdings[ticker]['total_cost'] -= (avg_cost_per_share * sold_qty)
+                    holdings[ticker]['transactions'].append(tx)
+        
+        # Build portfolio array from holdings (only positions with quantity > 0)
+        portfolio = []
+        for ticker, holding in holdings.items():
+            if holding['quantity'] > 0:
+                avg_price = holding['total_cost'] / holding['quantity'] if holding['quantity'] > 0 else 0
+                current_price = get_real_stock_price(ticker)
+                
+                portfolio.append({
+                    'ticker': ticker,
+                    'company': ticker,  # Can be enhanced with company name lookup
+                    'quantity': holding['quantity'],
+                    'avgPrice': avg_price,
+                    'currentPrice': current_price or avg_price,
+                    'reason': 'Paper trading purchase',
+                    'logo': ''
+                })
+        
+        # Update current prices for all positions
         for position in portfolio:
             current_price = get_real_stock_price(position['ticker'])
             if current_price:
@@ -361,6 +416,8 @@ def get_portfolio():
         # Calculate total value
         total_value = sum(p['quantity'] * p['currentPrice'] for p in portfolio)
         cash_balance = user.get('cash_balance', STARTING_CASH)
+        
+        print(f"Portfolio built from {len(all_transactions)} transactions: {len(portfolio)} positions")
         
         return jsonify({
             'success': True,

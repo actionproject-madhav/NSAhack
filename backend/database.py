@@ -26,29 +26,49 @@ class ReceiptDatabase:
             else:
                 # MongoDB Atlas connection with SSL (Python 3.13 compatible)
                 print("Attempting MongoDB Atlas connection...")
+                print(f"MongoDB URI: {self.mongo_uri[:50]}...")
+                
+                # Ensure URI has proper SSL parameters
+                mongo_uri = self.mongo_uri
+                if 'ssl=true' not in mongo_uri.lower() and 'tls=true' not in mongo_uri.lower():
+                    # Add SSL parameters if not present
+                    separator = '&' if '?' in mongo_uri else '?'
+                    mongo_uri = f"{mongo_uri}{separator}tls=true"
+                
                 try:
-                    # Try with relaxed SSL config for Python 3.13 compatibility
+                    # Try with explicit TLS configuration for Python 3.13+
+                    import ssl
+                    import certifi
                     self.client = MongoClient(
-                        self.mongo_uri,
+                        mongo_uri,
                         tls=True,
-                        tlsAllowInvalidCertificates=True,
-                        tlsInsecure=True,
-                        serverSelectionTimeoutMS=15000,
-                        connectTimeoutMS=15000,
-                        socketTimeoutMS=15000
+                        tlsCAFile=certifi.where(),  # Use certifi for SSL certificates
+                        serverSelectionTimeoutMS=30000,  # Increased timeout
+                        connectTimeoutMS=30000,
+                        socketTimeoutMS=30000,
+                        retryWrites=True,
+                        retryReads=True
                     )
-                    print("Using relaxed SSL configuration...")
+                    # Test connection
+                    self.client.admin.command('ping')
+                    print("✅ MongoDB Atlas connection successful!")
                 except Exception as ssl_error:
-                    print(f"Relaxed SSL failed: {str(ssl_error)[:100]}...")
-                    # Fallback to minimal configuration
+                    print(f"❌ Standard SSL config failed: {str(ssl_error)[:200]}...")
+                    # Fallback: Try with URI only (let pymongo handle SSL automatically)
                     try:
+                        print("Trying fallback: URI-only connection...")
                         self.client = MongoClient(
-                            self.mongo_uri,
-                            serverSelectionTimeoutMS=10000
+                            mongo_uri,
+                            serverSelectionTimeoutMS=30000,
+                            connectTimeoutMS=30000,
+                            socketTimeoutMS=30000
                         )
-                        print("Using minimal Atlas configuration...")
+                        # Test connection
+                        self.client.admin.command('ping')
+                        print("✅ MongoDB Atlas connection successful (fallback)!")
                     except Exception as fallback_error:
-                        print(f"All Atlas connection attempts failed: {str(fallback_error)[:100]}...")
+                        print(f"❌ All Atlas connection attempts failed: {str(fallback_error)[:200]}...")
+                        print("⚠️  App will run without database functionality")
                         raise fallback_error
             self.db = self.client[self.database_name]
             self.collection = self.db[self.collection_name]
