@@ -92,12 +92,20 @@ const OnboardingFlow = () => {
       
       if (success) {
         console.log('✅ Onboarding data saved to database with real stock prices!')
+        // Mark onboarding as completed
+        user.onboarding_completed = true
         localStorage.setItem('user', JSON.stringify(user))
       } else {
         console.error('❌ Failed to save onboarding data')
+        // Still mark as completed in localStorage even if backend fails
+        user.onboarding_completed = true
+        localStorage.setItem('user', JSON.stringify(user))
       }
     } catch (error) {
       console.error('❌ Error saving onboarding data:', error)
+      // Still mark as completed in localStorage even if backend fails
+      user.onboarding_completed = true
+      localStorage.setItem('user', JSON.stringify(user))
     }
 
     setUser(user)

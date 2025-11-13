@@ -60,6 +60,24 @@ class AuthService {
     })
   }
 
+  // Decode JWT token in frontend (no backend needed!)
+  private decodeJWT(token: string): any {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error('Error decoding JWT:', error)
+      return null
+    }
+  }
+
   // Handle Google Sign-In response
   private async handleGoogleResponse(response: any) {
     console.log('=== Google Sign-In Response ===')
@@ -67,62 +85,85 @@ class AuthService {
     console.log('Full response:', response)
     console.log('Credential token:', response.credential ? 'Present' : 'Missing')
     
-    // Alert to make sure this is being called
-    console.log(' GOOGLE AUTH CALLBACK TRIGGERED!')
-    
     try {
       if (!response.credential) {
         throw new Error('No credential token received from Google')
       }
 
-      console.log('Sending token to backend for verification...')
-      // Verify token with backend
-      const result = await this.verifyGoogleToken(response.credential)
-      console.log('Backend verification result:', result)
+      console.log('🔵 Verifying token in FRONTEND (no backend needed!)...')
       
-      if (result.success && result.user) {
-        console.log('✅ Authentication successful! User:', result.user)
-        
-        // Store basic user data in localStorage
-        localStorage.setItem('user', JSON.stringify(result.user))
-        console.log('✅ User data stored in localStorage')
-        
-        // Check if user has already completed onboarding
-        console.log('Checking onboarding status for user:', result.user.id)
-        let hasCompletedOnboarding = false
-        try {
-          hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
-          console.log('Onboarding status result:', hasCompletedOnboarding)
-        } catch (error) {
-          console.error('Error checking onboarding, defaulting to false:', error)
-          hasCompletedOnboarding = false
-        }
-        
-        // Always redirect - don't stay on auth page
-        if (hasCompletedOnboarding) {
-          console.log('✅ User has completed onboarding, loading full profile...')
-          // Load full profile data with portfolio
-          try {
-            await this.loadUserProfile(result.user.id)
-            console.log('✅ Profile loaded, redirecting to dashboard...')
-          } catch (error) {
-            console.warn('Error loading profile, redirecting anyway:', error)
-          }
-          // Force page reload to ensure UserContext picks up the new user
-          window.location.replace('/dashboard')
-        } else {
-          console.log('⚠️ User needs to complete onboarding, redirecting to /onboarding...')
-          // Redirect to onboarding page
-          window.location.replace('/onboarding')
-        }
+      // Decode JWT token to get user info (frontend-only, instant!)
+      const decodedToken = this.decodeJWT(response.credential)
+      
+      if (!decodedToken || !decodedToken.email) {
+        throw new Error('Invalid token: Could not decode user information')
+      }
+
+      // Extract user information from decoded token
+      const user: GoogleUser = {
+        id: decodedToken.sub || decodedToken.email, // Use Google ID or email as ID
+        email: decodedToken.email,
+        name: decodedToken.name || decodedToken.email.split('@')[0],
+        picture: decodedToken.picture
+      }
+
+      console.log('✅ Token decoded successfully! User:', user)
+      
+      // Store user data in localStorage immediately (no backend call!)
+      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('google_token', response.credential) // Store token for later backend sync
+      console.log('✅ User data stored in localStorage')
+      
+      // Check onboarding status from localStorage (fast, no backend needed)
+      const storedUser = localStorage.getItem('user')
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null
+      const hasCompletedOnboarding = parsedUser?.onboarding_completed || false
+      
+      console.log('Onboarding status (from localStorage):', hasCompletedOnboarding)
+      
+      // Try to sync with backend in background (non-blocking)
+      this.syncWithBackend(response.credential, user).catch(error => {
+        console.warn('⚠️ Backend sync failed (non-critical):', error)
+        console.log('✅ Continuing with frontend-only auth...')
+      })
+      
+      // Redirect immediately (no waiting for backend!)
+      if (hasCompletedOnboarding) {
+        console.log('✅ User has completed onboarding, redirecting to dashboard...')
+        window.location.replace('/dashboard')
       } else {
-        console.error('❌ Authentication failed:', result.error)
-        throw new Error(result.error || 'Authentication failed')
+        console.log('⚠️ User needs to complete onboarding, redirecting to /onboarding...')
+        window.location.replace('/onboarding')
       }
     } catch (error) {
       console.error('=== Google Authentication Error ===')
       console.error('Error details:', error)
       alert(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  // Sync with backend in background (non-blocking, optional)
+  private async syncWithBackend(token: string, user: GoogleUser): Promise<void> {
+    try {
+      console.log('🔄 Syncing with backend in background...')
+      const result = await this.verifyGoogleToken(token)
+      
+      if (result.success && result.user) {
+        console.log('✅ Backend sync successful')
+        // Update localStorage with backend user data (may have more fields)
+        localStorage.setItem('user', JSON.stringify(result.user))
+        
+        // Check onboarding status from backend
+        const hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
+        if (hasCompletedOnboarding) {
+          const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+          currentUser.onboarding_completed = true
+          localStorage.setItem('user', JSON.stringify(currentUser))
+        }
+      }
+    } catch (error) {
+      // Silently fail - frontend auth already worked
+      console.warn('Backend sync failed (non-critical):', error)
     }
   }
 
