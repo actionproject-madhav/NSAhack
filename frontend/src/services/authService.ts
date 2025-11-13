@@ -114,20 +114,56 @@ class AuthService {
       localStorage.setItem('google_token', response.credential) // Store token for later backend sync
       console.log('✅ User data stored in localStorage')
       
-      // Check onboarding status from localStorage (fast, no backend needed)
-      const storedUser = localStorage.getItem('user')
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null
-      const hasCompletedOnboarding = parsedUser?.onboarding_completed || false
+      // Try to check backend first for onboarding status (with timeout for cold starts)
+      let hasCompletedOnboarding = false
+      try {
+        console.log('🔍 Checking backend for onboarding status...')
+        console.log('Querying backend with email:', user.email)
+        // Quick check with 10 second timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        
+        // Use email to query backend (backend supports email lookup)
+        const response = await fetch(`${API_BASE_URL}/auth/user/${encodeURIComponent(user.email)}`, {
+          credentials: 'include',
+          signal: controller.signal
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (response.ok) {
+          const data = await response.json()
+          hasCompletedOnboarding = data.user?.onboarding_completed || false
+          console.log('✅ Backend check successful. Onboarding completed:', hasCompletedOnboarding)
+          
+          // Update localStorage with backend data
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user))
+            console.log('✅ Updated localStorage with backend user data')
+          }
+        } else {
+          console.warn('⚠️ Backend returned non-OK status, checking localStorage...')
+          // Fall back to localStorage
+          const storedUser = localStorage.getItem('user')
+          const parsedUser = storedUser ? JSON.parse(storedUser) : null
+          hasCompletedOnboarding = parsedUser?.onboarding_completed || false
+        }
+      } catch (error) {
+        console.warn('⚠️ Backend check failed (may be cold start), checking localStorage...', error)
+        // Fall back to localStorage if backend is unavailable
+        const storedUser = localStorage.getItem('user')
+        const parsedUser = storedUser ? JSON.parse(storedUser) : null
+        hasCompletedOnboarding = parsedUser?.onboarding_completed || false
+        
+        // Try to sync with backend in background (non-blocking)
+        this.syncWithBackend(response.credential, user).catch(syncError => {
+          console.warn('⚠️ Backend sync failed (non-critical):', syncError)
+        })
+      }
       
-      console.log('Onboarding status (from localStorage):', hasCompletedOnboarding)
+      console.log('Final onboarding status:', hasCompletedOnboarding)
       
-      // Try to sync with backend in background (non-blocking)
-      this.syncWithBackend(response.credential, user).catch(error => {
-        console.warn('⚠️ Backend sync failed (non-critical):', error)
-        console.log('✅ Continuing with frontend-only auth...')
-      })
-      
-      // Redirect immediately (no waiting for backend!)
+      // Redirect based on onboarding status
       if (hasCompletedOnboarding) {
         console.log('✅ User has completed onboarding, redirecting to dashboard...')
         window.location.replace('/#/dashboard')
@@ -153,8 +189,8 @@ class AuthService {
         // Update localStorage with backend user data (may have more fields)
         localStorage.setItem('user', JSON.stringify(result.user))
         
-        // Check onboarding status from backend
-        const hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
+        // Check onboarding status from backend using email
+        const hasCompletedOnboarding = await this.checkOnboardingStatus(user.email)
         if (hasCompletedOnboarding) {
           const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
           currentUser.onboarding_completed = true
@@ -168,15 +204,15 @@ class AuthService {
   }
 
   // Check if user has completed onboarding
-  private async checkOnboardingStatus(userId: string): Promise<boolean> {
+  private async checkOnboardingStatus(userEmail: string): Promise<boolean> {
     try {
-      console.log(`Checking onboarding status at: ${API_BASE_URL}/auth/user/${userId}`)
+      console.log(`Checking onboarding status at: ${API_BASE_URL}/auth/user/${userEmail}`)
       
       // Increased timeout for Render cold starts
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
       
-      const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/user/${encodeURIComponent(userEmail)}`, {
         credentials: 'include',
         signal: controller.signal
       })
