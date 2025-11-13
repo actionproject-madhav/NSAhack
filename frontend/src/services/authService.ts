@@ -130,10 +130,10 @@ class AuthService {
       // Redirect immediately (no waiting for backend!)
       if (hasCompletedOnboarding) {
         console.log('✅ User has completed onboarding, redirecting to dashboard...')
-        window.location.replace('/dashboard')
+        window.location.replace('/#/dashboard')
       } else {
         console.log('⚠️ User needs to complete onboarding, redirecting to /onboarding...')
-        window.location.replace('/onboarding')
+        window.location.replace('/#/onboarding')
       }
     } catch (error) {
       console.error('=== Google Authentication Error ===')
@@ -370,12 +370,12 @@ class AuthService {
       }
       
       // Redirect to home
-      window.location.href = '/'
+      window.location.href = '/#/'
     } catch (error) {
       console.error('Sign out error:', error)
       // Still clear local data even if backend call fails
       localStorage.removeItem('user')
-      window.location.href = '/'
+      window.location.href = '/#/'
     }
   }
 
