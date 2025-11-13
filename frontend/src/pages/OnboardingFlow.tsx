@@ -75,7 +75,8 @@ const OnboardingFlow = () => {
       visaStatus,
       homeCountry,
       portfolio,
-      totalValue
+      totalValue,
+      onboarding_completed: false // Will be set to true after saving
     }
 
     // Save onboarding data to backend using API service
