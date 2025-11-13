@@ -88,19 +88,32 @@ class AuthService {
         console.log('✅ User data stored in localStorage')
         
         // Check if user has already completed onboarding
-        const hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
-        console.log('Onboarding status:', hasCompletedOnboarding)
+        console.log('Checking onboarding status for user:', result.user.id)
+        let hasCompletedOnboarding = false
+        try {
+          hasCompletedOnboarding = await this.checkOnboardingStatus(result.user.id)
+          console.log('Onboarding status result:', hasCompletedOnboarding)
+        } catch (error) {
+          console.error('Error checking onboarding, defaulting to false:', error)
+          hasCompletedOnboarding = false
+        }
         
+        // Always redirect - don't stay on auth page
         if (hasCompletedOnboarding) {
           console.log('✅ User has completed onboarding, loading full profile...')
           // Load full profile data with portfolio
-          await this.loadUserProfile(result.user.id)
-          console.log('✅ Profile loaded, redirecting to dashboard...')
+          try {
+            await this.loadUserProfile(result.user.id)
+            console.log('✅ Profile loaded, redirecting to dashboard...')
+          } catch (error) {
+            console.warn('Error loading profile, redirecting anyway:', error)
+          }
           // Force page reload to ensure UserContext picks up the new user
-          window.location.href = '/dashboard'
+          window.location.replace('/dashboard')
         } else {
-          console.log('⚠️ User needs to complete onboarding...')
-          window.location.href = '/onboarding'
+          console.log('⚠️ User needs to complete onboarding, redirecting to /onboarding...')
+          // Redirect to onboarding page
+          window.location.replace('/onboarding')
         }
       } else {
         console.error('❌ Authentication failed:', result.error)
@@ -116,17 +129,27 @@ class AuthService {
   // Check if user has completed onboarding
   private async checkOnboardingStatus(userId: string): Promise<boolean> {
     try {
+      console.log(`Checking onboarding status at: ${API_BASE_URL}/auth/user/${userId}`)
       const response = await fetch(`${API_BASE_URL}/auth/user/${userId}`, {
         credentials: 'include'
       })
       
+      console.log('Onboarding check response status:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
-        return data.user?.onboarding_completed || false
+        console.log('Onboarding check response data:', data)
+        const isCompleted = data.user?.onboarding_completed || false
+        console.log('User onboarding completed:', isCompleted)
+        return isCompleted
+      } else {
+        console.warn('Onboarding check failed with status:', response.status)
+        // If user doesn't exist yet, they need onboarding
+        return false
       }
-      return false
     } catch (error) {
       console.error('Error checking onboarding status:', error)
+      // On error, assume user needs onboarding
       return false
     }
   }

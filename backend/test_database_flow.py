@@ -15,14 +15,14 @@ def test_database_connection():
     db = ReceiptDatabase()
     
     if db.client is None:
-        print("❌ Database NOT connected!")
+        print(" Database NOT connected!")
         print("\nTo connect MongoDB:")
         print("1. Install MongoDB locally: brew install mongodb-community")
         print("2. Start MongoDB: brew services start mongodb-community")
         print("3. Or use MongoDB Atlas and set MONGO_URI env variable")
         return False
     else:
-        print("✅ Database IS connected!")
+        print(" Database IS connected!")
         print(f"   Database: {db.database_name}")
         print(f"   URI: {db.mongo_uri[:30]}...")
         return True
@@ -36,7 +36,7 @@ def test_user_collection():
     db = ReceiptDatabase()
     
     if db.client is None:
-        print("❌ Database not connected, skipping test")
+        print(" Database not connected, skipping test")
         return
     
     try:
@@ -44,11 +44,11 @@ def test_user_collection():
         
         # Count users
         user_count = users_collection.count_documents({})
-        print(f"✅ Users in database: {user_count}")
+        print(f" Users in database: {user_count}")
         
         # Show sample users (without sensitive data)
         if user_count > 0:
-            print("\n📋 Sample users:")
+            print("\n Sample users:")
             for user in users_collection.find().limit(3):
                 print(f"\n  User: {user.get('name', 'Unknown')}")
                 print(f"  Email: {user.get('email', 'N/A')}")
@@ -69,7 +69,7 @@ def test_user_collection():
             print("  No users found. Sign in with Google to create your first user!")
             
     except Exception as e:
-        print(f"❌ Error testing user collection: {e}")
+        print(f" Error testing user collection: {e}")
 
 def test_receipt_collection():
     """Test if we can read receipts"""
@@ -80,12 +80,12 @@ def test_receipt_collection():
     db = ReceiptDatabase()
     
     if db.client is None:
-        print("❌ Database not connected, skipping test")
+        print(" Database not connected, skipping test")
         return
     
     try:
         receipt_count = db.collection.count_documents({})
-        print(f"✅ Receipts in database: {receipt_count}")
+        print(f"Receipts in database: {receipt_count}")
         
         if receipt_count > 0:
             print("\n📋 Sample receipts:")

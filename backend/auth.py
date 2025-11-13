@@ -20,13 +20,36 @@ GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
+# Validate required environment variables
+if not GOOGLE_CLIENT_ID:
+    print("❌ ERROR: GOOGLE_CLIENT_ID environment variable is not set!")
+    print("   Please set it in Render Dashboard → Environment Variables")
+if not GOOGLE_CLIENT_SECRET:
+    print("❌ ERROR: GOOGLE_CLIENT_SECRET environment variable is not set!")
+    print("   Please set it in Render Dashboard → Environment Variables")
+if not GOOGLE_REDIRECT_URI:
+    print("❌ ERROR: GOOGLE_REDIRECT_URI environment variable is not set!")
+    print("   Should be: https://finlit-nsa.onrender.com/auth/google/callback")
 
-
-print(f"Google Client ID loaded: {GOOGLE_CLIENT_ID[:50]}..." if GOOGLE_CLIENT_ID else "Google Client ID not found!")
-print(f"Google Client Secret loaded: {'Yes' if GOOGLE_CLIENT_SECRET else 'No'}")
+# Debug output
+print("=" * 60)
+print("Google OAuth Configuration Check:")
+print("=" * 60)
+print(f"GOOGLE_CLIENT_ID: {'✅ Set' if GOOGLE_CLIENT_ID else '❌ Missing'}")
+if GOOGLE_CLIENT_ID:
+    print(f"  Value: {GOOGLE_CLIENT_ID[:30]}...{GOOGLE_CLIENT_ID[-10:]}")
+print(f"GOOGLE_CLIENT_SECRET: {'✅ Set' if GOOGLE_CLIENT_SECRET else '❌ Missing'}")
+print(f"GOOGLE_REDIRECT_URI: {'✅ Set' if GOOGLE_REDIRECT_URI else '❌ Missing'}")
+if GOOGLE_REDIRECT_URI:
+    print(f"  Value: {GOOGLE_REDIRECT_URI}")
+print(f"FRONTEND_URL: {FRONTEND_URL}")
+print("=" * 60)
 
 # Create OAuth flow
 def create_flow():
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET or not GOOGLE_REDIRECT_URI:
+        raise ValueError("Missing required Google OAuth environment variables. Check Render Dashboard → Environment Variables")
+    
     return Flow.from_client_config(
         {
             "web": {
