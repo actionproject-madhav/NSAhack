@@ -25,9 +25,33 @@ except ImportError as e:
 # Create Flask app ONCE with static folder configuration
 app = Flask(__name__, static_folder='../frontend/dist')
 
-# Configure CORS
+# Configure CORS - Allow frontend URL from environment or use defaults
+FRONTEND_URL_ENV = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+# Extract base URL (remove trailing slash and path)
+FRONTEND_BASE = FRONTEND_URL_ENV.rstrip('/').split('/auth')[0].split('/onboarding')[0]
+
+# CORS allowed origins
+CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174", 
+    "http://localhost:3000",
+    FRONTEND_BASE,  # Frontend URL from environment
+    "https://finlit-nsa.onrender.com",  # Explicit production frontend
+]
+
+# Remove duplicates while preserving order
+CORS_ORIGINS = list(dict.fromkeys(CORS_ORIGINS))
+
+print("=" * 60)
+print("CORS Configuration:")
+print("=" * 60)
+print(f"Frontend URL (from env): {FRONTEND_URL_ENV}")
+print(f"Frontend Base URL: {FRONTEND_BASE}")
+print(f"Allowed CORS Origins: {CORS_ORIGINS}")
+print("=" * 60)
+
 CORS(app, 
-     origins=["http://localhost:5174", "http://localhost:5173", "http://localhost:3000", "https://finlit-nsa.onrender.com"],
+     origins=CORS_ORIGINS,
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
