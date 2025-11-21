@@ -368,49 +368,6 @@ def update_portfolio():
         'success': False,
         'message': 'Portfolio is now only built from actual trades. Use /api/trading/portfolio instead.'
     }), 400
-        portfolio = data.get('portfolio', [])
-        total_value = data.get('total_value', 0)
-        
-        if not user_id:
-            return jsonify({'error': 'user_id is required'}), 400
-        
-        users_collection = db.db['users']
-        
-        # Update user portfolio
-        from bson import ObjectId
-        try:
-            result = users_collection.update_one(
-                {'_id': ObjectId(user_id)},
-                {'$set': {
-                    'portfolio': portfolio,
-                    'total_value': total_value,
-                    'updated_at': datetime.now(timezone.utc)
-                }}
-            )
-        except:
-            # If not valid ObjectId, try email
-            result = users_collection.update_one(
-                {'email': user_id},
-                {'$set': {
-                    'portfolio': portfolio,
-                    'total_value': total_value,
-                    'updated_at': datetime.now(timezone.utc)
-                }}
-            )
-        
-        if result.matched_count == 0:
-            return jsonify({'error': 'User not found'}), 404
-        
-        print(f" Portfolio updated for user: {user_id}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Portfolio updated successfully'
-        })
-        
-    except Exception as e:
-        print(f" Error updating portfolio: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/stock-quote/<symbol>', methods=['GET'])
 def get_stock_quote(symbol):
