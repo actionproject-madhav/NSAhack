@@ -1,13 +1,33 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Mail, Lock } from 'lucide-react'
+import Spline from '@splinetool/react-spline'
 import authService from '../services/authService'
+
+// Error boundary wrapper for Spline
+const SplineWrapper = ({ onLoad, onError }: { onLoad: () => void; onError: () => void }) => {
+  try {
+    return (
+      <Spline 
+        scene="https://prod.spline.design/TAxK4wrLSa-FcNjL/scene.splinecode"
+        onLoad={onLoad}
+        onError={onError}
+      />
+    )
+  } catch (error) {
+    console.error('Spline render error:', error)
+    onError()
+    return null
+  }
+}
 
 const AuthPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
+  const [splineLoaded, setSplineLoaded] = useState(false)
+  const [splineError, setSplineError] = useState(false)
   const [googleButtonRendered, setGoogleButtonRendered] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const navigate = useNavigate()
@@ -78,6 +98,74 @@ const AuthPage = () => {
 
   return (
     <div className="relative h-screen bg-black overflow-hidden">
+      {/* Hide Spline Watermark */}
+      <style>{`
+        /* Aggressively hide Spline watermark and "Built with Spline" text */
+        #spline-watermark,
+        [id*="spline"],
+        [class*="spline"],
+        canvas + div,
+        canvas ~ div,
+        canvas ~ div a,
+        canvas ~ a,
+        div[style*="position: absolute"][style*="bottom"],
+        div[style*="position: fixed"][style*="bottom"],
+        div[style*="z-index: 100000"],
+        div[style*="z-index: 99999"],
+        a[href*="spline.design"],
+        a[target="_blank"][rel*="noopener"] {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
+        
+        /* Hide any text containing "Built" or "Spline" */
+        *:not(script):not(style) {
+          font-size: inherit;
+        }
+      `}</style>
+      
+      {/* 3D Spline Background */}
+      <div className="absolute inset-0 z-0 [&_*]:pointer-events-none [&_canvas]:pointer-events-auto">
+        {splineError ? (
+          // Fallback dark gradient if Spline fails
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-black to-gray-900">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-600 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-700 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {!splineLoaded && (
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 animate-pulse" />
+            )}
+            <SplineWrapper 
+              onLoad={() => {
+                console.log('✅ Spline loaded on Auth page')
+                setSplineLoaded(true)
+                setSplineError(false)
+              }}
+              onError={() => {
+                console.error('❌ Spline failed to load, using fallback background')
+                setSplineError(true)
+                setSplineLoaded(true)
+              }}
+            />
+            
+            {/* Cover Spline watermark at bottom-right */}
+            <div className="absolute bottom-0 right-0 w-[220px] h-[90px] bg-black z-50 pointer-events-none" 
+              style={{
+                background: 'radial-gradient(ellipse 200px 90px at bottom right, #000000 0%, #000000 50%, rgba(0,0,0,0.8) 70%, transparent 100%)',
+              }}
+            />
+          </>
+        )}
+      </div>
       
       {/* Back to home link */}
       <div className="absolute top-8 left-8 z-30">

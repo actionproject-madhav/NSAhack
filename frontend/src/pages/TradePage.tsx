@@ -232,8 +232,7 @@ const TradePage = () => {
           </ul>
         </div>
       </div>
-      </Layout>
-    </>
+    </Layout>
   )
 }
 
