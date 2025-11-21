@@ -92,7 +92,7 @@ const Navigation = () => {
                   ) : (
                     <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black font-semibold text-sm">
                       {user.name?.charAt(0) || 'U'}
-                    </div>
+            </div>
                   )}
                 </button>
               ) : (
@@ -104,13 +104,13 @@ const Navigation = () => {
                 </button>
               )}
 
-              {/* Mobile Menu Button */}
-              <button
+            {/* Mobile Menu Button */}
+            <button
                 className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
+            >
                 {mobileMenuOpen ? <X className="w-6 h-6 text-black dark:text-white" /> : <Menu className="w-6 h-6 text-black dark:text-white" />}
-              </button>
+            </button>
             </div>
           </div>
         </div>

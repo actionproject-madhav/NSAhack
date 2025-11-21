@@ -77,8 +77,8 @@ const EducationHub: React.FC = () => {
       setShowQuizResult(false)
       } else {
       completeLesson()
-    }
-  }
+        }
+      }
 
   const completeLesson = () => {
     if (!selectedLesson) return
@@ -121,7 +121,7 @@ const EducationHub: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              >
+            >
                 {/* Header */}
                 <div className="mb-12">
                   <h1 className="text-4xl font-bold text-black dark:text-white mb-3">

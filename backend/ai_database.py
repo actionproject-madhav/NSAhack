@@ -21,13 +21,13 @@ class AIDatabase:
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
         try:
-            brief = self.briefs_collection.find_one({
-                'date': {'$gte': today}
-            }, sort=[('created_at', -1)])
-            
-            if brief:
-                brief['_id'] = str(brief['_id'])
-                return brief
+        brief = self.briefs_collection.find_one({
+            'date': {'$gte': today}
+        }, sort=[('created_at', -1)])
+        
+        if brief:
+            brief['_id'] = str(brief['_id'])
+            return brief
         except Exception as e:
             print(f"Error getting cached brief: {e}")
         
@@ -47,7 +47,7 @@ class AIDatabase:
         }
         
         try:
-            self.briefs_collection.insert_one(document)
+        self.briefs_collection.insert_one(document)
         except Exception as e:
             print(f"Error caching brief: {e}")
     
@@ -59,14 +59,14 @@ class AIDatabase:
         cutoff = datetime.now() - timedelta(hours=4)
         
         try:
-            analysis = self.stock_cache_collection.find_one({
-                'ticker': ticker,
-                'created_at': {'$gte': cutoff}
-            }, sort=[('created_at', -1)])
-            
-            if analysis:
-                analysis['_id'] = str(analysis['_id'])
-                return analysis
+        analysis = self.stock_cache_collection.find_one({
+            'ticker': ticker,
+            'created_at': {'$gte': cutoff}
+        }, sort=[('created_at', -1)])
+        
+        if analysis:
+            analysis['_id'] = str(analysis['_id'])
+            return analysis
         except Exception as e:
             print(f"Error getting cached stock analysis: {e}")
         
@@ -89,6 +89,6 @@ class AIDatabase:
         }
         
         try:
-            self.stock_cache_collection.insert_one(document)
+        self.stock_cache_collection.insert_one(document)
         except Exception as e:
             print(f"Error caching stock analysis: {e}")

@@ -76,23 +76,25 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('Loading user profile from database...')
         const dbUser = await apiService.getUserProfile(userId)
         
+        // ALWAYS load portfolio ONLY from trading API (never from database user profile)
+        // This ensures only actual trades are shown, no mock data
+        let portfolio = []
+        let totalValue = 0
+        
+        try {
+          const portfolioData = await tradingService.getPortfolio(userId)
+          portfolio = portfolioData.portfolio || []
+          totalValue = portfolioData.portfolio_value || 0
+          console.log('✅ Loaded real portfolio from trading API:', portfolio.length, 'positions')
+        } catch (error) {
+          console.warn('⚠️ Trading API error, portfolio will be empty until trades are made:', error)
+          // Keep empty - user has not made any trades yet
+          portfolio = []
+          totalValue = 0
+        }
+        
         if (dbUser) {
-          // ONLY load portfolio from trading API (real purchases only)
-          let portfolio = []
-          let totalValue = 0
-          
-          try {
-            const portfolioData = await tradingService.getPortfolio(userId)
-            portfolio = portfolioData.portfolio || []
-            totalValue = portfolioData.portfolio_value || 0
-            console.log('Loaded real portfolio from trading API:', portfolio.length, 'positions')
-          } catch (error) {
-            console.warn('Trading API error, portfolio will be empty until trades are made')
-            // Keep empty - user has not made any trades yet
-            portfolio = []
-            totalValue = 0
-          }
-          
+          // Build user object - portfolio ONLY from trading API, never from dbUser.portfolio
           const fullUser: User = {
             id: dbUser._id || userId,
             email: dbUser.email,
@@ -103,19 +105,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             lifestyle: dbUser.lifestyle_brands || [],
             visaStatus: dbUser.visa_status,
             homeCountry: dbUser.home_country,
-            portfolio: portfolio,
-            totalValue: totalValue
+            portfolio: portfolio, // ONLY from trading API
+            totalValue: totalValue // ONLY from trading API
           }
           
           setUser(fullUser)
-          // Store in localStorage for quick access
+          // Store in localStorage (but portfolio is always from trading API)
+          localStorage.removeItem('user') // Clear old data first
           localStorage.setItem('user', JSON.stringify(fullUser))
-          console.log('User profile loaded - Portfolio:', portfolio.length, 'positions')
+          console.log('✅ User profile loaded - Portfolio:', portfolio.length, 'positions (from trading API only)')
         } else {
-          console.warn('Could not load from database')
+          console.warn('⚠️ Could not load from database, using empty portfolio')
           setUser({
             ...currentUser,
-            portfolio: [],
+            portfolio: [], // Empty - no mock data
             totalValue: 0
           })
         }
@@ -158,6 +161,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       setUser(updatedUser)
+      localStorage.removeItem('user') // Clear old data first
       localStorage.setItem('user', JSON.stringify(updatedUser))
       console.log('User data refreshed:', portfolioData.portfolio.length, 'positions, $' + portfolioData.portfolio_value.toFixed(2))
     } catch (error) {

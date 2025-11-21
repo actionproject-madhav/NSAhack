@@ -80,7 +80,7 @@ const WalletPage = () => {
               ${totalAccountValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Portfolio Value</span>
             <div className="text-3xl font-bold text-black dark:text-white mt-2">

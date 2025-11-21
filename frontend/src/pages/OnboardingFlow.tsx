@@ -25,41 +25,9 @@ const OnboardingFlow = () => {
     )
   }
 
-  const generatePortfolio = async () => {
-    console.log('🔄 Generating portfolio with real stock prices...')
+  const completeOnboarding = async () => {
+    console.log('🔄 Saving onboarding data (NO portfolio - users start with empty portfolio)...')
     
-    // Get tickers for selected brands
-    const tickers = selectedBrands.map(brandName => {
-      const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)
-      return brand!.ticker
-    })
-    
-    // Fetch real-time stock prices from backend
-    const quotes = await apiService.getMultipleStockQuotes(tickers)
-    const quoteMap = new Map(quotes.map(q => [q.symbol, q]))
-    
-    console.log('📊 Received quotes for:', Array.from(quoteMap.keys()))
-    
-    // Build portfolio with real prices
-    const portfolio = selectedBrands.map(brandName => {
-      const brand = LIFESTYLE_BRANDS.find(b => b.name === brandName)!
-      const quote = quoteMap.get(brand.ticker)
-      const currentPrice = quote?.price || 100 // Fallback if quote unavailable
-      const quantity = Math.floor(1000 / currentPrice) // $1000 investment per stock
-
-      return {
-        ticker: brand.ticker,
-        company: brand.name,
-        quantity,
-        avgPrice: currentPrice,
-        currentPrice,
-        reason: generatePortfolioReason(brand.name, selectedGoal),
-        logo: brand.logo
-      }
-    })
-
-    const totalValue = apiService.calculatePortfolioValue(portfolio)
-
     // Get user data from localStorage (set during Google auth)
     const storedUser = localStorage.getItem('user')
     const googleUser = storedUser ? JSON.parse(storedUser) : null
@@ -74,12 +42,12 @@ const OnboardingFlow = () => {
       lifestyle: selectedBrands,
       visaStatus,
       homeCountry,
-      portfolio,
-      totalValue,
+      portfolio: [], // EMPTY - users must buy stocks through trading
+      totalValue: 0, // EMPTY - users start with virtual cash only
       onboarding_completed: false // Will be set to true after saving
     }
 
-    // Save onboarding data to backend using API service
+    // Save onboarding data to backend (NO portfolio - users start fresh)
     try {
       const success = await apiService.updateOnboarding(user.id, {
         lifestyle_brands: selectedBrands,
@@ -87,25 +55,28 @@ const OnboardingFlow = () => {
         language: selectedLanguage,
         visa_status: visaStatus,
         home_country: homeCountry,
-        portfolio: portfolio,
-        total_value: totalValue
+        // NO portfolio or total_value - users start with empty portfolio
       })
       
       if (success) {
-        console.log('✅ Onboarding data saved to database with real stock prices!')
+        console.log('✅ Onboarding data saved to database (empty portfolio - users must buy stocks)')
         // Mark onboarding as completed
         user.onboarding_completed = true
+        // Clear any old mock data from localStorage
+        localStorage.removeItem('user')
         localStorage.setItem('user', JSON.stringify(user))
       } else {
         console.error('❌ Failed to save onboarding data')
         // Still mark as completed in localStorage even if backend fails
         user.onboarding_completed = true
+        localStorage.removeItem('user')
         localStorage.setItem('user', JSON.stringify(user))
       }
     } catch (error) {
       console.error('❌ Error saving onboarding data:', error)
       // Still mark as completed in localStorage even if backend fails
       user.onboarding_completed = true
+      localStorage.removeItem('user')
       localStorage.setItem('user', JSON.stringify(user))
     }
 
@@ -115,7 +86,7 @@ const OnboardingFlow = () => {
 
   const nextStep = () => {
     if (step < 6) setStep(step + 1)
-    else generatePortfolio()
+    else completeOnboarding()
   }
 
   const prevStep = () => {

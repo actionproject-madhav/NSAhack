@@ -111,112 +111,112 @@ const AIChatSidebar = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 flex flex-col h-full">
-      {/* AI Orb at top middle */}
+          {/* AI Orb at top middle */}
       <div className="flex justify-center p-4 border-b border-gray-200 dark:border-gray-800">
-        <img 
-          src="/orb.gif" 
-          alt="AI Orb" 
+            <img 
+              src="/orb.gif" 
+              alt="AI Orb" 
           className="w-20 h-20 rounded-full object-cover"
-        />
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <AnimatePresence>
-          {messages.map((message) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-            >
-              <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
-                {message.isBot && (
-                  <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Sparkles className="w-3 h-3 text-white dark:text-black" />
-                  </div>
-                )}
-                <div
-                  className={`p-3 rounded-2xl text-sm ${
-                    message.isBot
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md'
-                      : 'bg-black dark:bg-white text-white dark:text-black rounded-tr-md'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.text}</p>
-                  <p className={`text-xs mt-1 opacity-60 ${
-                    message.isBot ? 'text-gray-500' : 'text-gray-300'
-                  }`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {/* Loading indicator */}
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-start"
-          >
-            <div className="flex gap-2 max-w-[85%]">
-              <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <Sparkles className="w-3 h-3 text-white dark:text-black" />
-              </div>
-              <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-md">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Thinking...</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything..."
-              disabled={isLoading}
-              className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 dark:placeholder-gray-500"
-              rows={1}
-              style={{
-                minHeight: '44px',
-                maxHeight: '100px',
-                height: 'auto'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement
-                target.style.height = 'auto'
-                target.style.height = Math.min(target.scrollHeight, 100) + 'px'
-              }}
             />
           </div>
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            className="p-3 bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-w-[44px]"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div className={`flex gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                    {message.isBot && (
+                  <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="w-3 h-3 text-white dark:text-black" />
+                      </div>
+                    )}
+                    <div
+                      className={`p-3 rounded-2xl text-sm ${
+                        message.isBot
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md'
+                      : 'bg-black dark:bg-white text-white dark:text-black rounded-tr-md'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.text}</p>
+                      <p className={`text-xs mt-1 opacity-60 ${
+                        message.isBot ? 'text-gray-500' : 'text-gray-300'
+                      }`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {/* Loading indicator */}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="flex gap-2 max-w-[85%]">
+              <div className="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <Sparkles className="w-3 h-3 text-white dark:text-black" />
+                  </div>
+              <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-md">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             )}
-          </button>
-        </div>
-      </div>
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything..."
+                  disabled={isLoading}
+              className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 dark:placeholder-gray-500"
+                  rows={1}
+                  style={{
+                    minHeight: '44px',
+                    maxHeight: '100px',
+                    height: 'auto'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement
+                    target.style.height = 'auto'
+                    target.style.height = Math.min(target.scrollHeight, 100) + 'px'
+                  }}
+                />
+              </div>
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isLoading}
+                className="p-3 bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center min-w-[44px]"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
     </div>
   )
 }

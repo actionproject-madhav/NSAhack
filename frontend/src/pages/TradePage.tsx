@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
-import Spline from '@splinetool/react-spline'
 import tradingService from '../services/tradingService'
 
 // Popular stocks for quick trading
@@ -16,7 +15,6 @@ const TradePage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
-  const [splineError, setSplineError] = useState(false)
   const [cashBalance, setCashBalance] = useState<number | null>(null)
   const [isBuying, setIsBuying] = useState(false)
 
@@ -89,44 +87,13 @@ const TradePage = () => {
     : quotes
 
   return (
-    <>
-      {/* Spline 3D Background - Outside Layout */}
-      {!splineError && (
-        <>
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            opacity: 0.3,
-            pointerEvents: 'none',
-            zIndex: 1
-          }}>
-            <Spline 
-              scene="https://prod.spline.design/h7c4yHQYVyL4bjdf/scene.splinecode"
-              onLoad={() => console.log('✅ Spline loaded on Trade page')}
-              onError={(error) => {
-                console.log('❌ Spline failed to load:', error)
-                setSplineError(true)
-              }}
-            />
-          </div>
-          
-          {/* Cover Spline watermark in bottom right */}
-          <div 
-            className="fixed bottom-0 right-0 w-[200px] h-[80px] bg-white dark:bg-black z-[2] pointer-events-none"
-          />
-        </>
-      )}
-
-      <Layout>
+    <Layout>
         <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
         
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <div>
+          <div>
               <h1 className="text-4xl font-bold text-black dark:text-white mb-2">Trade</h1>
               <p className="text-gray-600 dark:text-gray-400">Paper trading with real-time market prices</p>
             </div>
@@ -239,7 +206,7 @@ const TradePage = () => {
                     className="mt-3 w-full text-center text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                   >
                     View Full Details & Chart →
-                  </button>
+          </button>
                 </div>
               )
             })

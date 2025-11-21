@@ -11,13 +11,17 @@ import PortfolioPage from './pages/PortfolioPage'
 import WalletPage from './pages/WalletPage'
 import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
+import SplineBackground from './components/SplineBackground'
 import { UserProvider } from './context/UserContext'
 
 function App() {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors">
+        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors relative">
+          {/* Global Spline 3D Background */}
+          <SplineBackground />
+          
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<LandingPage />} />

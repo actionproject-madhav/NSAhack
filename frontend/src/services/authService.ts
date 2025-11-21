@@ -109,12 +109,15 @@ class AuthService {
       }
 
       console.log('✅ Token decoded successfully! User:', user)
-      
-      // Store user data in localStorage immediately (no backend call!)
-      localStorage.setItem('user', JSON.stringify(user))
+        
+      // Clear old mock data and store user in localStorage immediately (no backend call!)
+      localStorage.removeItem('user')
+      // Store user WITHOUT portfolio - portfolio is only from trading API
+      const userWithoutPortfolio = { ...user, portfolio: [], totalValue: 0 }
+      localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
       localStorage.setItem('google_token', response.credential) // Store token for later backend sync
-      console.log('✅ User data stored in localStorage')
-      
+        console.log('✅ User data stored in localStorage')
+        
       // Try to check backend first for onboarding status (with timeout for cold starts)
       let hasCompletedOnboarding = false
       try {
@@ -137,10 +140,12 @@ class AuthService {
           hasCompletedOnboarding = data.user?.onboarding_completed || false
           console.log('✅ Backend check successful. Onboarding completed:', hasCompletedOnboarding)
           
-          // Update localStorage with backend data
+          // Update localStorage with backend data (but remove portfolio - it's only from trading API)
           if (data.user) {
-            localStorage.setItem('user', JSON.stringify(data.user))
-            console.log('✅ Updated localStorage with backend user data')
+            const userWithoutPortfolio = { ...data.user, portfolio: [], totalValue: 0 }
+            localStorage.removeItem('user')
+            localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
+            console.log('✅ Updated localStorage with backend user data (portfolio removed - only from trading API)')
           }
         } else {
           console.warn('⚠️ Backend returned non-OK status, checking localStorage...')
@@ -187,8 +192,10 @@ class AuthService {
       
       if (result.success && result.user) {
         console.log('✅ Backend sync successful')
-        // Update localStorage with backend user data (may have more fields)
-        localStorage.setItem('user', JSON.stringify(result.user))
+        // Update localStorage with backend user data (but remove portfolio - only from trading API)
+        const userWithoutPortfolio = { ...result.user, portfolio: [], totalValue: 0 }
+        localStorage.removeItem('user')
+        localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
         
         // Check onboarding status from backend using email
         const hasCompletedOnboarding = await this.checkOnboardingStatus(user.email)
@@ -231,7 +238,7 @@ class AuthService {
       } else {
         console.warn('Onboarding check failed with status:', response.status)
         // If user doesn't exist yet, they need onboarding
-        return false
+      return false
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error)

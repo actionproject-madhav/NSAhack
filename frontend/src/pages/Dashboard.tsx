@@ -62,7 +62,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto px-4 py-8">
-            
+
             {/* Portfolio Value */}
             <div className="mb-8">
               <div className="text-5xl font-medium text-black dark:text-white mb-2">
@@ -167,7 +167,7 @@ const Dashboard = () => {
             {/* Close Button */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
               <h3 className="font-semibold text-black dark:text-white">AI Assistant</h3>
-              <button
+              <button 
                 onClick={() => setShowAIChat(false)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 aria-label="Close AI Assistant"
@@ -178,10 +178,10 @@ const Dashboard = () => {
             {/* AI Chat Content */}
             <div className="flex-1 overflow-hidden">
               <AIChatSidebar />
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
     </Layout>
   )
 }

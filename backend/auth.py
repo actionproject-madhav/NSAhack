@@ -278,33 +278,41 @@ def save_onboarding_data():
         if not user_id:
             return jsonify({'error': 'user_id is required'}), 400
         
-        # Extract onboarding data
+        # Extract onboarding data (NO portfolio - users start with empty portfolio)
         onboarding_data = {
             'lifestyle_brands': data.get('lifestyle_brands', []),
             'investment_goal': data.get('investment_goal', ''),
             'language': data.get('language', 'en'),
             'visa_status': data.get('visa_status', ''),
             'home_country': data.get('home_country', ''),
-            'portfolio': data.get('portfolio', []),
-            'total_value': data.get('total_value', 0),
+            # DO NOT save portfolio or total_value - users start with empty portfolio
+            # Portfolio is ONLY built from actual trades in the transactions collection
             'onboarding_completed': True,
             'updated_at': datetime.now(timezone.utc)
         }
         
         users_collection = db.db['users']
         
-        # Update user with onboarding data
+        # Update user with onboarding data and remove old portfolio (cleanup mock data)
         from bson import ObjectId
+        update_operation = {
+            '$set': onboarding_data,
+            '$unset': {
+                'portfolio': '',
+                'total_value': ''
+            }
+        }
+        
         try:
             result = users_collection.update_one(
                 {'_id': ObjectId(user_id)},
-                {'$set': onboarding_data}
+                update_operation
             )
         except:
             # If not valid ObjectId, try email
             result = users_collection.update_one(
                 {'email': user_id},
-                {'$set': onboarding_data}
+                update_operation
             )
         
         if result.matched_count == 0:
@@ -321,15 +329,45 @@ def save_onboarding_data():
         print(f" Error saving onboarding data: {e}")
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/portfolio', methods=['POST'])
-def update_portfolio():
-    """Update user portfolio"""
+@auth_bp.route('/cleanup-portfolio', methods=['POST'])
+def cleanup_mock_portfolio():
+    """Remove mock portfolio data from all users (one-time cleanup)"""
     if db.client is None:
         return jsonify({'error': 'Database not connected'}), 500
     
     try:
-        data = request.get_json()
-        user_id = data.get('user_id')
+        users_collection = db.db['users']
+        
+        # Remove portfolio and total_value from all users
+        result = users_collection.update_many(
+            {},
+            {
+                '$unset': {
+                    'portfolio': '',
+                    'total_value': ''
+                }
+            }
+        )
+        
+        print(f"✅ Cleaned up mock portfolio data from {result.modified_count} users")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Removed mock portfolio data from {result.modified_count} users',
+            'users_updated': result.modified_count
+        })
+        
+    except Exception as e:
+        print(f"❌ Error cleaning up portfolio: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/portfolio', methods=['POST'])
+def update_portfolio():
+    """DEPRECATED: Portfolio is now only built from transactions. This endpoint is kept for backward compatibility but does nothing."""
+    return jsonify({
+        'success': False,
+        'message': 'Portfolio is now only built from actual trades. Use /api/trading/portfolio instead.'
+    }), 400
         portfolio = data.get('portfolio', [])
         total_value = data.get('total_value', 0)
         

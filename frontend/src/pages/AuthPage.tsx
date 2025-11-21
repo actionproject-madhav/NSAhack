@@ -80,7 +80,7 @@ const AuthPage = () => {
           setTimeout(tryRender, 500)
         } else if (attempts >= maxAttempts) {
           console.error('❌ Failed to render Google button after', maxAttempts, 'attempts')
-        }
+      }
         
         return false
       }
@@ -163,7 +163,7 @@ const AuthPage = () => {
           </>
         )}
       </div>
-
+      
       {/* Back to home link */}
       <div className="absolute top-8 left-8 z-30">
         <button 
@@ -288,14 +288,14 @@ const AuthPage = () => {
                   <span>Continue with Google</span>
                 </button>
               )}
-            </div>
-          </div>
+                </div>
+              </div>
 
           {/* Sign up link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm">
               Don't have an account?{' '}
-              <button
+              <button 
                 onClick={() => navigate('/onboarding')}
                 className="text-black hover:text-gray-700 font-semibold"
               >
