@@ -36,10 +36,11 @@ const SplineBackground = () => {
       <div 
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
+          top: '50%',
+          left: '50%',
+          width: '150vw',
+          height: '150vh',
+          transform: 'translate(-50%, -50%) scale(0.7)',
           opacity: 0.5,
           pointerEvents: 'none',
           zIndex: 0
