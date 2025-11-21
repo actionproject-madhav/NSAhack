@@ -98,7 +98,7 @@ def test_receipt_collection():
             print("  No receipts found. Use the receipt scanner to add some!")
             
     except Exception as e:
-        print(f"❌ Error testing receipt collection: {e}")
+        print(f" Error testing receipt collection: {e}")
 
 def main():
     print("\n")

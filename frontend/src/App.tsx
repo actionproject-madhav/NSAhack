@@ -22,8 +22,9 @@ function App() {
           {/* Global Spline 3D Background */}
           <SplineBackground />
           
-          <AnimatePresence mode="wait">
-            <Routes>
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/onboarding" element={<OnboardingFlow />} />
@@ -35,8 +36,9 @@ function App() {
               <Route path="/ai-hub" element={<AIHub />} />
               <Route path="/screener" element={<ScreenerPage />} />
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
-            </Routes>
-          </AnimatePresence>
+              </Routes>
+            </AnimatePresence>
+          </div>
         </div>
       </Router>
     </UserProvider>

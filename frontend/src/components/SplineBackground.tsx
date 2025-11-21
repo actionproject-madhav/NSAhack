@@ -58,13 +58,15 @@ const SplineBackground = () => {
         />
       </div>
 
-      {/* Cover Spline watermark at bottom right - adapts to dark/light mode */}
+      {/* Cover Spline watermark at bottom right - adapts to dark/light mode with smooth gradient */}
       <div 
-        className="fixed bottom-0 right-0 w-[200px] h-[80px] z-[1] pointer-events-none"
+        className="fixed bottom-0 right-0 z-[1] pointer-events-none"
         style={{
+          width: '220px',
+          height: '90px',
           background: darkMode 
-            ? 'linear-gradient(to top left, #000000 0%, #000000 60%, transparent 100%)'
-            : 'linear-gradient(to top left, #ffffff 0%, #ffffff 60%, transparent 100%)',
+            ? 'radial-gradient(ellipse 200px 90px at bottom right, #000000 0%, #000000 50%, rgba(0,0,0,0.8) 70%, transparent 100%)'
+            : 'radial-gradient(ellipse 200px 90px at bottom right, #ffffff 0%, #ffffff 50%, rgba(255,255,255,0.8) 70%, transparent 100%)',
         }}
       />
     </>
