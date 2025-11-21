@@ -18,7 +18,7 @@ function App() {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors relative">
+        <div className="min-h-screen bg-transparent transition-colors relative">
           {/* Global Spline 3D Background */}
           <SplineBackground />
           

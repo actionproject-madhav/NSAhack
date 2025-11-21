@@ -35,7 +35,7 @@ const Layout = ({ children }: LayoutProps) => {
   }, [darkMode])
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors flex relative z-10">
+    <div className="min-h-screen bg-white/80 dark:bg-black/80 backdrop-blur-sm transition-colors flex relative z-10">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 

@@ -40,13 +40,14 @@ const SplineBackground = () => {
           left: 0,
           width: '100vw',
           height: '100vh',
-          opacity: 0.3,
+          opacity: 0.5,
           pointerEvents: 'none',
           zIndex: 0
         }}
+        className="spline-background"
       >
         <Spline 
-          scene="https://prod.spline.design/h7c4yHQYVyL4bjdf/scene.splinecode"
+          scene="https://prod.spline.design/f7MEBGBa8Fh0o30l/scene.splinecode"
           onLoad={() => {
             console.log('✅ Global Spline background loaded')
             setSplineLoaded(true)
