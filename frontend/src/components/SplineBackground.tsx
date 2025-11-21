@@ -38,9 +38,9 @@ const SplineBackground = () => {
           position: 'fixed',
           top: '50%',
           left: '50%',
-          width: '150vw',
-          height: '150vh',
-          transform: 'translate(-50%, -50%) scale(0.7)',
+          width: '200vw',
+          height: '200vh',
+          transform: 'translate(-50%, -50%) scale(0.5)',
           opacity: 0.5,
           pointerEvents: 'none',
           zIndex: 0
