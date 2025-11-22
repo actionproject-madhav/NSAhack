@@ -22,63 +22,6 @@ const AIMarketSentiment = () => {
   // NOTE: Real news sentiment requires integrating with a news API
   // For now, show empty state - no mock data
   const mockSentimentData: SentimentData[] = [] // REMOVED: No mock data
-    {
-      ticker: 'DGNX',
-      headline: 'Diginex Limited Announces Completion of Definitive Agreement to Acquire Matter DK ApS, Expanding Its Sustainability Data and AI Capabilities',
-      time: '09:00 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'BLK',
-      headline: 'Global Infrastructure Partners Enters Agreement to Acquire Co-Control Stake of 49.99% in Eni CCUS Holding',
-      time: '09:00 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'VNTG',
-      headline: 'Vantage Corp Further Expands Asia-Pacific Presence with Two Additional LOIs to Acquire a Hong Kong and Mainland China-Based Shipbroking Firm',
-      time: '08:30 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'ONDS',
-      headline: 'Ondas Enters into Definitive Agreement to Strengthen Multi-Domain Autonomy Leadership with Strategic Acquisition of Robotics Innovator Apeiro Motion',
-      time: '08:30 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'LII',
-      headline: 'Lennox Signs Agreement to Acquire HVAC Division of NSI Industries',
-      time: '08:00 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'EMPD',
-      headline: 'Empery Digital Secures $25 Million Credit Facility to Fund Share Repurchases',
-      time: '06:00 AM',
-      sentiment_score: 0.970,
-      boost_reason: 'Acquisition'
-    },
-    {
-      ticker: 'ATLX',
-      headline: 'Atlas Lithium Reports Excellent Exploration Progress at 100%-Owned Salinas Project',
-      time: '06:00 AM',
-      sentiment_score: 0.943,
-      boost_reason: 'Base'
-    },
-    {
-      ticker: 'RSKD',
-      headline: 'Riskified Reports Strong Q2 Results with Revenue Growth and Improved Profitability',
-      time: '06:00 AM',
-      sentiment_score: 0.933,
-      boost_reason: 'Base'
-    }
-  ]
 
   // Simulate AI sentiment analysis
   const runSentimentAnalysis = async () => {
