@@ -40,17 +40,28 @@ export interface PortfolioResponse {
 class TradingService {
   async getCashBalance(userId: string): Promise<number> {
     try {
-      const response = await fetch(`${API_BASE}/api/trading/balance?user_id=${encodeURIComponent(userId)}`);
+      // Prefer email over Google ID for user lookup
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
+      const response = await fetch(`${API_BASE}/api/trading/balance?user_id=${encodeURIComponent(userIdentifier)}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to fetch balance: ${response.status}`);
+      }
+      
       const data: BalanceResponse = await response.json();
       
       if (!data.success) {
-        throw new Error('Failed to fetch balance');
+        throw new Error(data.error || 'Failed to fetch balance');
       }
       
       return data.cash_balance;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching cash balance:', error);
-      throw error;
+      throw new Error(error.message || 'Failed to fetch balance');
     }
   }
 
@@ -128,15 +139,26 @@ class TradingService {
 
   async getTransactionHistory(userId: string, limit: number = 50): Promise<Transaction[]> {
     try {
-      const response = await fetch(`${API_BASE}/api/trading/transactions?user_id=${encodeURIComponent(userId)}&limit=${limit}`);
+      // Prefer email over Google ID for user lookup
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
+      const response = await fetch(`${API_BASE}/api/trading/transactions?user_id=${encodeURIComponent(userIdentifier)}&limit=${limit}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to fetch transactions: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (!data.success) {
-        throw new Error('Failed to fetch transactions');
+        throw new Error(data.error || 'Failed to fetch transactions');
       }
       
       return data.transactions || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching transactions:', error);
       return [];
     }
@@ -144,15 +166,26 @@ class TradingService {
 
   async getPortfolio(userId: string): Promise<PortfolioResponse> {
     try {
-      const response = await fetch(`${API_BASE}/api/trading/portfolio?user_id=${encodeURIComponent(userId)}`);
+      // Prefer email over Google ID for user lookup
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
+      const response = await fetch(`${API_BASE}/api/trading/portfolio?user_id=${encodeURIComponent(userIdentifier)}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to fetch portfolio: ${response.status}`);
+      }
+      
       const data: PortfolioResponse = await response.json();
       
       if (!data.success) {
-        throw new Error('Failed to fetch portfolio');
+        throw new Error(data.error || 'Failed to fetch portfolio');
       }
       
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching portfolio:', error);
       throw error;
     }

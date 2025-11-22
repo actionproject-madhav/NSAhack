@@ -35,7 +35,13 @@ const TradePage = () => {
   const loadCashBalance = async () => {
     if (!user) return
     try {
-      const balance = await tradingService.getCashBalance(user.id)
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        console.error('No user identifier available')
+        return
+      }
+      const balance = await tradingService.getCashBalance(userId)
       setCashBalance(balance)
     } catch (error) {
       console.error('Failed to load cash balance:', error)

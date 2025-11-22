@@ -33,7 +33,14 @@ const WalletPage = () => {
     
     setIsLoading(true)
     try {
-      const balance = await tradingService.getCashBalance(user.id)
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        console.error('No user identifier available')
+        setIsLoading(false)
+        return
+      }
+      const balance = await tradingService.getCashBalance(userId)
       setCashBalance(balance)
       // Refresh portfolio data to get latest prices
       await refreshUserData()

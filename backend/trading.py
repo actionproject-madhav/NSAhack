@@ -41,14 +41,29 @@ def get_balance():
         
         users = get_user_collection()
         
-        # Try to find user by ObjectId or email
+        # Try to find user by ObjectId, email, or google_id
+        user = None
         try:
-            user = users.find_one({'_id': ObjectId(user_id)})
+            # Try as ObjectId if it looks like one (24 hex characters)
+            if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
+                try:
+                    user = users.find_one({'_id': ObjectId(user_id)})
+                except:
+                    pass
         except:
+            pass
+        
+        # If not found, try as email
+        if not user:
             user = users.find_one({'email': user_id})
         
+        # If still not found, try as google_id
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            user = users.find_one({'google_id': user_id})
+        
+        if not user:
+            print(f"User not found for user_id: {user_id}")
+            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if not exists
         if 'cash_balance' not in user:
@@ -87,7 +102,7 @@ def buy_stock():
         users = get_user_collection()
         transactions = get_transactions_collection()
         
-        # Find user (try ObjectId first, then email)
+        # Find user (try ObjectId, email, or google_id)
         user = None
         try:
             # Try as ObjectId if it looks like one (24 hex characters)
@@ -103,8 +118,12 @@ def buy_stock():
         if not user:
             user = users.find_one({'email': user_id})
         
+        # If still not found, try as google_id
         if not user:
-            print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+            user = users.find_one({'google_id': user_id})
+        
+        if not user:
+            print(f"User not found for user_id: {user_id} (type: {type(user_id).__name__})")
             return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if needed
@@ -213,7 +232,7 @@ def sell_stock():
         users = get_user_collection()
         transactions = get_transactions_collection()
         
-        # Find user (try ObjectId first, then email)
+        # Find user (try ObjectId, email, or google_id)
         user = None
         try:
             # Try as ObjectId if it looks like one (24 hex characters)
@@ -229,8 +248,12 @@ def sell_stock():
         if not user:
             user = users.find_one({'email': user_id})
         
+        # If still not found, try as google_id
         if not user:
-            print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+            user = users.find_one({'google_id': user_id})
+        
+        if not user:
+            print(f" User not found for user_id: {user_id} (type: {type(user_id).__name__})")
             return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Build current portfolio from transactions to check holdings

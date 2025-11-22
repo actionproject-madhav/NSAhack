@@ -81,8 +81,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let portfolio = []
         let totalValue = 0
         
+        // Prefer email for API calls (more reliable than Google ID)
+        const apiUserId = dbUser?.email || userId
+        
         try {
-          const portfolioData = await tradingService.getPortfolio(userId)
+          const portfolioData = await tradingService.getPortfolio(apiUserId)
           portfolio = portfolioData.portfolio || []
           totalValue = portfolioData.portfolio_value || 0
           console.log('✅ Loaded real portfolio from trading API:', portfolio.length, 'positions')
@@ -151,8 +154,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user) return
     
     try {
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        console.error('No user identifier available for refresh')
+        return
+      }
+      
       console.log('Refreshing user data from trading API...')
-      const portfolioData = await tradingService.getPortfolio(user.id)
+      const portfolioData = await tradingService.getPortfolio(userId)
       
       const updatedUser = {
         ...user,
