@@ -30,15 +30,19 @@ FRONTEND_URL_ENV = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 # Extract base URL (remove trailing slash and path)
 FRONTEND_BASE = FRONTEND_URL_ENV.rstrip('/').split('/auth')[0].split('/onboarding')[0]
 
-# CORS allowed origins
-CORS_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174", 
-    "http://localhost:3000",
-    FRONTEND_BASE,  # Frontend URL from environment
-    "https://finlit-nsa.onrender.com",  # Explicit production frontend
-    "https://finlit-nsa.onrender.com/",  # With trailing slash (just in case)
-]
+# CORS allowed origins - use environment variable, add localhost only for development
+CORS_ORIGINS = [FRONTEND_BASE]  # Primary frontend URL from environment
+
+# Add localhost origins only if not in production (when FRONTEND_URL is not a production URL)
+if 'localhost' in FRONTEND_URL_ENV or '127.0.0.1' in FRONTEND_URL_ENV:
+    CORS_ORIGINS.extend([
+        "http://localhost:5173",
+        "http://localhost:5174", 
+        "http://localhost:3000",
+    ])
+else:
+    # In production, also allow the explicit production URL (in case FRONTEND_URL is different)
+    CORS_ORIGINS.append("https://finlit-nsa.onrender.com")
 
 # Remove duplicates and normalize (remove trailing slashes)
 CORS_ORIGINS = [origin.rstrip('/') for origin in CORS_ORIGINS]

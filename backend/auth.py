@@ -141,7 +141,7 @@ def google_callback():
     except Exception as e:
         print(f"Error in Google callback: {e}")
         # Redirect to frontend with error
-        return redirect(f"http://localhost:5173/auth?error=authentication_failed")
+        return redirect(f"{FRONTEND_URL}/auth?error=authentication_failed")
 
 @auth_bp.route('/verify-token', methods=['POST'])
 def verify_google_token():
