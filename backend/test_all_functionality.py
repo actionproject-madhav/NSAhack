@@ -22,7 +22,7 @@ def test_database_connection():
     try:
         db = ReceiptDatabase()
         if db.client is None:
-            print("❌ Database NOT connected")
+            print(" Database NOT connected")
             return False
         
         # Test collections
@@ -32,12 +32,12 @@ def test_database_connection():
         user_count = users.count_documents({})
         tx_count = transactions.count_documents({})
         
-        print(f"✅ Database connected")
+        print(f" Database connected")
         print(f"   Users: {user_count}")
         print(f"   Transactions: {tx_count}")
         return True
     except Exception as e:
-        print(f"❌ Database error: {e}")
+        print(f" Database error: {e}")
         return False
 
 def test_backend_health():
@@ -47,19 +47,19 @@ def test_backend_health():
         response = requests.get(f"{BASE_URL}/health", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ Backend is running")
+            print(f" Backend is running")
             print(f"   Status: {data.get('status')}")
             print(f"   Database: {data.get('database')}")
             return True
         else:
-            print(f"❌ Backend returned status {response.status_code}")
+            print(f" Backend returned status {response.status_code}")
             return False
     except requests.exceptions.ConnectionError:
-        print(f"❌ Backend is NOT running at {BASE_URL}")
+        print(f" Backend is NOT running at {BASE_URL}")
         print("   Start backend with: cd backend && python3 app.py")
         return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_user_profile():
@@ -73,17 +73,17 @@ def test_user_profile():
         if response.status_code == 200:
             data = response.json()
             user = data.get('user', {})
-            print(f"✅ User profile retrieved")
+            print(f" User profile retrieved")
             print(f"   Name: {user.get('name')}")
             print(f"   Email: {user.get('email')}")
             print(f"   Onboarding: {user.get('onboarding_completed')}")
             return True
         else:
-            print(f"❌ Failed: {response.status_code}")
+            print(f" Failed: {response.status_code}")
             print(f"   Response: {response.text[:100]}")
             return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_portfolio_endpoint():
@@ -111,14 +111,14 @@ def test_portfolio_endpoint():
                 
                 return True
             else:
-                print(f"❌ Portfolio request failed: {data.get('error')}")
+                print(f" Portfolio request failed: {data.get('error')}")
                 return False
         else:
-            print(f"❌ Failed: {response.status_code}")
+            print(f" Failed: {response.status_code}")
             print(f"   Response: {response.text[:200]}")
             return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_cash_balance():

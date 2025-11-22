@@ -1,24 +1,12 @@
 import { cn } from '../utils/cn';
 
-// Mock sector performance data - you can replace this with real API data
-const mockSectorData = [
-  { sector: "Technology", changesPercentage: "1.85" },
-  { sector: "Healthcare", changesPercentage: "0.92" },
-  { sector: "Financial Services", changesPercentage: "0.67" },
-  { sector: "Consumer Cyclical", changesPercentage: "-0.23" },
-  { sector: "Communication Services", changesPercentage: "1.12" },
-  { sector: "Industrials", changesPercentage: "0.45" },
-  { sector: "Consumer Defensive", changesPercentage: "0.31" },
-  { sector: "Energy", changesPercentage: "-1.24" },
-  { sector: "Utilities", changesPercentage: "0.18" },
-  { sector: "Real Estate", changesPercentage: "-0.56" },
-  { sector: "Basic Materials", changesPercentage: "0.73" }
-];
+// REMOVED: Mock data - this component needs real API integration
+// For now, show empty state
+const mockSectorData: Array<{ sector: string; changesPercentage: string }> = []
 
 async function fetchSectorPerformance() {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 100));
-  return mockSectorData;
+  // TODO: Integrate with real sector performance API
+  return mockSectorData
 }
 
 interface Sector {

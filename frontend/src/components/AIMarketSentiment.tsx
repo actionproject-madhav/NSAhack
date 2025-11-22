@@ -19,9 +19,9 @@ const AIMarketSentiment = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'sentiment' | 'time' | 'ticker'>('sentiment')
 
-  // ⚠️ WARNING: This is SIMULATED/DEMO data for illustration purposes
-  // Real news sentiment would require integrating with a news API
-  const mockSentimentData: SentimentData[] = [
+  // NOTE: Real news sentiment requires integrating with a news API
+  // For now, show empty state - no mock data
+  const mockSentimentData: SentimentData[] = [] // REMOVED: No mock data
     {
       ticker: 'DGNX',
       headline: 'Diginex Limited Announces Completion of Definitive Agreement to Acquire Matter DK ApS, Expanding Its Sustainability Data and AI Capabilities',

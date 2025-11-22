@@ -8,6 +8,7 @@ from database import ReceiptDatabase
 from datetime import datetime, timezone
 import json
 import yfinance as yf
+from db_connection_helper import get_db_error_response, log_db_error
 
 load_dotenv()
 
@@ -234,7 +235,9 @@ def get_current_user():
 def get_user_profile(user_id):
     """Get full user profile including onboarding data"""
     if db.client is None:
-        return jsonify({'error': 'Database not connected'}), 500
+        from db_connection_helper import get_db_error_response, log_db_error
+        log_db_error('get_user_profile')
+        return jsonify(get_db_error_response()), 500
     
     try:
         users_collection = db.db['users']

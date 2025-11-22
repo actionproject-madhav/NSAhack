@@ -1,30 +1,17 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
-// Mock data for the chart
-const generateMockData = () => {
-  const data = []
-  const baseValue = 5000
-  let currentValue = baseValue
-  
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    
-    // Add some realistic volatility
-    const change = (Math.random() - 0.5) * 200
-    currentValue += change
-    
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: Math.max(currentValue, baseValue * 0.8) // Don't go below 80% of base
-    })
-  }
-  
-  return data
-}
-
+// REMOVED: Mock data - chart should use real portfolio performance data
 const PerformanceChart = () => {
-  const data = generateMockData()
+  // TODO: Fetch real portfolio performance data from API
+  const data: Array<{ date: string; value: number }> = []
+  if (data.length === 0) {
+    return (
+      <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+        <p>No performance data available. Make some trades to see your portfolio performance.</p>
+      </div>
+    )
+  }
+
   const currentValue = data[data.length - 1].value
   const startValue = data[0].value
   const isPositive = currentValue >= startValue
