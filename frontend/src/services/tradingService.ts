@@ -27,6 +27,7 @@ export interface TradeResult {
 export interface BalanceResponse {
   success: boolean;
   cash_balance: number;
+  error?: string;
 }
 
 export interface PortfolioResponse {
@@ -35,6 +36,7 @@ export interface PortfolioResponse {
   cash_balance: number;
   portfolio_value: number;
   total_account_value: number;
+  error?: string;
 }
 
 class TradingService {
