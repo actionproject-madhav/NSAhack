@@ -64,8 +64,16 @@ export default function StockDetailPage() {
 
     setIsBuying(true)
     try {
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        alert('User ID not found. Please log in again.')
+        navigate('/auth')
+        return
+      }
+      
       const tradingService = (await import('../services/tradingService')).default
-      const result = await tradingService.buyStock(user.id, stock.symbol, tradeQuantity)
+      const result = await tradingService.buyStock(userId, stock.symbol, tradeQuantity)
       
       // Refresh user data to show new portfolio
       await refreshUserData()

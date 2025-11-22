@@ -56,26 +56,35 @@ class TradingService {
 
   async buyStock(userId: string, ticker: string, quantity: number): Promise<TradeResult> {
     try {
+      // Use email if userId is an ObjectId, or use userId directly if it's already an email
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
       const response = await fetch(`${API_BASE}/api/trading/buy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userIdentifier,
           ticker: ticker.toUpperCase(),
           quantity: quantity
         })
       });
       
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to buy stock: ${response.status}`);
+      }
+      
       const data: TradeResult = await response.json();
       
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.error || 'Failed to buy stock');
       }
       
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error buying stock:', error);
       throw error;
     }
@@ -83,21 +92,30 @@ class TradingService {
 
   async sellStock(userId: string, ticker: string, quantity: number): Promise<TradeResult> {
     try {
+      // Use email if userId is an email, or use userId directly
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
       const response = await fetch(`${API_BASE}/api/trading/sell`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userIdentifier,
           ticker: ticker.toUpperCase(),
           quantity: quantity
         })
       });
       
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to sell stock: ${response.status}`);
+      }
+      
       const data: TradeResult = await response.json();
       
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.error || 'Failed to sell stock');
       }
       

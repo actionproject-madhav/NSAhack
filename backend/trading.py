@@ -87,14 +87,25 @@ def buy_stock():
         users = get_user_collection()
         transactions = get_transactions_collection()
         
-        # Find user
+        # Find user (try ObjectId first, then email)
+        user = None
         try:
-            user = users.find_one({'_id': ObjectId(user_id)})
+            # Try as ObjectId if it looks like one (24 hex characters)
+            if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
+                try:
+                    user = users.find_one({'_id': ObjectId(user_id)})
+                except:
+                    pass
         except:
+            pass
+        
+        # If not found, try as email
+        if not user:
             user = users.find_one({'email': user_id})
         
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if needed
         if 'cash_balance' not in user:
@@ -202,14 +213,25 @@ def sell_stock():
         users = get_user_collection()
         transactions = get_transactions_collection()
         
-        # Find user
+        # Find user (try ObjectId first, then email)
+        user = None
         try:
-            user = users.find_one({'_id': ObjectId(user_id)})
+            # Try as ObjectId if it looks like one (24 hex characters)
+            if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
+                try:
+                    user = users.find_one({'_id': ObjectId(user_id)})
+                except:
+                    pass
         except:
+            pass
+        
+        # If not found, try as email
+        if not user:
             user = users.find_one({'email': user_id})
         
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Build current portfolio from transactions to check holdings
         user_obj_id = str(user['_id'])

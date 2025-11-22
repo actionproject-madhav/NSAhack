@@ -58,7 +58,15 @@ const TradePage = () => {
 
     setIsBuying(true)
     try {
-      const result = await tradingService.buyStock(user.id, ticker, quantity)
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        alert('User ID not found. Please log in again.')
+        navigate('/auth')
+        return
+      }
+      
+      const result = await tradingService.buyStock(userId, ticker, quantity)
       
       // Update local cash balance
       if (result.new_balance !== undefined) {
