@@ -317,11 +317,24 @@ def get_transactions():
         if not user_id:
             return jsonify({'error': 'user_id required'}), 400
         
+        users = get_user_collection()
         transactions = get_transactions_collection()
+        
+        # Find user (by ObjectId or email) to get correct user_id string
+        try:
+            user = users.find_one({'_id': ObjectId(user_id)})
+        except:
+            user = users.find_one({'email': user_id})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Use the string version of user _id for transaction lookup
+        user_id_str = str(user['_id'])
         
         # Get transactions for user
         user_transactions = list(transactions.find(
-            {'user_id': user_id},
+            {'user_id': user_id_str},
             {'_id': 0}
         ).sort('timestamp', -1).limit(limit))
         
