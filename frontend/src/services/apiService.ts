@@ -70,6 +70,9 @@ class APIService {
     total_value?: number
   }): Promise<boolean> {
     try {
+      // Prefer email over Google ID for user lookup
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
       const response = await fetch(`${API_BASE_URL}/auth/onboarding`, {
         method: 'POST',
         headers: {
@@ -77,16 +80,22 @@ class APIService {
         },
         credentials: 'include',
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userIdentifier,
           ...onboardingData
         })
       })
       
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        console.error('Onboarding error:', errorData);
+        throw new Error(errorData.error || `Failed to save onboarding: ${response.status}`);
+      }
+      
       const data = await response.json()
       return data.success || false
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating onboarding:', error)
-      return false
+      throw error
     }
   }
   

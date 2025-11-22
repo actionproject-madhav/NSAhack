@@ -49,7 +49,16 @@ const OnboardingFlow = () => {
 
     // Save onboarding data to backend (NO portfolio - users start fresh)
     try {
-      const success = await apiService.updateOnboarding(user.id, {
+      // Use email if available, otherwise use id
+      const userId = user.email || user.id
+      if (!userId) {
+        console.error('No user identifier available for onboarding')
+        alert('User ID not found. Please log in again.')
+        navigate('/auth')
+        return
+      }
+      
+      const success = await apiService.updateOnboarding(userId, {
         lifestyle_brands: selectedBrands,
         investment_goal: selectedGoal,
         language: selectedLanguage,

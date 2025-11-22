@@ -303,20 +303,38 @@ def save_onboarding_data():
             }
         }
         
+        # Try to find user by ObjectId, email, or google_id
+        user = None
         try:
-            result = users_collection.update_one(
-                {'_id': ObjectId(user_id)},
-                update_operation
-            )
+            # Try as ObjectId if it looks like one (24 hex characters)
+            if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
+                try:
+                    user = users_collection.find_one({'_id': ObjectId(user_id)})
+                except:
+                    pass
         except:
-            # If not valid ObjectId, try email
-            result = users_collection.update_one(
-                {'email': user_id},
-                update_operation
-            )
+            pass
+        
+        # If not found, try as email
+        if not user:
+            user = users_collection.find_one({'email': user_id})
+        
+        # If still not found, try as google_id
+        if not user:
+            user = users_collection.find_one({'google_id': user_id})
+        
+        if not user:
+            print(f"User not found for onboarding: {user_id}")
+            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
+        
+        # Update the found user
+        result = users_collection.update_one(
+            {'_id': user['_id']},
+            update_operation
+        )
         
         if result.matched_count == 0:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({'error': 'Failed to update user'}), 500
         
         print(f" Onboarding data saved for user: {user_id}")
         
