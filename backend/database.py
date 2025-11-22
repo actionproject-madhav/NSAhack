@@ -79,9 +79,25 @@ class ReceiptDatabase:
             # self.create_indexes()
             
         except Exception as e:
-            print(f"MongoDB connection failed: {e}")
-            print("Running without database functionality")
+            error_msg = str(e)
+            print("=" * 60)
+            print("❌ MONGODB CONNECTION FAILED")
+            print("=" * 60)
+            print(f"Error: {error_msg}")
+            print(f"MONGO_URI set: {'Yes' if self.mongo_uri and self.mongo_uri != 'mongodb://localhost:27017/' else 'No'}")
+            if self.mongo_uri:
+                print(f"MONGO_URI preview: {self.mongo_uri[:50]}...")
+            print(f"DATABASE_NAME: {self.database_name}")
+            print("=" * 60)
+            print("⚠️  Running without database functionality")
+            print("⚠️  Please check:")
+            print("   1. MONGO_URI environment variable is set correctly")
+            print("   2. DATABASE_NAME environment variable is set")
+            print("   3. MongoDB Atlas network access allows Render IPs")
+            print("   4. MongoDB credentials are correct")
+            print("=" * 60)
             self.client = None
+            self.db = None
     
     def create_indexes(self):
         """Create database indexes for better query performance"""

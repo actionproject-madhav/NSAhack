@@ -3,6 +3,8 @@ from database import ReceiptDatabase
 from datetime import datetime, timezone
 import yfinance as yf
 from bson import ObjectId
+import os
+from db_connection_helper import get_db_error_response, log_db_error
 
 trading_bp = Blueprint('trading', __name__)
 db = ReceiptDatabase()
@@ -33,7 +35,8 @@ def get_balance():
     try:
         # Check if database is connected
         if db.client is None:
-            return jsonify({'error': 'Database not connected'}), 500
+            log_db_error('get_balance')
+            return jsonify(get_db_error_response()), 500
         
         user_id = request.args.get('user_id')
         if not user_id:
@@ -104,7 +107,8 @@ def buy_stock():
     try:
         # Check if database is connected
         if db.client is None:
-            return jsonify({'error': 'Database not connected'}), 500
+            log_db_error('buy_stock')
+            return jsonify(get_db_error_response()), 500
         data = request.get_json()
         user_id = data.get('user_id')
         ticker = data.get('ticker', '').upper()
@@ -259,7 +263,8 @@ def sell_stock():
     try:
         # Check if database is connected
         if db.client is None:
-            return jsonify({'error': 'Database not connected'}), 500
+            log_db_error('sell_stock')
+            return jsonify(get_db_error_response()), 500
         data = request.get_json()
         user_id = data.get('user_id')
         ticker = data.get('ticker', '').upper()
@@ -394,7 +399,8 @@ def get_transactions():
     try:
         # Check if database is connected
         if db.client is None:
-            return jsonify({'error': 'Database not connected'}), 500
+            log_db_error('get_transactions')
+            return jsonify(get_db_error_response()), 500
         user_id = request.args.get('user_id')
         limit = int(request.args.get('limit', 50))
         
@@ -470,7 +476,8 @@ def get_portfolio():
     try:
         # Check if database is connected
         if db.client is None:
-            return jsonify({'error': 'Database not connected'}), 500
+            log_db_error('get_portfolio')
+            return jsonify(get_db_error_response()), 500
         user_id = request.args.get('user_id')
         
         if not user_id:
