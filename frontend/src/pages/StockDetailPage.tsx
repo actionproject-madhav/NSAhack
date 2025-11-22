@@ -73,7 +73,9 @@ export default function StockDetailPage() {
       }
       
       const tradingService = (await import('../services/tradingService')).default
-      const result = await tradingService.buyStock(userId, stock.symbol, tradeQuantity)
+      // ALWAYS prefer email over ID for API calls
+      const apiUserId = user.email || userId
+      const result = await tradingService.buyStock(apiUserId, stock.symbol, tradeQuantity)
       
       // Refresh user data to show new portfolio
       await refreshUserData()

@@ -69,6 +69,7 @@ class TradingService {
     try {
       // Use email if userId is an ObjectId, or use userId directly if it's already an email
       const userIdentifier = userId.includes('@') ? userId : userId;
+      console.log('🔵 TradingService.buyStock: Using user identifier:', userIdentifier, 'for ticker:', ticker, 'quantity:', quantity)
       
       const response = await fetch(`${API_BASE}/api/trading/buy`, {
         method: 'POST',
@@ -85,6 +86,7 @@ class TradingService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        console.error('❌ TradingService.buyStock error:', response.status, errorData)
         throw new Error(errorData.error || `Failed to buy stock: ${response.status}`);
       }
       

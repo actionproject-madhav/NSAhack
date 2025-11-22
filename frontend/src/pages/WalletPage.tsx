@@ -40,7 +40,9 @@ const WalletPage = () => {
         setIsLoading(false)
         return
       }
-      const balance = await tradingService.getCashBalance(userId)
+      // ALWAYS prefer email over ID for API calls
+      const apiUserId = user.email || userId
+      const balance = await tradingService.getCashBalance(apiUserId)
       setCashBalance(balance)
       // Refresh portfolio data to get latest prices
       await refreshUserData()

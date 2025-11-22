@@ -35,13 +35,15 @@ const TradePage = () => {
   const loadCashBalance = async () => {
     if (!user) return
     try {
-      // Use email if available, otherwise use id
+      // ALWAYS prefer email over ID for API calls (more reliable)
       const userId = user.email || user.id
       if (!userId) {
         console.error('No user identifier available')
         return
       }
-      const balance = await tradingService.getCashBalance(userId)
+      // Use email if available, fallback to id
+      const apiUserId = user.email || userId
+      const balance = await tradingService.getCashBalance(apiUserId)
       setCashBalance(balance)
     } catch (error) {
       console.error('Failed to load cash balance:', error)
@@ -64,15 +66,18 @@ const TradePage = () => {
 
     setIsBuying(true)
     try {
-      // Use email if available, otherwise use id
+      // ALWAYS prefer email over ID for API calls (more reliable)
       const userId = user.email || user.id
       if (!userId) {
+        console.error('❌ User object:', user)
         alert('User ID not found. Please log in again.')
         navigate('/auth')
         return
       }
-      
-      const result = await tradingService.buyStock(userId, ticker, quantity)
+      // Use email if available, fallback to id
+      const apiUserId = user.email || userId
+      console.log('🔵 TradePage: Buying stock with user identifier:', apiUserId, 'User object:', { email: user.email, id: user.id })
+      const result = await tradingService.buyStock(apiUserId, ticker, quantity)
       
       // Update local cash balance
       if (result.new_balance !== undefined) {

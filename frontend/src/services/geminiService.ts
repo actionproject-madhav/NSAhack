@@ -38,10 +38,8 @@ class GeminiService {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
     this.baseURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
-    // Debug logging
-    if (this.apiKey) {
-      console.log('✅ GeminiService: API Key loaded:', this.apiKey.substring(0, 20) + '...');
-    } else {
+    // Only log errors in production, debug info in development
+    if (!this.apiKey && import.meta.env.DEV) {
       console.error('❌ GeminiService: API Key is MISSING! Check VITE_GEMINI_API_KEY in .env');
     }
   }
@@ -75,7 +73,9 @@ class GeminiService {
         }
       ];
 
-      console.log('🔵 GeminiService: Making API request...');
+      if (import.meta.env.DEV) {
+        console.log('🔵 GeminiService: Making API request...');
+      }
       const response = await fetch(`${this.baseURL}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -99,11 +99,11 @@ class GeminiService {
       }
 
       const data: GeminiResponse = await response.json();
-      console.log('📦 Gemini API Full Response:', data);
-      console.log('📦 Candidates array:', data.candidates);
-      console.log('📦 First candidate:', data.candidates?.[0]);
-      console.log('📦 Content:', data.candidates?.[0]?.content);
-      console.log('📦 Parts:', data.candidates?.[0]?.content?.parts);
+      
+      // Only log verbose details in development
+      if (import.meta.env.DEV) {
+        console.log('📦 Gemini API Response received');
+      }
 
       if (data.candidates && data.candidates[0]) {
         const candidate = data.candidates[0];
@@ -111,7 +111,9 @@ class GeminiService {
         // Check if content exists
         if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
           const responseText = candidate.content.parts[0].text || 'No response generated';
-          console.log('✅ GeminiService: Extracted text:', responseText);
+          if (import.meta.env.DEV) {
+            console.log('✅ GeminiService: Response generated');
+          }
           return responseText;
         } else {
           console.error('❌ Missing content.parts in candidate:', candidate);

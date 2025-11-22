@@ -9,9 +9,10 @@ import json
 # Configuration
 BASE_URL = 'http://localhost:5000'
 
+
 def test_stock_quotes():
     """Test stock quote endpoints"""
-    print("\n📊 Testing Stock Quote Endpoints...")
+    print("\n Testing Stock Quote Endpoints...")
     
     # Test single stock quote
     try:
@@ -74,7 +75,7 @@ def test_database_connection():
 
 def test_server_health():
     """Test if server is running"""
-    print("\n🏥 Testing Server Health...")
+    print("\n Testing Server Health...")
     
     try:
         response = requests.get(f'{BASE_URL}/', timeout=5)
@@ -87,7 +88,7 @@ def test_server_health():
 
 def main():
     print("=" * 60)
-    print("🧪 API & Database Testing Suite")
+    print(" API & Database Testing Suite")
     print("=" * 60)
     
     test_server_health()

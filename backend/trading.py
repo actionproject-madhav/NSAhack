@@ -62,8 +62,22 @@ def get_balance():
             user = users.find_one({'google_id': user_id})
         
         if not user:
-            print(f"User not found for user_id: {user_id}")
-            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
+            # Auto-create user if they don't exist (for frontend-only auth users)
+            print(f"⚠️ User not found for user_id: {user_id}, auto-creating user...")
+            if '@' in user_id:  # If it's an email, create user
+                new_user = {
+                    'email': user_id,
+                    'cash_balance': STARTING_CASH,
+                    'created_at': datetime.now(timezone.utc),
+                    'updated_at': datetime.now(timezone.utc),
+                    'onboarding_completed': False
+                }
+                result = users.insert_one(new_user)
+                user = users.find_one({'_id': result.inserted_id})
+                print(f"✅ Auto-created user: {user_id}")
+            else:
+                print(f"❌ User not found for user_id: {user_id}")
+                return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if not exists
         if 'cash_balance' not in user:
@@ -96,6 +110,8 @@ def buy_stock():
         ticker = data.get('ticker', '').upper()
         quantity = int(data.get('quantity', 0))
         
+        print(f"🔵 buy_stock: Received request - user_id: {user_id}, ticker: {ticker}, quantity: {quantity}")
+        
         if not user_id or not ticker or quantity <= 0:
             return jsonify({'error': 'Invalid request data'}), 400
         
@@ -109,6 +125,8 @@ def buy_stock():
             if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
                 try:
                     user = users.find_one({'_id': ObjectId(user_id)})
+                    if user:
+                        print(f"✅ Found user by ObjectId: {user_id}")
                 except:
                     pass
         except:
@@ -117,14 +135,35 @@ def buy_stock():
         # If not found, try as email
         if not user:
             user = users.find_one({'email': user_id})
+            if user:
+                print(f"✅ Found user by email: {user_id}")
         
         # If still not found, try as google_id
         if not user:
             user = users.find_one({'google_id': user_id})
+            if user:
+                print(f"✅ Found user by google_id: {user_id}")
         
         if not user:
-            print(f"User not found for user_id: {user_id} (type: {type(user_id).__name__})")
-            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
+            # Auto-create user if they don't exist (for frontend-only auth users)
+            if '@' in user_id:  # If it's an email, create user
+                print(f"⚠️ User not found for user_id: {user_id}, auto-creating user...")
+                new_user = {
+                    'email': user_id,
+                    'cash_balance': STARTING_CASH,
+                    'created_at': datetime.now(timezone.utc),
+                    'updated_at': datetime.now(timezone.utc),
+                    'onboarding_completed': False
+                }
+                result = users.insert_one(new_user)
+                user = users.find_one({'_id': result.inserted_id})
+                print(f"✅ Auto-created user: {user_id}")
+            else:
+                print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+                # Debug: List all users in database
+                all_users = list(users.find({}, {'email': 1, 'google_id': 1, '_id': 1}).limit(5))
+                print(f"📋 Sample users in database: {[{'email': u.get('email'), 'google_id': u.get('google_id'), '_id': str(u.get('_id'))} for u in all_users]}")
+                return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if needed
         if 'cash_balance' not in user:
@@ -371,6 +410,34 @@ def get_transactions():
         except:
             user = users.find_one({'email': user_id})
         
+        # Auto-create user if they don't exist (for frontend-only auth users)
+        if not user and '@' in user_id:
+            print(f"⚠️ User not found in get_transactions, auto-creating: {user_id}")
+            new_user = {
+                'email': user_id,
+                'cash_balance': STARTING_CASH,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc),
+                'onboarding_completed': False
+            }
+            result = users.insert_one(new_user)
+            user = users.find_one({'_id': result.inserted_id})
+            print(f"✅ Auto-created user: {user_id}")
+        
+        # Auto-create user if they don't exist (for frontend-only auth users)
+        if not user and '@' in user_id:
+            print(f"⚠️ User not found in get_transactions, auto-creating: {user_id}")
+            new_user = {
+                'email': user_id,
+                'cash_balance': STARTING_CASH,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc),
+                'onboarding_completed': False
+            }
+            result = users.insert_one(new_user)
+            user = users.find_one({'_id': result.inserted_id})
+            print(f"✅ Auto-created user: {user_id}")
+        
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
@@ -417,6 +484,20 @@ def get_portfolio():
             user = users.find_one({'_id': ObjectId(user_id)})
         except:
             user = users.find_one({'email': user_id})
+        
+        # Auto-create user if they don't exist (for frontend-only auth users)
+        if not user and '@' in user_id:
+            print(f"⚠️ User not found in get_portfolio, auto-creating: {user_id}")
+            new_user = {
+                'email': user_id,
+                'cash_balance': STARTING_CASH,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc),
+                'onboarding_completed': False
+            }
+            result = users.insert_one(new_user)
+            user = users.find_one({'_id': result.inserted_id})
+            print(f"✅ Auto-created user: {user_id}")
         
         if not user:
             return jsonify({'error': 'User not found'}), 404
