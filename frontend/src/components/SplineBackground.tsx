@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 
-const SplineBackground = () => {
+const SplineBackground = memo(() => {
   const [splineError, setSplineError] = useState(false)
   const [splineLoaded, setSplineLoaded] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
@@ -51,7 +51,9 @@ const SplineBackground = () => {
         <Spline 
           scene="https://prod.spline.design/f7MEBGBa8Fh0o30l/scene.splinecode"
           onLoad={() => {
-            console.log('✅ Global Spline background loaded')
+            if (import.meta.env.DEV) {
+              console.log('✅ Global Spline background loaded')
+            }
             setSplineLoaded(true)
           }}
           onError={(error) => {
@@ -74,7 +76,9 @@ const SplineBackground = () => {
       />
     </>
   )
-}
+})
+
+SplineBackground.displayName = 'SplineBackground'
 
 export default SplineBackground
 

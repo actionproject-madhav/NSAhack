@@ -75,8 +75,20 @@ const COMPANY_TICKER_MAP: Record<string, { ticker: string; isPremium?: boolean }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '')
 
-const ReceiptScanner = () => {
-  const [isOpen, setIsOpen] = useState(false)
+interface ReceiptScannerProps {
+  isOpen?: boolean
+  onClose?: () => void
+  showButton?: boolean
+  position?: 'top-right' | 'center' | 'inline'
+}
+
+const ReceiptScanner = ({ 
+  isOpen: externalIsOpen, 
+  onClose, 
+  showButton = true,
+  position = 'center'
+}: ReceiptScannerProps = {}) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
   const [scannedReceipt, setScannedReceipt] = useState<ScannedReceipt | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -86,6 +98,10 @@ const ReceiptScanner = () => {
   const [investmentAmount, setInvestmentAmount] = useState('')
   const [isInvesting, setIsInvesting] = useState(false)
   const [investmentSuccess, setInvestmentSuccess] = useState(false)
+
+  // Use external isOpen if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
+  const setIsOpen = externalIsOpen !== undefined ? (onClose ? () => onClose() : () => {}) : setInternalIsOpen
 
   // Get user ID from user context
   const { user } = useUser()
@@ -254,17 +270,40 @@ const ReceiptScanner = () => {
     resetScanner()
   }
 
+  // Determine modal positioning classes
+  const getModalClasses = () => {
+    if (position === 'top-right') {
+      return 'fixed top-4 right-4 z-50'
+    } else if (position === 'inline') {
+      return 'relative z-10'
+    } else {
+      return 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'
+    }
+  }
+
+  const getPanelClasses = () => {
+    if (position === 'top-right') {
+      return 'bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800'
+    } else if (position === 'inline') {
+      return 'bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-gray-800'
+    } else {
+      return 'bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden'
+    }
+  }
+
   return (
     <>
-      {/* Trigger Button */}
-      <motion.button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-full shadow-lg flex items-center justify-center z-40"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <Camera className="w-6 h-6" />
-      </motion.button>
+      {/* Trigger Button - only show if showButton is true */}
+      {showButton && (
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-full shadow-lg flex items-center justify-center z-40"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Camera className="w-6 h-6" />
+        </motion.button>
+      )}
 
       {/* Main Modal */}
       <AnimatePresence>
@@ -273,42 +312,46 @@ const ReceiptScanner = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            className={position === 'top-right' || position === 'inline' ? getModalClasses() : 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'}
+            onClick={position === 'center' ? (e) => {
+              if (e.target === e.currentTarget) closeModal()
+            } : undefined}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden"
+              initial={position === 'top-right' ? { opacity: 0, x: 20, y: -20 } : { scale: 0.8, opacity: 0 }}
+              animate={position === 'top-right' ? { opacity: 1, x: 0, y: 0 } : { scale: 1, opacity: 1 }}
+              exit={position === 'top-right' ? { opacity: 0, x: 20, y: -20 } : { scale: 0.8, opacity: 0 }}
+              className={getPanelClasses()}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Receipt Scanner</h2>
-                    <p className="text-sm text-gray-600">Invest in brands you already love</p>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Receipt Scanner</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Invest in brands you already love</p>
                   </div>
                   <button
                     onClick={closeModal}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                   </button>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6">
+              <div className="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
                 {/* Initial State */}
                 {!isScanning && !scannedReceipt && !error && (
                   <div className="text-center">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Camera className="w-10 h-10 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                       Scan Your Receipt
                     </h3>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
                       Upload a photo of your receipt and we'll extract the details automatically
                     </p>
                     
@@ -346,10 +389,10 @@ const ReceiptScanner = () => {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                       Scanning Receipt...
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                       Using advanced OCR and company detection
                     </p>
                     <div className="mt-4 flex items-center justify-center gap-2">
@@ -366,10 +409,10 @@ const ReceiptScanner = () => {
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <AlertCircle className="w-8 h-8 text-red-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                       Scan Failed
                     </h3>
-                    <p className="text-red-600 mb-4 text-sm">{error}</p>
+                    <p className="text-red-600 dark:text-red-400 mb-4 text-sm">{error}</p>
                     <button
                       onClick={resetScanner}
                       className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl transition-colors"
@@ -438,7 +481,7 @@ const ReceiptScanner = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                             {scannedReceipt.company_name}
                             {scannedReceipt.is_popular_company && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700">
@@ -454,7 +497,7 @@ const ReceiptScanner = () => {
                         </div>
                       </div>
                       
-                      <p className="text-sm text-gray-600 mb-4">{scannedReceipt.suggestion}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{scannedReceipt.suggestion}</p>
                       
                       {scannedReceipt.ticker ? (
                         <div className="space-y-2">
@@ -540,7 +583,7 @@ const ReceiptScanner = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-md overflow-hidden"
+              className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md overflow-hidden"
             >
               {investmentSuccess ? (
                 /* Success State */
@@ -548,8 +591,8 @@ const ReceiptScanner = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Investment Successful! 🎉</h3>
-                  <p className="text-gray-600 mb-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Investment Successful! 🎉</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-2">
                     You've invested <span className="font-bold">${parseFloat(investmentAmount).toFixed(2)}</span> in {scannedReceipt.ticker}
                   </p>
                   <p className="text-sm text-gray-500">
@@ -562,8 +605,8 @@ const ReceiptScanner = () => {
                   <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">Invest in {scannedReceipt.ticker}</h3>
-                        <p className="text-sm text-gray-600">{scannedReceipt.company_name}</p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Invest in {scannedReceipt.ticker}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{scannedReceipt.company_name}</p>
                       </div>
                       <button
                         onClick={() => setShowInvestmentModal(false)}
@@ -580,7 +623,7 @@ const ReceiptScanner = () => {
                         ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
                         : 'bg-purple-50 border border-purple-200'
                     }`}>
-                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                      <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm">
                         {scannedReceipt.ticker ? (
                           <Logo 
                             company={scannedReceipt.ticker} 
@@ -592,16 +635,16 @@ const ReceiptScanner = () => {
                         )}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 flex items-center gap-2">
+                        <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                           {scannedReceipt.ticker}
                           {scannedReceipt.is_popular_company && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">
                               <Star className="w-3 h-3 mr-1" />
                               Premium
                             </span>
                           )}
                         </p>
-                        <p className="text-sm text-gray-600">{scannedReceipt.company_name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{scannedReceipt.company_name}</p>
                       </div>
                     </div>
 

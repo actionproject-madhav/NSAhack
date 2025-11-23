@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { finnhubAPI, StockQuote } from '../services/finnhubApi';
 
 export interface UseRealTimeQuotesOptions {
@@ -18,27 +18,34 @@ export const useRealTimeQuotes = ({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<number>();
 
-  const fetchQuotes = async () => {
+  // Memoize symbols string to prevent unnecessary re-renders
+  const symbolsKey = useMemo(() => [...symbols].sort().join(','), [symbols]);
+
+  const fetchQuotes = useCallback(async () => {
     if (!enabled || symbols.length === 0) return;
 
-    console.log('Fetching quotes for symbols:', symbols);
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.log('Fetching quotes for symbols:', symbols);
+    }
     setIsLoading(true);
     setError(null);
 
     try {
       const newQuotes = await finnhubAPI.getMultipleQuotes(symbols);
-      console.log('Fetched quotes:', newQuotes);
+      if (import.meta.env.DEV) {
+        console.log('Fetched quotes:', newQuotes);
+      }
       setQuotes(newQuotes);
       setLastUpdated(new Date());
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quotes';
       setError(errorMessage);
       console.error('Real-time quotes error:', err);
-      console.error('Error details:', errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [symbols, enabled]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -59,11 +66,11 @@ export const useRealTimeQuotes = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [symbols.join(','), refreshInterval, enabled]);
+  }, [symbolsKey, refreshInterval, enabled, fetchQuotes]);
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     fetchQuotes();
-  };
+  }, [fetchQuotes]);
 
   return {
     quotes,

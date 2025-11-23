@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Search, TrendingUp, TrendingDown, Plus, ScanLine, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
@@ -42,8 +42,8 @@ const TradePage = () => {
       const userId = user.email || user.id
       if (!userId) {
         console.error('No user identifier available')
-        return
-      }
+      return
+    }
       // Use email if available, fallback to id
       const apiUserId = user.email || userId
       const balance = await tradingService.getCashBalance(apiUserId)
@@ -102,11 +102,12 @@ const TradePage = () => {
     }
   }
 
-  const filteredQuotes = searchQuery
-    ? quotes?.filter(q => 
-        q.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : quotes
+  const filteredQuotes = useMemo(() => {
+    if (!quotes) return []
+    if (!searchQuery) return quotes
+    const query = searchQuery.toLowerCase()
+    return quotes.filter(q => q.symbol.toLowerCase().includes(query))
+  }, [quotes, searchQuery])
 
   return (
     <Layout>
@@ -139,24 +140,13 @@ const TradePage = () => {
           </div>
         </div>
 
-        {/* Receipt Scanner Section */}
-        {showReceiptScanner && (
-          <div className="mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-black dark:text-white">Scan Receipt & Invest</h2>
-              <button
-                onClick={() => setShowReceiptScanner(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Upload a receipt to automatically detect the company and invest in their stock
-            </p>
-            <ReceiptScanner />
-          </div>
-        )}
+        {/* Receipt Scanner - Top Right Panel */}
+        <ReceiptScanner 
+          isOpen={showReceiptScanner}
+          onClose={() => setShowReceiptScanner(false)}
+          showButton={false}
+          position="top-right"
+        />
 
         {/* Search Bar */}
         <div className="mb-8">
