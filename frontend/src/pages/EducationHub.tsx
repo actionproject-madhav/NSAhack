@@ -66,13 +66,54 @@ const EducationHub = () => {
   const { addXP, calculateLevel } = useXPSystem()
   const controls = useAnimation()
 
-  // Load progress from localStorage on mount
+  // Load progress from localStorage on mount and check for unlocks
   useEffect(() => {
     const savedProgress = localStorage.getItem('educationProgress')
     if (savedProgress) {
       try {
         const progress = JSON.parse(savedProgress)
-        setPlayerStats(prev => ({ ...prev, ...progress }))
+        setPlayerStats(prev => {
+          const loadedStats = { ...prev, ...progress }
+          
+          // Re-check island unlocks with loaded progress
+          const checkUnlocks = (stats: typeof loadedStats) => {
+            const newUnlockedIslands: string[] = []
+            const completedCount = stats.completedLessons.length
+            
+            islands.forEach(island => {
+              if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+                const req = island.unlockRequirement
+                
+                if (req?.completeLessons && completedCount >= req.completeLessons) {
+                  newUnlockedIslands.push(island.id)
+                }
+                
+                if (req?.level && stats.level >= req.level) {
+                  newUnlockedIslands.push(island.id)
+                }
+                
+                if (req?.badges && Array.isArray(req.badges)) {
+                  const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+                  if (hasAllBadges) {
+                    newUnlockedIslands.push(island.id)
+                  }
+                }
+              }
+            })
+            
+            return newUnlockedIslands
+          }
+          
+          const newUnlocks = checkUnlocks(loadedStats)
+          if (newUnlocks.length > 0) {
+            return {
+              ...loadedStats,
+              unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
+            }
+          }
+          
+          return loadedStats
+        })
       } catch (e) {
         console.warn('Failed to load progress from localStorage:', e)
       }
@@ -301,7 +342,10 @@ const EducationHub = () => {
         playSound('unlock')
         const island = islands.find(i => i.id === islandId)
         if (island) {
-          alert(`🎉 New Island Unlocked: ${island.name}!`)
+          // Show unlock notification (can be replaced with a toast component)
+          if (import.meta.env.DEV) {
+            console.log(`New Island Unlocked: ${island.name}!`)
+          }
         }
       })
     }
@@ -434,7 +478,7 @@ const EducationHub = () => {
                             {isLocked && (
                               <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
                                 <div className="text-center">
-                                  <div className="text-4xl mb-2">🔒</div>
+                                  <Lock className="w-8 h-8 mx-auto mb-2 text-white" />
                                   <div className="text-xs text-white font-semibold">
                                     {island.unlockRequirement?.completeLessons && 
                                       `Complete ${island.unlockRequirement.completeLessons} lessons`}
@@ -666,7 +710,7 @@ const EducationHub = () => {
                       </p>
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         {/* TODO: Replace with book icon from /assets/icons/ui/book.svg */}
-                        <span>📚</span>
+                        <BookOpen className="w-4 h-4" />
                         <span>{lesson.duration || '10 min'}</span>
                         {playerStats.completedLessons && playerStats.completedLessons.includes(lesson.id || index) && (
                           <span className="text-green-500 flex items-center gap-1">
@@ -747,7 +791,7 @@ const IslandModel = ({ island, isLocked, onClick }: any) => {
       >
         {island.name}
         {/* TODO: Replace with lock icon from /assets/icons/ui/lock.svg */}
-        {isLocked && <span className="ml-1">🔒</span>}
+        {isLocked && <Lock className="w-4 h-4 inline ml-1" />}
       </button>
     </div>
   )
