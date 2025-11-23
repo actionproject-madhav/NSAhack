@@ -210,7 +210,6 @@ const TradePage = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
 
                   {/* Trade Section */}
                   <div className="flex items-center gap-3">
