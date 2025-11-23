@@ -114,7 +114,7 @@ def buy_stock():
         ticker = data.get('ticker', '').upper()
         quantity = int(data.get('quantity', 0))
         
-        print(f"🔵 buy_stock: Received request - user_id: {user_id}, ticker: {ticker}, quantity: {quantity}")
+        print(f" buy_stock: Received request - user_id: {user_id}, ticker: {ticker}, quantity: {quantity}")
         
         if not user_id or not ticker or quantity <= 0:
             return jsonify({'error': 'Invalid request data'}), 400
@@ -494,7 +494,7 @@ def get_portfolio():
         
         # Auto-create user if they don't exist (for frontend-only auth users)
         if not user and '@' in user_id:
-            print(f"⚠️ User not found in get_portfolio, auto-creating: {user_id}")
+            print(f" User not found in get_portfolio, auto-creating: {user_id}")
             new_user = {
                 'email': user_id,
                 'cash_balance': STARTING_CASH,
@@ -504,7 +504,7 @@ def get_portfolio():
             }
             result = users.insert_one(new_user)
             user = users.find_one({'_id': result.inserted_id})
-            print(f"✅ Auto-created user: {user_id}")
+            print(f" Auto-created user: {user_id}")
         
         if not user:
             return jsonify({'error': 'User not found'}), 404

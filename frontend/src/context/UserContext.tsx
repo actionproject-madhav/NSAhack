@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo } from 'react'
 import authService from '../services/authService'
 import apiService from '../services/apiService'
 import tradingService from '../services/tradingService'
@@ -47,6 +47,37 @@ export const useUser = () => {
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const refreshUserData = useCallback(async () => {
+    if (!user) return
+    
+    try {
+      // Use email if available, otherwise use id
+      // ALWAYS prefer email over ID for API calls
+      const userId = user.email || user.id
+      const apiUserId = user.email || userId
+      if (!userId) {
+        console.error('No user identifier available for refresh')
+        return
+      }
+      
+      console.log('Refreshing user data from trading API...')
+      const portfolioData = await tradingService.getPortfolio(apiUserId)
+      
+      const updatedUser = {
+        ...user,
+        portfolio: portfolioData.portfolio || [],
+        totalValue: portfolioData.portfolio_value || 0
+      }
+      
+      setUser(updatedUser)
+      localStorage.removeItem('user') // Clear old data first
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      console.log('User data refreshed:', portfolioData.portfolio.length, 'positions, $' + portfolioData.portfolio_value.toFixed(2))
+    } catch (error) {
+      console.error('Error refreshing user data:', error)
+    }
+  }, [user])
 
   useEffect(() => {
     // Check for authenticated user on app start and load full profile from database
@@ -162,50 +193,29 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     
     loadUserProfile()
-    
-    // Set up periodic refresh of portfolio (every 2 minutes)
-    const refreshInterval = setInterval(() => {
-      if (user) {
-        refreshUserData()
-      }
-    }, 2 * 60 * 1000)
-    
-    return () => clearInterval(refreshInterval)
   }, [])
 
-  const refreshUserData = async () => {
+  // Set up periodic refresh of portfolio (every 5 minutes - reduced frequency)
+  useEffect(() => {
     if (!user) return
     
-    try {
-      // Use email if available, otherwise use id
-      // ALWAYS prefer email over ID for API calls
-      const userId = user.email || user.id
-      const apiUserId = user.email || userId
-      if (!userId) {
-        console.error('No user identifier available for refresh')
-        return
-      }
-      
-      console.log('Refreshing user data from trading API...')
-      const portfolioData = await tradingService.getPortfolio(apiUserId)
-      
-      const updatedUser = {
-        ...user,
-        portfolio: portfolioData.portfolio || [],
-        totalValue: portfolioData.portfolio_value || 0
-      }
-      
-      setUser(updatedUser)
-      localStorage.removeItem('user') // Clear old data first
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      console.log('User data refreshed:', portfolioData.portfolio.length, 'positions, $' + portfolioData.portfolio_value.toFixed(2))
-    } catch (error) {
-      console.error('Error refreshing user data:', error)
-    }
-  }
+    const refreshInterval = setInterval(() => {
+      refreshUserData()
+    }, 5 * 60 * 1000) // 5 minutes instead of 2
+    
+    return () => clearInterval(refreshInterval)
+  }, [user, refreshUserData])
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    user,
+    setUser,
+    refreshUserData,
+    isLoading
+  }), [user, refreshUserData, isLoading])
 
   return (
-    <UserContext.Provider value={{ user, setUser, refreshUserData, isLoading }}>
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   )

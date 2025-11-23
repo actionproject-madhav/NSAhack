@@ -43,7 +43,8 @@ const SplineBackground = () => {
           transform: 'translate(-50%, -50%) scale(0.35)',
           opacity: 0.5,
           pointerEvents: 'none',
-          zIndex: 0
+          zIndex: 0,
+          willChange: 'transform' // Optimize for animations
         }}
         className="spline-background"
       >

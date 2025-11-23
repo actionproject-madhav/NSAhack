@@ -1,7 +1,7 @@
 import { TrendingUp, TrendingDown, BarChart3, MessageCircle, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import TradingViewMiniWidget from '../components/TradingViewMiniWidget'
@@ -23,18 +23,22 @@ const Dashboard = () => {
     enabled: userSymbols.length > 0
   })
 
-  // Calculate portfolio total change
-  const portfolioChange = user?.portfolio?.reduce((total, stock) => {
-    const quote = userQuotes?.find(q => q.symbol === stock.ticker)
-    const currentPrice = quote?.price || stock.currentPrice
-    const currentValue = stock.quantity * currentPrice
-    const originalValue = stock.quantity * stock.avgPrice
-    return total + (currentValue - originalValue)
-  }, 0) || 0
+  // Memoize expensive portfolio calculations
+  const { portfolioChange, portfolioChangePercent } = useMemo(() => {
+    const change = user?.portfolio?.reduce((total, stock) => {
+      const quote = userQuotes?.find(q => q.symbol === stock.ticker)
+      const currentPrice = quote?.price || stock.currentPrice
+      const currentValue = stock.quantity * currentPrice
+      const originalValue = stock.quantity * stock.avgPrice
+      return total + (currentValue - originalValue)
+    }, 0) || 0
 
-  const portfolioChangePercent = user?.totalValue 
-    ? ((portfolioChange / (user.totalValue - portfolioChange)) * 100) 
-    : 0
+    const changePercent = user?.totalValue 
+      ? ((change / (user.totalValue - change)) * 100) 
+      : 0
+
+    return { portfolioChange: change, portfolioChangePercent: changePercent }
+  }, [user?.portfolio, user?.totalValue, userQuotes])
 
   // Redirect if not logged in
   useEffect(() => {

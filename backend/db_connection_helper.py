@@ -20,7 +20,7 @@ def get_db_error_response():
 
 def log_db_error(endpoint_name):
     """Log database connection error for debugging"""
-    print(f"❌ {endpoint_name} endpoint called but database is not connected!")
+    print(f" {endpoint_name} endpoint called but database is not connected!")
     print(f"   MONGO_URI set: {'Yes' if os.getenv('MONGO_URI') else 'No'}")
     print(f"   DATABASE_NAME set: {'Yes' if os.getenv('DATABASE_NAME') else 'No'}")
     if os.getenv('MONGO_URI'):

@@ -43,8 +43,10 @@ export const useRealTimeQuotes = ({
   useEffect(() => {
     if (!enabled) return;
 
-    // Initial fetch
-    fetchQuotes();
+    // Initial fetch with slight delay to avoid blocking render
+    const timeoutId = setTimeout(() => {
+      fetchQuotes();
+    }, 100);
 
     // Set up interval for periodic updates
     if (refreshInterval > 0) {
@@ -52,6 +54,7 @@ export const useRealTimeQuotes = ({
     }
 
     return () => {
+      clearTimeout(timeoutId);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
