@@ -478,7 +478,8 @@ const EducationHub = () => {
                         {lesson.description || lesson.content?.sections?.[0]?.title || 'Start learning'}
                       </p>
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <BookOpen className="w-4 h-4" />
+                        {/* TODO: Replace with book icon from /assets/icons/ui/book.svg */}
+                        <span>📚</span>
                         <span>{lesson.duration || '10 min'}</span>
                         {playerStats.completedLessons && playerStats.completedLessons.includes(lesson.id || index) && (
                           <span className="text-green-500 flex items-center gap-1">
@@ -543,7 +544,8 @@ const IslandModel = ({ island, isLocked, onClick }: any) => {
         }`}
       >
         {island.name}
-        {isLocked && <Lock className="w-4 h-4 inline ml-1" />}
+        {/* TODO: Replace with lock icon from /assets/icons/ui/lock.svg */}
+        {isLocked && <span className="ml-1">🔒</span>}
       </button>
     </div>
   )
