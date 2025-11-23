@@ -238,35 +238,72 @@ const EducationHub = () => {
       levelUp(newLevel)
     }
 
-    // Check for island unlock based on completed lessons
-    const completedCount = playerStats.completedLessons.length
-    const newUnlockedIslands: string[] = []
-    
-    // Unlock unit-2 after 3 lessons
-    if (completedCount >= 3 && !playerStats.unlockedIslands.includes('unit-2')) {
-      newUnlockedIslands.push('unit-2')
+    // Check for island unlock AFTER stats are updated
+    // Use newStats instead of playerStats for accurate checking
+    const checkIslandUnlocks = (stats: typeof newStats) => {
+      const newUnlockedIslands: string[] = []
+      const completedCount = stats.completedLessons.length
+      
+      // Check each island's unlock requirements
+      islands.forEach(island => {
+        if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+          const req = island.unlockRequirement
+          
+          // Check lesson completion requirement
+          if (req?.completeLessons && completedCount >= req.completeLessons) {
+            newUnlockedIslands.push(island.id)
+          }
+          
+          // Check level requirement
+          if (req?.level && stats.level >= req.level) {
+            newUnlockedIslands.push(island.id)
+          }
+          
+          // Check badge requirements
+          if (req?.badges && Array.isArray(req.badges)) {
+            const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+            if (hasAllBadges) {
+              newUnlockedIslands.push(island.id)
+            }
+          }
+        }
+      })
+      
+      return newUnlockedIslands
     }
     
-    // Unlock unit-3 at level 5
-    if (playerStats.level >= 5 && !playerStats.unlockedIslands.includes('unit-3')) {
-      newUnlockedIslands.push('unit-3')
-    }
-    
-    // Unlock unit-4 after getting required badges
-    const hasFundamentalsBadge = playerStats.badges.includes('fundamentals-master')
-    const hasStocksBadge = playerStats.badges.includes('stocks-master')
-    if (hasFundamentalsBadge && hasStocksBadge && !playerStats.unlockedIslands.includes('unit-4')) {
-      newUnlockedIslands.push('unit-4')
-    }
+    // Check for unlocks with updated stats
+    const newUnlockedIslands = checkIslandUnlocks(newStats)
     
     // Update unlocked islands if any new ones were unlocked
     if (newUnlockedIslands.length > 0) {
-      setPlayerStats(prev => ({
-        ...prev,
-        unlockedIslands: [...prev.unlockedIslands, ...newUnlockedIslands]
+      const finalStats = {
+        ...newStats,
+        unlockedIslands: [...newStats.unlockedIslands, ...newUnlockedIslands]
+      }
+      setPlayerStats(finalStats)
+      
+      // Save progress with unlocked islands
+      localStorage.setItem('educationProgress', JSON.stringify({
+        level: finalStats.level,
+        xp: finalStats.xp,
+        streak: finalStats.streak,
+        hearts: finalStats.hearts,
+        coins: finalStats.coins,
+        badges: finalStats.badges,
+        unlockedIslands: finalStats.unlockedIslands,
+        completedLessons: finalStats.completedLessons,
+        powerups: finalStats.powerups
       }))
-      // Play unlock sound for each new island
-      newUnlockedIslands.forEach(() => playSound('unlock'))
+      
+      // Play unlock sound and show notification
+      newUnlockedIslands.forEach((islandId) => {
+        playSound('unlock')
+        const island = islands.find(i => i.id === islandId)
+        if (island) {
+          alert(`🎉 New Island Unlocked: ${island.name}!`)
+        }
+      })
     }
   }
 
@@ -357,29 +394,91 @@ const EducationHub = () => {
               exit={{ opacity: 0 }}
               className="h-full"
             >
-              {/* 3D Island Map - Temporarily disabled (requires React 19) */}
-              {/* TODO: Install compatible @react-three/fiber version or upgrade React */}
-              <div className="flex items-center justify-center h-full relative">
-                {/* Subtle overlay for better text readability over Spline */}
-                <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
-                <div className="text-white text-center relative z-10">
-                  <h2 className="text-2xl font-bold mb-4 drop-shadow-lg">Island Map</h2>
-                  <p className="text-white/90 drop-shadow-md">3D view temporarily disabled</p>
-                  <div className="mt-8 grid grid-cols-2 gap-4">
-                    {islands.map(island => (
-                      <button
-                        key={island.id}
-                        onClick={() => selectIsland(island)}
-                        disabled={!playerStats.unlockedIslands.includes(island.id)}
-                        className={`p-4 rounded-lg backdrop-blur-md transition-all ${
-                          playerStats.unlockedIslands.includes(island.id)
-                            ? 'bg-white/90 text-black hover:bg-white shadow-lg'
-                            : 'bg-gray-300/80 text-gray-500 cursor-not-allowed'
-                        }`}
-                      >
-                        {island.name}
-                      </button>
-                    ))}
+              {/* Island Map */}
+              <div className="flex items-center justify-center h-full relative p-8">
+                <div className="max-w-6xl w-full">
+                  <h2 className="text-4xl font-bold mb-8 text-center text-black dark:text-white drop-shadow-lg">
+                    Choose Your Learning Island
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {islands.map((island, index) => {
+                      const isUnlocked = playerStats.unlockedIslands.includes(island.id)
+                      const isLocked = !isUnlocked
+                      
+                      return (
+                        <motion.div
+                          key={island.id}
+                          initial={{ opacity: 0, y: 50 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="relative"
+                        >
+                          <motion.button
+                            onClick={() => !isLocked && selectIsland(island)}
+                            disabled={isLocked}
+                            whileHover={!isLocked ? { scale: 1.05 } : {}}
+                            whileTap={!isLocked ? { scale: 0.95 } : {}}
+                            className={`w-full p-6 rounded-2xl backdrop-blur-lg transition-all relative overflow-hidden ${
+                              isLocked
+                                ? 'bg-gray-400/50 dark:bg-gray-700/50 cursor-not-allowed opacity-60'
+                                : 'bg-white/90 dark:bg-black/90 shadow-xl hover:shadow-2xl border-2 border-transparent hover:border-blue-400'
+                            }`}
+                            style={{
+                              background: isLocked 
+                                ? undefined 
+                                : `linear-gradient(135deg, ${island.color}20, ${island.color}10)`
+                            }}
+                          >
+                            {/* Lock overlay */}
+                            {isLocked && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
+                                <div className="text-center">
+                                  <div className="text-4xl mb-2">🔒</div>
+                                  <div className="text-xs text-white font-semibold">
+                                    {island.unlockRequirement?.completeLessons && 
+                                      `Complete ${island.unlockRequirement.completeLessons} lessons`}
+                                    {island.unlockRequirement?.level && 
+                                      `Reach Level ${island.unlockRequirement.level}`}
+                                    {island.unlockRequirement?.badges && 
+                                      `Earn required badges`}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Island Icon/Color */}
+                            <div 
+                              className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white shadow-lg"
+                              style={{ backgroundColor: island.color }}
+                            >
+                              {island.name.charAt(0)}
+                            </div>
+                            
+                            {/* Island Name */}
+                            <h3 className="text-xl font-bold text-black dark:text-white mb-2">
+                              {island.name}
+                            </h3>
+                            
+                            {/* Lesson Count */}
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {island.lessons?.length || 0} Lessons
+                            </p>
+                            
+                            {/* Progress indicator */}
+                            {isUnlocked && (
+                              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {island.lessons?.filter((l: any) => 
+                                    playerStats.completedLessons.includes(l.id)
+                                  ).length || 0} / {island.lessons?.length || 0} completed
+                                </div>
+                              </div>
+                            )}
+                          </motion.button>
+                        </motion.div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
