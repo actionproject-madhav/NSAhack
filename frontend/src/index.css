@@ -15,7 +15,7 @@
   }
 
   html, body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-white dark:bg-black text-black dark:text-white;
     font-family: 'Host Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     overflow-x: hidden;
     max-width: 100vw;

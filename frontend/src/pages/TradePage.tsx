@@ -139,7 +139,7 @@ const TradePage = () => {
               {cashBalance !== null && (
                 <div className="text-right">
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Available Cash</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-500">
+                  <p className="text-2xl font-bold text-[#00C805]">
                     ${cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -165,7 +165,7 @@ const TradePage = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search stocks (e.g., AAPL, TSLA)..."
-              className="w-full pl-12 pr-4 py-4 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-colors"
+              className="w-full pl-12 pr-4 py-4 border border-black/20 dark:border-white/20 bg-white/60 dark:bg-black/60 backdrop-blur-md text-black dark:text-white rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-colors"
             />
           </div>
         </div>
@@ -188,7 +188,7 @@ const TradePage = () => {
               return (
                 <div
                   key={quote.symbol}
-                  className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:border-black dark:hover:border-white transition-all"
+                  className="bg-white/60 dark:bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-lg p-4 hover:border-black/40 dark:hover:border-white/40 transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex-1">
@@ -199,7 +199,7 @@ const TradePage = () => {
                         <span className="text-3xl font-medium text-black dark:text-white">
                           ${quote.price.toFixed(2)}
                         </span>
-                        <div className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                        <div className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
                           {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                           <span>{isPositive ? '+' : ''}{quote.change.toFixed(2)}</span>
                           <span>({isPositive ? '+' : ''}{quote.changePercent.toFixed(2)}%)</span>
@@ -220,12 +220,12 @@ const TradePage = () => {
                           setQuantity(Math.max(1, parseInt(e.target.value) || 1))
                         }}
                         min="1"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-black dark:text-white rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white"
+                        className="w-full px-3 py-2 border border-black/20 dark:border-white/20 bg-white/60 dark:bg-black/60 backdrop-blur-md text-black dark:text-white rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white"
                       />
                     </div>
                     <div className="flex-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Total</label>
-                      <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg font-bold text-black dark:text-white">
+                      <div className="px-3 py-2 bg-white/40 dark:bg-black/40 backdrop-blur-sm rounded-lg font-bold text-black dark:text-white">
                         ${((selectedStock === quote.symbol ? quantity : 1) * quote.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </div>
@@ -268,7 +268,7 @@ const TradePage = () => {
         </div>
 
         {/* Info Box */}
-        <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div className="mt-8 p-6 bg-white/60 dark:bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-lg">
           <h3 className="font-bold text-black dark:text-white mb-2">Paper Trading Simulation</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
             Practice trading with real market data and no financial risk. You start with $10,000 in virtual cash.

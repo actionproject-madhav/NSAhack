@@ -141,7 +141,7 @@ const Dashboard = () => {
                       <button
                         key={stock.ticker}
                         onClick={() => navigate(`/stock/${stock.ticker}`)}
-                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors rounded-lg backdrop-blur-sm"
+                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-white/30 dark:hover:bg-black/30 transition-colors rounded-lg backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-3 flex-1">
                           <div className="text-left flex-1">
@@ -200,13 +200,13 @@ const Dashboard = () => {
 
         {/* AI Chat Sidebar - Toggleable */}
         {showAIChat && (
-          <div className="fixed right-0 top-0 h-full w-96 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-2xl z-50 flex flex-col">
+          <div className="fixed right-0 top-0 h-full w-96 border-l border-black/10 dark:border-white/10 bg-white/90 dark:bg-black/90 backdrop-blur-lg shadow-2xl z-50 flex flex-col">
             {/* Close Button */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
               <h3 className="font-semibold text-black dark:text-white">AI Assistant</h3>
               <button 
                 onClick={() => setShowAIChat(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
                 aria-label="Close AI Assistant"
               >
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />

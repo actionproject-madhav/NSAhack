@@ -52,7 +52,7 @@ const PortfolioPage = () => {
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/10 dark:border-white/10">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Portfolio</h1>
           </div>
@@ -61,7 +61,7 @@ const PortfolioPage = () => {
             <button 
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2 disabled:opacity-50 text-gray-900 dark:text-gray-100 transition-colors"
+              className="px-4 py-2 bg-white/60 dark:bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-lg hover:bg-white/80 dark:hover:bg-black/80 flex items-center gap-2 disabled:opacity-50 text-black dark:text-white transition-colors"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -78,14 +78,14 @@ const PortfolioPage = () => {
 
         {/* Portfolio Summary - Robinhood Minimal Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
+          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-md p-6 rounded-lg border border-black/20 dark:border-white/20">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Value</span>
             <div className="text-3xl font-bold text-black dark:text-white mt-2">
               ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
-          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
+          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-md p-6 rounded-lg border border-black/20 dark:border-white/20">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Return</span>
             <div className={`text-3xl font-bold mt-2 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
               {isPositive ? '+' : ''}${Math.abs(totalGainLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -95,7 +95,7 @@ const PortfolioPage = () => {
             </div>
           </div>
 
-          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
+          <div className="bg-white/60 dark:bg-black/60 backdrop-blur-md p-6 rounded-lg border border-black/20 dark:border-white/20">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Holdings</span>
             <div className="text-3xl font-bold text-black dark:text-white mt-2">
               {user?.portfolio?.length || 0}
@@ -104,8 +104,8 @@ const PortfolioPage = () => {
         </div>
 
         {/* Holdings List - Blended */}
-        <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md rounded-lg border border-gray-200/50 dark:border-gray-800/50">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="bg-white/60 dark:bg-black/60 backdrop-blur-md rounded-lg border border-black/20 dark:border-white/20">
+          <div className="px-6 py-4 border-b border-black/10 dark:border-white/10">
             <h2 className="text-xl font-semibold text-black dark:text-white">Holdings</h2>
           </div>
 
@@ -149,7 +149,7 @@ const PortfolioPage = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => navigate(`/stock/${holding.ticker}`)}
-                    className="px-6 py-5 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
+                    className="px-6 py-5 hover:bg-white/30 dark:hover:bg-black/30 cursor-pointer transition-colors backdrop-blur-sm"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">

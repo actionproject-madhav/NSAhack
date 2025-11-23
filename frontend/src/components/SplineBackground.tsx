@@ -41,7 +41,7 @@ const SplineBackground = memo(() => {
           width: '250vw',
           height: '250vh',
           transform: 'translate(-50%, -50%) scale(0.35)',
-          opacity: 0.3,
+          opacity: darkMode ? 0.4 : 0.5,
           pointerEvents: 'none',
           zIndex: 0,
           willChange: 'transform',

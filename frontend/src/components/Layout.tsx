@@ -45,9 +45,9 @@ const Layout = ({ children }: LayoutProps) => {
       )}
       
       {/* Left Sidebar - Fixed, doesn't scroll */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:fixed inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white/95 dark:bg-black/95 backdrop-blur-md border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col flex-shrink-0`}>
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:fixed inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-r border-black/10 dark:border-white/10 flex flex-col flex-shrink-0`}>
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <div className="p-6 border-b border-black/10 dark:border-white/10">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
               <span className="text-white dark:text-black font-bold text-sm">F</span>
@@ -58,10 +58,10 @@ const Layout = ({ children }: LayoutProps) => {
 
         {/* User Profile Section */}
         {user && (
-          <div className="px-3 py-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="px-3 py-4 border-b border-black/10 dark:border-white/10">
             <button
               onClick={() => setProfileOpen(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
             >
               {user.picture ? (
                 <img 
@@ -101,7 +101,7 @@ const Layout = ({ children }: LayoutProps) => {
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                     isActive
                       ? 'bg-black dark:bg-white text-white dark:text-black font-semibold'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-black/30'
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -113,10 +113,10 @@ const Layout = ({ children }: LayoutProps) => {
         </nav>
 
         {/* Logout */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800">
+        <div className="p-3 border-t border-black/10 dark:border-white/10">
           <button 
             onClick={async () => await authService.signOut()}
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5" />
             <span className="text-sm">Logout</span>
@@ -127,12 +127,12 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Main Content Area - Scrollable */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden ml-0 lg:ml-64">
         {/* Top Header - Fixed */}
-        <header className="border-b border-gray-200/50 dark:border-gray-800/50 fixed top-0 right-0 left-0 lg:left-64 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md flex-shrink-0 h-16">
+        <header className="border-b border-black/10 dark:border-white/10 fixed top-0 right-0 left-0 lg:left-64 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-lg flex-shrink-0 h-16">
           <div className="px-4 h-full flex items-center justify-between max-w-full">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg"
+              className="lg:hidden p-2 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg"
             >
               <Menu className="w-5 h-5 text-black dark:text-white" />
             </button>
@@ -143,7 +143,7 @@ const Layout = ({ children }: LayoutProps) => {
             <div className="flex items-center gap-3 ml-auto">
               <button 
                 onClick={() => setDarkMode(!darkMode)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
               >
                 {darkMode ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
               </button>
@@ -179,12 +179,12 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Profile Modal */}
       {profileOpen && user && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setProfileOpen(false)}>
-          <div className="bg-white dark:bg-black rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <div className="bg-white/95 dark:bg-black/95 backdrop-blur-lg rounded-2xl max-w-md w-full shadow-2xl border border-black/10 dark:border-white/10" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-bold text-black dark:text-white">Profile</h2>
               <button 
                 onClick={() => setProfileOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
@@ -198,7 +198,7 @@ const Layout = ({ children }: LayoutProps) => {
                     <img 
                       src={user.picture} 
                       alt={user.name} 
-                      className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-800"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-black/10 dark:border-white/10"
                       onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   ) : null}
@@ -216,7 +216,7 @@ const Layout = ({ children }: LayoutProps) => {
 
               {/* Portfolio Stats */}
               {user.portfolio && user.portfolio.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div className="bg-white/60 dark:bg-black/60 backdrop-blur-md rounded-lg p-4 border border-black/10 dark:border-white/10">
                   <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portfolio Value</div>
                   <div className="text-2xl font-bold text-black dark:text-white">
                     ${user.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
@@ -228,13 +228,13 @@ const Layout = ({ children }: LayoutProps) => {
               )}
 
               {/* Actions */}
-              <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-800">
+              <div className="space-y-2 pt-4 border-t border-black/10 dark:border-white/10">
                 <button 
                   onClick={() => {
                     setProfileOpen(false)
                     navigate('/onboarding')
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors text-left"
                 >
                   <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-black dark:text-white">Settings</span>
@@ -242,7 +242,7 @@ const Layout = ({ children }: LayoutProps) => {
                 
                 <button 
                   onClick={async () => await authService.signOut()}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors text-left"
                 >
                   <LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-black dark:text-white">Log Out</span>
