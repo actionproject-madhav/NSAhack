@@ -6,15 +6,16 @@ type SoundName = 'click' | 'correct' | 'incorrect' | 'levelUp' | 'coinCollect' |
 
 const useGameSound = () => {
   // Only load sounds that actually exist - others will be silent
+  const baseUrl = import.meta.env.BASE_URL || '/'
   const soundsRef = useRef<Partial<Record<SoundName, Howl>>>({
     // click: File doesn't exist - will be silent
-    correct: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
-    incorrect: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
-    levelUp: new Howl({ src: ['/assets/sounds/effects/level_up.mp3'], volume: 0.8, preload: false }),
-    coinCollect: new Howl({ src: ['/assets/sounds/effects/coin-collect.mp3'], volume: 0.5, preload: false }),
-    unlock: new Howl({ src: ['/assets/sounds/effects/unlock.mp3'], volume: 0.7, preload: false }),
+    correct: new Howl({ src: [`${baseUrl}assets/sounds/effects/correct.mp3`], volume: 0.6, preload: true, html5: true }),
+    incorrect: new Howl({ src: [`${baseUrl}assets/sounds/effects/wrong.mp3`], volume: 0.6, preload: true, html5: true }),
+    levelUp: new Howl({ src: [`${baseUrl}assets/sounds/effects/level_up.mp3`], volume: 0.8, preload: true, html5: true }),
+    coinCollect: new Howl({ src: [`${baseUrl}assets/sounds/effects/coin-collect.mp3`], volume: 0.5, preload: true, html5: true }),
+    unlock: new Howl({ src: [`${baseUrl}assets/sounds/effects/unlock.mp3`], volume: 0.7, preload: true, html5: true }),
     // achievement: File doesn't exist - will be silent
-    combo: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
+    combo: new Howl({ src: [`${baseUrl}assets/sounds/effects/combo.mp3`], volume: 0.6, preload: true, html5: true }),
     // islandSelect: File doesn't exist - will be silent
     // locked: File doesn't exist - will be silent
     // heartLost: File doesn't exist - will be silent
@@ -37,13 +38,23 @@ const useGameSound = () => {
     if (bgMusicRef.current) {
       bgMusicRef.current.stop()
     }
+    // Use import.meta.env.BASE_URL for proper asset resolution in Vite
+    const baseUrl = import.meta.env.BASE_URL || '/'
     bgMusicRef.current = new Howl({
-      src: [`/assets/sounds/music/${musicFile}`],
+      src: [`${baseUrl}assets/sounds/music/${musicFile}`],
       loop: true,
       volume: 0.3,
-      preload: false
+      preload: true, // Preload for better playback
+      html5: true // Use HTML5 audio for better compatibility
     })
-    bgMusicRef.current.play()
+    try {
+      bgMusicRef.current.play()
+      if (import.meta.env.DEV) {
+        console.log('🎵 Playing music:', musicFile)
+      }
+    } catch (e) {
+      console.warn('Failed to play music:', musicFile, e)
+    }
   }, [])
 
   const stopBgMusic = useCallback(() => {

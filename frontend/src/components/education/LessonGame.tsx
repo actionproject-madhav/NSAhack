@@ -222,7 +222,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       {/* Top Bar */}
       <div className="relative z-10 bg-white/90 backdrop-blur shadow-lg p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          {/* Exit Button */}
+          {/* Exit Button *bu
           <button
             onClick={onExit}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

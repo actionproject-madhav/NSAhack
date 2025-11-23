@@ -66,6 +66,34 @@ const EducationHub = () => {
   const { addXP, calculateLevel } = useXPSystem()
   const controls = useAnimation()
 
+  // Load progress from localStorage on mount
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('educationProgress')
+    if (savedProgress) {
+      try {
+        const progress = JSON.parse(savedProgress)
+        setPlayerStats(prev => ({ ...prev, ...progress }))
+      } catch (e) {
+        console.warn('Failed to load progress from localStorage:', e)
+      }
+    }
+  }, [])
+
+  // Save progress to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('educationProgress', JSON.stringify({
+      level: playerStats.level,
+      xp: playerStats.xp,
+      streak: playerStats.streak,
+      hearts: playerStats.hearts,
+      coins: playerStats.coins,
+      badges: playerStats.badges,
+      unlockedIslands: playerStats.unlockedIslands,
+      completedLessons: playerStats.completedLessons,
+      powerups: playerStats.powerups
+    }))
+  }, [playerStats])
+
   // Start theme music on initial load
   useEffect(() => {
     startBgMusic('theme.mp3')
@@ -152,7 +180,15 @@ const EducationHub = () => {
     
     // Switch to island-specific music if available
     if (island.bgMusic) {
-      startBgMusic(island.bgMusic)
+      try {
+        startBgMusic(island.bgMusic)
+      } catch (e) {
+        console.warn('Failed to play island music:', island.bgMusic, e)
+        // Fallback to theme music
+        startBgMusic('theme.mp3')
+      }
+    } else {
+      startBgMusic('theme.mp3')
     }
   }
 
@@ -162,16 +198,34 @@ const EducationHub = () => {
     const coinsEarned = Math.floor(score * 2)
     
     // Update player stats
-    setPlayerStats(prev => ({
-      ...prev,
-      xp: prev.xp + xpEarned,
-      coins: prev.coins + coinsEarned,
-      completedLessons: [...prev.completedLessons, lessonId],
-      streak: prev.streak + 1
+    const newXP = playerStats.xp + xpEarned
+    const newStats = {
+      ...playerStats,
+      xp: newXP,
+      coins: playerStats.coins + coinsEarned,
+      completedLessons: [...playerStats.completedLessons, lessonId],
+      streak: playerStats.streak + 1
+    }
+    setPlayerStats(newStats)
+
+    // Save progress immediately
+    localStorage.setItem('educationProgress', JSON.stringify({
+      level: newStats.level,
+      xp: newStats.xp,
+      streak: newStats.streak,
+      hearts: newStats.hearts,
+      coins: newStats.coins,
+      badges: newStats.badges,
+      unlockedIslands: newStats.unlockedIslands,
+      completedLessons: newStats.completedLessons,
+      powerups: newStats.powerups
     }))
 
-    // Play success animation
+    // Play celebration music and sound
     playSound('levelUp')
+    // Play celebration music (use level_up sound as celebration)
+    startBgMusic('theme.mp3') // Resume theme music after lesson
+    
     confetti({
       particleCount: 100,
       spread: 70,
@@ -179,7 +233,7 @@ const EducationHub = () => {
     })
 
     // Check for level up
-    const newLevel = calculateLevel(playerStats.xp + xpEarned)
+    const newLevel = calculateLevel(newXP)
     if (newLevel > playerStats.level) {
       levelUp(newLevel)
     }
@@ -220,6 +274,9 @@ const EducationHub = () => {
   const levelUp = (newLevel: number) => {
     playSound('levelUp')
     
+    // Play celebration music (level up sound)
+    playSound('levelUp')
+    
     // Epic celebration
     const duration = 3000
     const animationEnd = Date.now() + duration
@@ -237,12 +294,41 @@ const EducationHub = () => {
       })
     }, 250)
 
-    setPlayerStats(prev => ({ ...prev, level: newLevel }))
+    const updatedStats = { ...playerStats, level: newLevel }
+    setPlayerStats(updatedStats)
+    
+    // Save progress after level up
+    localStorage.setItem('educationProgress', JSON.stringify({
+      level: updatedStats.level,
+      xp: updatedStats.xp,
+      streak: updatedStats.streak,
+      hearts: updatedStats.hearts,
+      coins: updatedStats.coins,
+      badges: updatedStats.badges,
+      unlockedIslands: updatedStats.unlockedIslands,
+      completedLessons: updatedStats.completedLessons,
+      powerups: updatedStats.powerups
+    }))
+  }
+
+  // Get current island background based on theme
+  const getIslandBackground = () => {
+    if (!currentIsland) return moneyAnimation
+    
+    // Map island themes to available animations
+    const themeMap: Record<string, any> = {
+      'tropical': moneyAnimation, // Use Money.json for tropical
+      'volcanic': moneyAnimation, // Can add specific animation later
+      'arctic': moneyAnimation,
+      'sky': moneyAnimation
+    }
+    
+    return themeMap[currentIsland.theme] || moneyAnimation
   }
 
   return (
     <Layout>
-      {/* Money Animation Background */}
+      {/* Island Theme Background */}
       <div 
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
@@ -251,7 +337,7 @@ const EducationHub = () => {
         }}
       >
         <Lottie 
-          animationData={moneyAnimation}
+          animationData={getIslandBackground()}
           loop={true}
           autoplay={true}
           style={{
@@ -260,7 +346,7 @@ const EducationHub = () => {
             objectFit: 'cover'
           }}
         />
-          </div>
+      </div>
       <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           {gameMode === 'map' && (
