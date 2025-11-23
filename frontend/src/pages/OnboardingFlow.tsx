@@ -58,9 +58,9 @@ const OnboardingFlow = () => {
     const userId = user.email || user.id
     if (userId) {
       try {
-        // Add timeout to prevent hanging
+        // Increased timeout to 30s for Render cold starts (free tier can take 30-60s)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 10000)
+          setTimeout(() => reject(new Error('Request timeout')), 30000)
         )
         
         const savePromise = apiService.updateOnboarding(userId, {
@@ -79,7 +79,12 @@ const OnboardingFlow = () => {
           console.warn('⚠️ Backend returned false, but onboarding marked complete in localStorage')
         }
       } catch (error: any) {
-        console.warn('⚠️ Backend save failed (non-critical):', error.message || error)
+        // Silently handle timeout - user can proceed anyway
+        if (error.message === 'Request timeout') {
+          console.warn('⚠️ Backend save timed out (Render cold start may be slow) - user can proceed')
+        } else {
+          console.warn('⚠️ Backend save failed (non-critical):', error.message || error)
+        }
         console.log('✅ Onboarding marked complete in localStorage - user can proceed')
         // Don't block navigation - user can proceed even if backend fails
       }

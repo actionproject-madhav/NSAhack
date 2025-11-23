@@ -69,6 +69,10 @@ class APIService {
     portfolio?: PortfolioItem[]
     total_value?: number
   }): Promise<boolean> {
+    // Create AbortController for proper request cancellation
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+    
     try {
       // Prefer email over Google ID for user lookup
       const userIdentifier = userId.includes('@') ? userId : userId;
@@ -79,11 +83,14 @@ class APIService {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
+        signal: controller.signal, // Enable request cancellation
         body: JSON.stringify({
           user_id: userIdentifier,
           ...onboardingData
         })
       })
+      
+      clearTimeout(timeoutId) // Clear timeout if request succeeds
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
@@ -94,6 +101,13 @@ class APIService {
       const data = await response.json()
       return data.success || false
     } catch (error: any) {
+      clearTimeout(timeoutId) // Clear timeout on error
+      
+      // Handle abort errors gracefully
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        throw new Error('Request timeout')
+      }
+      
       console.error('Error updating onboarding:', error)
       throw error
     }

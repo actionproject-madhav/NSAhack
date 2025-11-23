@@ -308,25 +308,26 @@ def save_onboarding_data():
             }
         }
         
-        # Try to find user by ObjectId, email, or google_id
+        # Try to find user by ObjectId, email, or google_id in a single query (faster)
         user = None
-        try:
-            # Try as ObjectId if it looks like one (24 hex characters)
-            if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
-                try:
-                    user = users_collection.find_one({'_id': ObjectId(user_id)})
-                except:
-                    pass
-        except:
-            pass
+        query_conditions = []
         
-        # If not found, try as email
-        if not user:
-            user = users_collection.find_one({'email': user_id})
+        # Build query conditions for all possible identifiers
+        # Always check email (most common)
+        query_conditions.append({'email': user_id})
         
-        # If still not found, try as google_id
-        if not user:
-            user = users_collection.find_one({'google_id': user_id})
+        # Check google_id (could be numeric string)
+        query_conditions.append({'google_id': user_id})
+        
+        # Try as ObjectId if it looks like one (24 hex characters)
+        if len(user_id) == 24 and all(c in '0123456789abcdefABCDEF' for c in user_id):
+            try:
+                query_conditions.append({'_id': ObjectId(user_id)})
+            except:
+                pass
+        
+        # Single query with $or for better performance (MongoDB will use index if available)
+        user = users_collection.find_one({'$or': query_conditions})
         
         if not user:
             # Auto-create user if not found (similar to trading endpoints)
