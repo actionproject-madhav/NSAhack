@@ -1,16 +1,16 @@
 export const LIFESTYLE_BRANDS = [
-  { name: 'Walmart', ticker: 'WMT', logo: '🛒' },
-  { name: 'Starbucks', ticker: 'SBUX', logo: '☕' },
-  { name: 'Netflix', ticker: 'NFLX', logo: '📺' },
-  { name: 'Apple', ticker: 'AAPL', logo: '🍎' },
-  { name: 'Amazon', ticker: 'AMZN', logo: '📦' },
-  { name: 'Tesla', ticker: 'TSLA', logo: '🚗' },
-  { name: 'Nike', ticker: 'NKE', logo: '👟' },
-  { name: 'McDonald\'s', ticker: 'MCD', logo: '🍟' },
-  { name: 'Disney', ticker: 'DIS', logo: '🏰' },
-  { name: 'Spotify', ticker: 'SPOT', logo: '🎵' },
-  { name: 'Uber', ticker: 'UBER', logo: '🚕' },
-  { name: 'Meta', ticker: 'META', logo: '📱' }
+  { name: 'Walmart', ticker: 'WMT' },
+  { name: 'Starbucks', ticker: 'SBUX' },
+  { name: 'Netflix', ticker: 'NFLX' },
+  { name: 'Apple', ticker: 'AAPL' },
+  { name: 'Amazon', ticker: 'AMZN' },
+  { name: 'Tesla', ticker: 'TSLA' },
+  { name: 'Nike', ticker: 'NKE' },
+  { name: 'McDonald\'s', ticker: 'MCD' },
+  { name: 'Disney', ticker: 'DIS' },
+  { name: 'Spotify', ticker: 'SPOT' },
+  { name: 'Uber', ticker: 'UBER' },
+  { name: 'Meta', ticker: 'META' }
 ]
 
 // REMOVED MOCK_PRICES - All prices now fetched from real APIs!

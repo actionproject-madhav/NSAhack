@@ -4,11 +4,11 @@ import Logo from './Logo'
 
 const Watchlist = () => {
   const watchlistItems = [
-    { symbol: 'AMZN', company: 'Amazon', price: '$102.21', change: '+3.67', positive: true, fallback: '📦' },
-    { symbol: 'KO', company: 'Coca-Cola', price: '$60.49', change: '+0.72', positive: true, fallback: '🥤' },
-    { symbol: 'BMW', company: 'BMW', price: '$92.94', change: '-0.68', positive: false, fallback: '🚗' },
-    { symbol: 'MSFT', company: 'Microsoft', price: '$248.16', change: '+0.10', positive: true, fallback: '💻' },
-    { symbol: 'UPS', company: 'UPS', price: '$182.09', change: '-7.39', positive: false, fallback: '📮' }
+    { symbol: 'AMZN', company: 'Amazon', price: '$102.21', change: '+3.67', positive: true },
+    { symbol: 'KO', company: 'Coca-Cola', price: '$60.49', change: '+0.72', positive: true },
+    { symbol: 'BMW', company: 'BMW', price: '$92.94', change: '-0.68', positive: false },
+    { symbol: 'MSFT', company: 'Microsoft', price: '$248.16', change: '+0.10', positive: true },
+    { symbol: 'UPS', company: 'UPS', price: '$182.09', change: '-7.39', positive: false }
   ]
 
   return (
@@ -44,8 +44,8 @@ const Watchlist = () => {
                      '#8b4513'
                  }}>
               <Logo 
-                company={item.company} 
-                fallback={item.fallback} 
+                company={item.symbol} 
+                fallback={item.symbol.charAt(0)} 
                 size={24}
               />
             </div>

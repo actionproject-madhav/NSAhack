@@ -77,9 +77,9 @@ def get_balance():
                 }
                 result = users.insert_one(new_user)
                 user = users.find_one({'_id': result.inserted_id})
-                print(f"✅ Auto-created user: {user_id}")
+                print(f" Auto-created user: {user_id}")
             else:
-                print(f"❌ User not found for user_id: {user_id}")
+                print(f" User not found for user_id: {user_id}")
                 return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if not exists
@@ -130,7 +130,7 @@ def buy_stock():
                 try:
                     user = users.find_one({'_id': ObjectId(user_id)})
                     if user:
-                        print(f"✅ Found user by ObjectId: {user_id}")
+                        print(f" Found user by ObjectId: {user_id}")
                 except:
                     pass
         except:
@@ -140,18 +140,18 @@ def buy_stock():
         if not user:
             user = users.find_one({'email': user_id})
             if user:
-                print(f"✅ Found user by email: {user_id}")
+                print(f" Found user by email: {user_id}")
         
         # If still not found, try as google_id
         if not user:
             user = users.find_one({'google_id': user_id})
             if user:
-                print(f"✅ Found user by google_id: {user_id}")
+                print(f" Found user by google_id: {user_id}")
         
         if not user:
             # Auto-create user if they don't exist (for frontend-only auth users)
             if '@' in user_id:  # If it's an email, create user
-                print(f"⚠️ User not found for user_id: {user_id}, auto-creating user...")
+                print(f" User not found for user_id: {user_id}, auto-creating user...")
                 new_user = {
                     'email': user_id,
                     'cash_balance': STARTING_CASH,
@@ -161,12 +161,12 @@ def buy_stock():
                 }
                 result = users.insert_one(new_user)
                 user = users.find_one({'_id': result.inserted_id})
-                print(f"✅ Auto-created user: {user_id}")
+                print(f" Auto-created user: {user_id}")
             else:
-                print(f"❌ User not found for user_id: {user_id} (type: {type(user_id).__name__})")
+                print(f" User not found for user_id: {user_id} (type: {type(user_id).__name__})")
                 # Debug: List all users in database
                 all_users = list(users.find({}, {'email': 1, 'google_id': 1, '_id': 1}).limit(5))
-                print(f"📋 Sample users in database: {[{'email': u.get('email'), 'google_id': u.get('google_id'), '_id': str(u.get('_id'))} for u in all_users]}")
+                print(f" Sample users in database: {[{'email': u.get('email'), 'google_id': u.get('google_id'), '_id': str(u.get('_id'))} for u in all_users]}")
                 return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
         
         # Initialize cash balance if needed
@@ -418,7 +418,7 @@ def get_transactions():
         
         # Auto-create user if they don't exist (for frontend-only auth users)
         if not user and '@' in user_id:
-            print(f"⚠️ User not found in get_transactions, auto-creating: {user_id}")
+            print(f" User not found in get_transactions, auto-creating: {user_id}")
             new_user = {
                 'email': user_id,
                 'cash_balance': STARTING_CASH,
@@ -428,11 +428,11 @@ def get_transactions():
             }
             result = users.insert_one(new_user)
             user = users.find_one({'_id': result.inserted_id})
-            print(f"✅ Auto-created user: {user_id}")
+            print(f" Auto-created user: {user_id}")
         
         # Auto-create user if they don't exist (for frontend-only auth users)
         if not user and '@' in user_id:
-            print(f"⚠️ User not found in get_transactions, auto-creating: {user_id}")
+            print(f" User not found in get_transactions, auto-creating: {user_id}")
             new_user = {
                 'email': user_id,
                 'cash_balance': STARTING_CASH,

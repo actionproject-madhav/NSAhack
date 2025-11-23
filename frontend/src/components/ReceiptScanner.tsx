@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Upload, X, Check, TrendingUp, DollarSign, AlertCircle, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
 import { useUser } from '../context/UserContext'
+import Logo from './Logo'
 
 // Types for backend response
 interface ReceiptScanResponse {
@@ -24,53 +25,52 @@ interface ScannedReceipt {
   extracted_text: string
   receipt_id?: string
   ticker?: string
-  logo?: string
   suggestion?: string
   is_popular_company?: boolean
 }
 
-// Enhanced company to ticker mapping with more companies
-const COMPANY_TICKER_MAP: Record<string, { ticker: string; logo: string; isPremium?: boolean }> = {
-  'starbucks corporation': { ticker: 'SBUX', logo: '☕', isPremium: true },
-  'starbucks': { ticker: 'SBUX', logo: '☕', isPremium: true },
-  'target corporation': { ticker: 'TGT', logo: '🎯', isPremium: true },
-  'target': { ticker: 'TGT', logo: '🎯', isPremium: true },
-  'walmart inc': { ticker: 'WMT', logo: '🛒', isPremium: true },
-  'walmart': { ticker: 'WMT', logo: '🛒', isPremium: true },
-  'nike inc': { ticker: 'NKE', logo: '👟', isPremium: true },
-  'nike': { ticker: 'NKE', logo: '👟', isPremium: true },
-  'apple inc': { ticker: 'AAPL', logo: '🍎', isPremium: true },
-  'apple': { ticker: 'AAPL', logo: '🍎', isPremium: true },
-  'amazon.com inc': { ticker: 'AMZN', logo: '📦', isPremium: true },
-  'amazon': { ticker: 'AMZN', logo: '📦', isPremium: true },
-  'mcdonald\'s corporation': { ticker: 'MCD', logo: '🍟', isPremium: true },
-  'mcdonalds': { ticker: 'MCD', logo: '🍟', isPremium: true },
-  'the coca-cola company': { ticker: 'KO', logo: '🥤', isPremium: true },
-  'coca cola': { ticker: 'KO', logo: '🥤', isPremium: true },
-  'tesla inc': { ticker: 'TSLA', logo: '🚗', isPremium: true },
-  'tesla': { ticker: 'TSLA', logo: '🚗', isPremium: true },
-  'microsoft corporation': { ticker: 'MSFT', logo: '💻', isPremium: true },
-  'microsoft': { ticker: 'MSFT', logo: '💻', isPremium: true },
-  'netflix inc': { ticker: 'NFLX', logo: '📺', isPremium: true },
-  'netflix': { ticker: 'NFLX', logo: '📺', isPremium: true },
-  'uber technologies inc': { ticker: 'UBER', logo: '🚕', isPremium: true },
-  'uber': { ticker: 'UBER', logo: '🚕', isPremium: true },
-  'spotify technology sa': { ticker: 'SPOT', logo: '🎵', isPremium: true },
-  'spotify': { ticker: 'SPOT', logo: '🎵', isPremium: true },
-  'meta platforms inc': { ticker: 'META', logo: '📱', isPremium: true },
-  'meta': { ticker: 'META', logo: '📱', isPremium: true },
-  'the walt disney company': { ticker: 'DIS', logo: '🏰', isPremium: true },
-  'disney': { ticker: 'DIS', logo: '🏰', isPremium: true },
-  'costco wholesale corporation': { ticker: 'COST', logo: '🏪', isPremium: true },
-  'costco': { ticker: 'COST', logo: '🏪', isPremium: true },
-  'the home depot inc': { ticker: 'HD', logo: '🔨', isPremium: true },
-  'home depot': { ticker: 'HD', logo: '🔨', isPremium: true },
-  'cvs health corporation': { ticker: 'CVS', logo: '💊', isPremium: true },
-  'cvs': { ticker: 'CVS', logo: '💊', isPremium: true },
-  'walgreens boots alliance inc': { ticker: 'WBA', logo: '💊' },
-  'walgreens': { ticker: 'WBA', logo: '💊' },
-  'chipotle mexican grill inc': { ticker: 'CMG', logo: '🌯', isPremium: true },
-  'chipotle': { ticker: 'CMG', logo: '🌯', isPremium: true }
+// Enhanced company to ticker mapping with more companies (no emojis - using real logos)
+const COMPANY_TICKER_MAP: Record<string, { ticker: string; isPremium?: boolean }> = {
+  'starbucks corporation': { ticker: 'SBUX', isPremium: true },
+  'starbucks': { ticker: 'SBUX', isPremium: true },
+  'target corporation': { ticker: 'TGT', isPremium: true },
+  'target': { ticker: 'TGT', isPremium: true },
+  'walmart inc': { ticker: 'WMT', isPremium: true },
+  'walmart': { ticker: 'WMT', isPremium: true },
+  'nike inc': { ticker: 'NKE', isPremium: true },
+  'nike': { ticker: 'NKE', isPremium: true },
+  'apple inc': { ticker: 'AAPL', isPremium: true },
+  'apple': { ticker: 'AAPL', isPremium: true },
+  'amazon.com inc': { ticker: 'AMZN', isPremium: true },
+  'amazon': { ticker: 'AMZN', isPremium: true },
+  'mcdonald\'s corporation': { ticker: 'MCD', isPremium: true },
+  'mcdonalds': { ticker: 'MCD', isPremium: true },
+  'the coca-cola company': { ticker: 'KO', isPremium: true },
+  'coca cola': { ticker: 'KO', isPremium: true },
+  'tesla inc': { ticker: 'TSLA', isPremium: true },
+  'tesla': { ticker: 'TSLA', isPremium: true },
+  'microsoft corporation': { ticker: 'MSFT', isPremium: true },
+  'microsoft': { ticker: 'MSFT', isPremium: true },
+  'netflix inc': { ticker: 'NFLX', isPremium: true },
+  'netflix': { ticker: 'NFLX', isPremium: true },
+  'uber technologies inc': { ticker: 'UBER', isPremium: true },
+  'uber': { ticker: 'UBER', isPremium: true },
+  'spotify technology sa': { ticker: 'SPOT', isPremium: true },
+  'spotify': { ticker: 'SPOT', isPremium: true },
+  'meta platforms inc': { ticker: 'META', isPremium: true },
+  'meta': { ticker: 'META', isPremium: true },
+  'the walt disney company': { ticker: 'DIS', isPremium: true },
+  'disney': { ticker: 'DIS', isPremium: true },
+  'costco wholesale corporation': { ticker: 'COST', isPremium: true },
+  'costco': { ticker: 'COST', isPremium: true },
+  'the home depot inc': { ticker: 'HD', isPremium: true },
+  'home depot': { ticker: 'HD', isPremium: true },
+  'cvs health corporation': { ticker: 'CVS', isPremium: true },
+  'cvs': { ticker: 'CVS', isPremium: true },
+  'walgreens boots alliance inc': { ticker: 'WBA' },
+  'walgreens': { ticker: 'WBA' },
+  'chipotle mexican grill inc': { ticker: 'CMG', isPremium: true },
+  'chipotle': { ticker: 'CMG', isPremium: true }
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '')
@@ -97,12 +97,11 @@ const ReceiptScanner = () => {
     return 'anonymous'
   }
 
-  const mapCompanyToTicker = (companyName: string, backendTicker?: string, backendLogo?: string): { ticker?: string; logo?: string; isPremium?: boolean } => {
+  const mapCompanyToTicker = (companyName: string, backendTicker?: string, backendLogo?: string): { ticker?: string; isPremium?: boolean } => {
     // If backend already detected the ticker, use it
-    if (backendTicker && backendLogo) {
+    if (backendTicker) {
       return {
         ticker: backendTicker,
-        logo: backendLogo,
         isPremium: true // Backend detected companies are considered premium
       }
     }
@@ -121,7 +120,7 @@ const ReceiptScanner = () => {
       }
     }
     
-    return { ticker: undefined, logo: '🏪', isPremium: false }
+    return { ticker: undefined, isPremium: false }
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +148,7 @@ const ReceiptScanner = () => {
       const data: ReceiptScanResponse = await response.json()
 
       if (data.success) {
-        const { ticker, logo, isPremium } = mapCompanyToTicker(
+        const { ticker, isPremium } = mapCompanyToTicker(
           data.company_name, 
           data.ticker, 
           data.logo
@@ -162,7 +161,6 @@ const ReceiptScanner = () => {
           extracted_text: data.extracted_text,
           receipt_id: data.receipt_id,
           ticker: ticker || data.ticker,
-          logo: logo || data.logo || '🏪',
           is_popular_company: data.is_popular_company || isPremium,
           suggestion: (ticker || data.ticker)
             ? `Great! You spent ${data.total_amount.toFixed(2)} at ${data.company_name}. Want to invest in ${ticker || data.ticker}?`
@@ -424,12 +422,20 @@ const ReceiptScanner = () => {
 
                     <div className="border border-gray-200 rounded-xl p-4 mb-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl ${
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           scannedReceipt.is_popular_company 
                             ? 'bg-gradient-to-br from-purple-100 to-blue-100' 
                             : 'bg-gray-100'
                         }`}>
-                          {scannedReceipt.logo}
+                          {scannedReceipt.ticker ? (
+                            <Logo 
+                              company={scannedReceipt.ticker} 
+                              fallback={scannedReceipt.company_name.charAt(0)} 
+                              size={32}
+                            />
+                          ) : (
+                            <span className="text-2xl">{scannedReceipt.company_name.charAt(0)}</span>
+                          )}
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -574,8 +580,16 @@ const ReceiptScanner = () => {
                         ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200'
                         : 'bg-purple-50 border border-purple-200'
                     }`}>
-                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm">
-                        {scannedReceipt.logo}
+                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                        {scannedReceipt.ticker ? (
+                          <Logo 
+                            company={scannedReceipt.ticker} 
+                            fallback={scannedReceipt.company_name.charAt(0)} 
+                            size={32}
+                          />
+                        ) : (
+                          <span className="text-xl">{scannedReceipt.company_name.charAt(0)}</span>
+                        )}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 flex items-center gap-2">

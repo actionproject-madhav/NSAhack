@@ -24,7 +24,6 @@ interface PortfolioItem {
   avgPrice: number
   currentPrice: number
   reason: string
-  logo: string
 }
 
 interface UserContextType {

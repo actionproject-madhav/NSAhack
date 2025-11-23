@@ -34,7 +34,7 @@ const PortfolioCard = ({ item }: PortfolioCardProps) => {
           <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
             <Logo 
               company={item.ticker} 
-              fallback={item.logo} 
+              fallback={item.ticker.charAt(0)} 
               size={32}
               className="rounded-lg"
             />

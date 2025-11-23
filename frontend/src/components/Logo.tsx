@@ -34,30 +34,37 @@ const Logo: React.FC<LogoProps> = ({
   // Debug logging
   console.log(`Logo component for ${company}: logoUrl=${logoUrl}, imageError=${imageError}, imageLoaded=${imageLoaded}`)
   
-  // If no logo URL available, show fallback immediately
+  // If no logo URL available, show ticker/company initial as fallback
   if (!logoUrl) {
-    console.log(`No logo URL found for ${company}, showing fallback`)
     return (
-      <div className={`flex items-center justify-center ${className}`}>
-        <span style={{ fontSize: size / 2 }}>{fallback}</span>
+      <div className={`flex items-center justify-center ${className} bg-gray-200 dark:bg-gray-700 rounded`} style={{ width: size, height: size }}>
+        <span className="text-gray-600 dark:text-gray-300 font-semibold" style={{ fontSize: size * 0.4 }}>
+          {fallback.toUpperCase()}
+        </span>
       </div>
     )
   }
   
-  // If image failed to load, show fallback
+  // If image failed to load, show ticker/company initial as fallback
   if (imageError) {
     return (
-      <div className={`flex items-center justify-center ${className}`}>
-        <span style={{ fontSize: size / 2 }}>{fallback}</span>
+      <div className={`flex items-center justify-center ${className} bg-gray-200 dark:bg-gray-700 rounded`} style={{ width: size, height: size }}>
+        <span className="text-gray-600 dark:text-gray-300 font-semibold" style={{ fontSize: size * 0.4 }}>
+          {fallback.toUpperCase()}
+        </span>
       </div>
     )
   }
   
   return (
-    <div className={`flex items-center justify-center ${className}`} style={{ position: 'relative' }}>
-      {/* Show fallback while loading */}
+    <div className={`flex items-center justify-center ${className}`} style={{ position: 'relative', width: size, height: size }}>
+      {/* Show placeholder while loading */}
       {!imageLoaded && (
-        <span style={{ fontSize: size / 2 }}>{fallback}</span>
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+          <span className="text-gray-400 dark:text-gray-500 text-xs font-semibold">
+            {fallback.toUpperCase()}
+          </span>
+        </div>
       )}
       
       {/* Logo image */}
@@ -68,7 +75,7 @@ const Logo: React.FC<LogoProps> = ({
         height={size}
         onError={handleImageError}
         onLoad={handleImageLoad}
-        className={`object-contain ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`object-contain rounded ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{ 
           maxWidth: size, 
           maxHeight: size,

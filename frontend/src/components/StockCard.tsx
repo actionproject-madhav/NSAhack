@@ -15,20 +15,8 @@ interface StockCardProps {
 const StockCard = ({ stock }: StockCardProps) => {
   const isPositive = stock.change.startsWith('+')
 
-  // Fallback emojis for common stocks
-  const getFallbackEmoji = (symbol: string) => {
-    const emojiMap: Record<string, string> = {
-      'NVDA': '🔥',
-      'META': '📱',
-      'TSLA': '🚗',
-      'AAPL': '🍎',
-      'SHOP': '🛍️',
-      'MSFT': '💻',
-      'GOOGL': '🔍',
-      'AMZN': '📦'
-    }
-    return emojiMap[symbol] || symbol.charAt(0)
-  }
+  // Fallback is just the ticker symbol first letter
+  const getFallback = (symbol: string) => symbol.charAt(0)
 
   // Mini chart SVG that matches the design
   const MiniChart = () => (
@@ -63,7 +51,7 @@ const StockCard = ({ stock }: StockCardProps) => {
         <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
           <Logo 
             company={stock.symbol} 
-            fallback={getFallbackEmoji(stock.symbol)} 
+            fallback={getFallback(stock.symbol)} 
             size={20}
             className="brightness-0 invert"
           />

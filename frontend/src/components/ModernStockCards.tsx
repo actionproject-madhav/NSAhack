@@ -71,22 +71,10 @@ function StockCard({
 }: StockCardProps) {
   const getIcon = () => {
     // Use ticker symbol directly - Logo component will look it up
-    const fallbackEmojis: Record<string, string> = {
-      'NVDA': '🔥',
-      'META': '📱',
-      'TSLA': '🚗',
-      'AAPL': '🍎',
-      'AMD': '💻',
-      'MSFT': '💻',
-      'GOOGL': '🔍',
-      'AMZN': '📦',
-      'NFLX': '📺'
-    };
-    
     return (
       <Logo 
         company={symbol} 
-        fallback={fallbackEmojis[symbol] || symbol.charAt(0)} 
+        fallback={symbol.charAt(0)} 
         size={24}
       />
     );

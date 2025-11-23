@@ -260,8 +260,8 @@ const OnboardingFlow = () => {
                   >
                     <div className="mb-1">
                       <Logo
-                        company={brand.name}
-                        fallback={brand.logo}
+                        company={brand.ticker}
+                        fallback={brand.name.charAt(0)}
                         size={24}
                       />
                     </div>

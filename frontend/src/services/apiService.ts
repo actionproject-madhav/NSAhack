@@ -9,7 +9,6 @@ export interface PortfolioItem {
   avgPrice: number
   currentPrice: number
   reason: string
-  logo: string
 }
 
 export interface UserProfile {
