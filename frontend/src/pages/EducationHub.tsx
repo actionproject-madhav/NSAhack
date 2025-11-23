@@ -17,7 +17,7 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-import { Heart, Coins, Trophy, Users, Gift, Snowflake, Zap } from 'lucide-react'
+import { Heart, Coins, Trophy, Users, Gift, Snowflake, Zap, ShoppingBag, Lock } from 'lucide-react'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -379,7 +379,7 @@ const EducationHub = () => {
                       <span className="text-xs">Daily Rewards</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <div className="w-8 h-8">🛍️</div>
+                      <ShoppingBag className="w-8 h-8 text-purple-500" />
                       <span className="text-xs">Shop</span>
                     </button>
                   </div>
@@ -404,6 +404,7 @@ const EducationHub = () => {
                 completeLesson('quiz', score)
                 setGameMode('map')
               }}
+              playerStats={playerStats}
             />
           )}
         </AnimatePresence>
@@ -430,7 +431,7 @@ const IslandModel = ({ island, isLocked, onClick }: any) => {
         }`}
       >
         {island.name}
-        {isLocked && ' 🔒'}
+        {isLocked && <Lock className="w-4 h-4 inline ml-1" />}
       </button>
     </div>
   )
