@@ -19,6 +19,7 @@ import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
 import { Lock, BookOpen } from 'lucide-react'
 import Spline from '@splinetool/react-spline'
+import IslandModelViewer from '../components/education/IslandModelViewer'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -155,7 +156,7 @@ const EducationHub = () => {
       name: 'Fundamentals Island',
       position: [0, 0, 0],
       color: '#4ECDC4',
-      model: '/models/island-tropical.glb',
+      model: '/3d-models/island-tropical.glb',
       theme: 'tropical',
       bgMusic: 'island-tropical.mp3',
       lessons: allUnits[0].lessons,
@@ -170,7 +171,7 @@ const EducationHub = () => {
       name: 'Stock Market Volcano',
       position: [5, 0, -3],
       color: '#FF6B6B',
-      model: '/models/island-volcano.glb',
+      model: '/3d-models/island-volcano.glb',
       theme: 'volcanic',
       bgMusic: 'island-volcano.mp3',
       lessons: allUnits[1].lessons,
@@ -182,7 +183,7 @@ const EducationHub = () => {
       name: 'Bond Glacier',
       position: [-4, 0, -2],
       color: '#A8E6CF',
-      model: '/models/island-ice.glb',
+      model: '/3d-models/island-ice.glb',
       theme: 'arctic',
       bgMusic: 'island-ice.mp3',
       lessons: allUnits[2].lessons,
@@ -194,7 +195,7 @@ const EducationHub = () => {
       name: 'ETF Sky Kingdom',
       position: [2, 3, -5],
       color: '#FFD93D',
-      model: '/models/island-floating.glb',
+      model: '/3d-models/island-sky.glb',
       theme: 'sky',
       bgMusic: 'island-sky.mp3',
       lessons: allUnits[3].lessons,
@@ -533,29 +534,24 @@ const EducationHub = () => {
                               </div>
                             )}
                             
-                            {/* Island Animation Preview */}
+                            {/* 3D Island Model Preview */}
                             <div 
-                              className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden flex items-center justify-center relative"
+                              className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden relative"
                               style={{ 
                                 backgroundColor: island.color + '10',
                                 minHeight: '128px',
                                 minWidth: '128px'
                               }}
                             >
-                              <Lottie 
-                                animationData={getIslandAnimation(island.theme)}
-                                loop={true}
-                                autoplay={true}
+                              <IslandModelViewer
+                                modelPath={island.model}
+                                autoRotate={true}
+                                scale={1}
                                 className="w-full h-full"
-                                style={{ 
-                                  width: '100%', 
-                                  height: '100%',
-                                  zIndex: 1
-                                }}
                               />
-                              {/* Very subtle color tint */}
+                              {/* Subtle color tint overlay */}
                               <div 
-                                className="absolute inset-0 opacity-10 pointer-events-none"
+                                className="absolute inset-0 opacity-10 pointer-events-none rounded-lg"
                                 style={{ 
                                   backgroundColor: island.color,
                                   zIndex: 2
