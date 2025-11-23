@@ -360,6 +360,17 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
                 )}
               </AnimatePresence>
             </motion.div>
+            ) : (
+              <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 text-center">
+                <p className="text-white text-xl mb-4">No questions available for this quiz.</p>
+                <button
+                  onClick={() => onComplete(0)}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Return to Map
+                </button>
+              </div>
+            )}
 
             {/* Battle Log */}
             <div className="mt-4 max-h-32 overflow-y-auto">

@@ -17,7 +17,8 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-import { Heart, Coins, Trophy, Users, Gift, Snowflake, Zap, ShoppingBag, Lock, BookOpen, ArrowLeft } from 'lucide-react'
+// Icons removed - will be replaced with custom downloaded icons
+// See ICON_REPLACEMENT_GUIDE.md for what to download and where
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -329,7 +330,7 @@ const EducationHub = () => {
                           <span className="text-xs font-medium">{playerStats.xp % 1000}/1000 XP</span>
                         </div>
 
-                        {/* Hearts */}
+                        {/* Hearts - TODO: Replace with custom heart icons */}
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (
                             <motion.div
@@ -338,15 +339,17 @@ const EducationHub = () => {
                               animate={{ scale: i < playerStats.hearts ? 1 : 0.5 }}
                               className={`w-6 h-6 ${i < playerStats.hearts ? 'text-red-500' : 'text-gray-300'}`}
                             >
-                              <Heart className="w-full h-full fill-current" />
+                              {/* TODO: Replace with <img src="/assets/icons/hearts/heart-full.svg" /> or Lottie */}
+                              <div className="w-full h-full rounded-full bg-red-500" />
                             </motion.div>
                           ))}
                             </div>
 
-                        {/* Coins */}
+                        {/* Coins - TODO: Replace with custom coin icon */}
                         <div className="flex items-center gap-1">
                           <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <Coins className="w-4 h-4 text-yellow-900" />
+                            {/* TODO: Replace with <img src="/assets/icons/ui/coin.svg" /> or Lottie */}
+                            <span className="text-xs font-bold text-yellow-900">$</span>
                           </div>
                           <span className="font-semibold">{playerStats.coins}</span>
                         </div>

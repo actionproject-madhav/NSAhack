@@ -22,7 +22,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
   const [feedbackType, setFeedbackType] = useState('correct')
   
   // Interactive Elements State
-  const [draggedItems, setDraggedItems] = useState({})
+  const [draggedItems, setDraggedItems] = useState<Record<string, any>>({})
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [heartsRemaining, setHeartsRemaining] = useState(hearts)
 
@@ -41,7 +41,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
   })
 
   // Handle Answer Selection
-  const handleAnswer = (isCorrect) => {
+  const handleAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
       sounds.correct.play()
       setScore(prev => prev + (100 * (1 + combo * 0.1)))
@@ -50,8 +50,12 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       
       // Combo celebration
       if (combo >= 3) {
-        sounds.combo.play()
-        triggerComboAnimation()
+        try {
+          sounds.combo.play()
+        } catch (e) {
+          // Sound failed, ignore
+        }
+        // TODO: Add combo animation using Lottie (you have combo.mp3 sound)
       }
     } else {
       sounds.incorrect.play()
@@ -62,7 +66,10 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       
       // Game Over Check
       if (heartsRemaining <= 1) {
-        handleGameOver()
+        // Game over - complete lesson with current score
+        setTimeout(() => {
+          onComplete(score)
+        }, 2000)
         return
       }
     }
@@ -70,7 +77,13 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
     setShowFeedback(true)
     setTimeout(() => {
       setShowFeedback(false)
-      nextSection()
+      // Move to next section or complete lesson
+      if (currentSection < lesson.content.sections.length - 1) {
+        setCurrentSection(prev => prev + 1)
+      } else {
+        // Lesson complete
+        onComplete(score)
+      }
     }, 1500)
   }
 
@@ -92,7 +105,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             <div className="grid grid-cols-2 gap-8">
               {/* Draggable Items */}
               <div className="space-y-4">
-                {section.items?.map((item, idx) => (
+                {section.items?.map((item: any, idx: number) => (
                   <animated.div
                     key={idx}
                     {...bind()}
@@ -105,7 +118,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               
               {/* Drop Zones */}
               <div className="space-y-4">
-                {section.dropZones?.map((zone, idx) => (
+                {section.dropZones?.map((zone: any, idx: number) => (
                   <div
                     key={idx}
                     className="border-2 border-dashed border-gray-300 p-4 rounded-xl min-h-[80px] flex items-center justify-center"
@@ -274,7 +287,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
 }
 
 // Mini-Game Component
-const MiniGame = ({ config, onComplete }) => {
+const MiniGame = ({ config, onComplete }: { config: any; onComplete: (isCorrect: boolean) => void }) => {
   // Implement various mini-games based on config
   // Examples: Stock Trading Simulator, Portfolio Balancer, Risk Calculator
   return (
