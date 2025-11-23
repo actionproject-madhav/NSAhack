@@ -78,14 +78,14 @@ const PortfolioPage = () => {
 
         {/* Portfolio Summary - Robinhood Minimal Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Value</span>
             <div className="text-3xl font-bold text-black dark:text-white mt-2">
               ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Return</span>
             <div className={`text-3xl font-bold mt-2 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
               {isPositive ? '+' : ''}${Math.abs(totalGainLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -95,7 +95,7 @@ const PortfolioPage = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md p-6 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Holdings</span>
             <div className="text-3xl font-bold text-black dark:text-white mt-2">
               {user?.portfolio?.length || 0}
@@ -103,8 +103,8 @@ const PortfolioPage = () => {
           </div>
         </div>
 
-        {/* Holdings List - Robinhood Minimal */}
-        <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800">
+        {/* Holdings List - Blended */}
+        <div className="bg-white/50 dark:bg-black/50 backdrop-blur-md rounded-lg border border-gray-200/50 dark:border-gray-800/50">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
             <h2 className="text-xl font-semibold text-black dark:text-white">Holdings</h2>
           </div>

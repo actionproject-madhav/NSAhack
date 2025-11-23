@@ -73,7 +73,7 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-white dark:bg-black">
+      <div className="h-screen flex items-center justify-center bg-transparent">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black dark:border-white mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -121,10 +121,7 @@ const Dashboard = () => {
 
             {/* Portfolio Chart - Shows Total Account Value Over Time */}
             <div className="mb-8">
-              <PortfolioChart 
-                height="400px"
-                theme={darkMode ? 'dark' : 'light'}
-              />
+              <PortfolioChart height="400px" />
             </div>
 
             {/* Stocks List - Real Prices from Yahoo Finance */}
@@ -144,7 +141,7 @@ const Dashboard = () => {
                       <button
                         key={stock.ticker}
                         onClick={() => navigate(`/stock/${stock.ticker}`)}
-                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors rounded-lg"
+                        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors rounded-lg backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-3 flex-1">
                           <div className="text-left flex-1">

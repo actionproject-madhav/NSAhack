@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { useEffect, lazy, Suspense } from 'react'
+import { useEffect } from 'react'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import OnboardingFlow from './pages/OnboardingFlow'
@@ -13,9 +13,6 @@ import WalletPage from './pages/WalletPage'
 import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
 import { UserProvider } from './context/UserContext'
-
-// Lazy load Spline for better performance
-const SplineBackground = lazy(() => import('./components/SplineBackground'))
 
 // Backend warm-up: Ping health endpoint on app load to wake up Render free tier
 const warmUpBackend = () => {
@@ -46,11 +43,6 @@ function App() {
     <UserProvider>
       <Router>
         <div className="min-h-screen bg-transparent transition-colors relative overflow-hidden">
-          {/* Spline Background - Lazy loaded for performance */}
-          <Suspense fallback={null}>
-            <SplineBackground />
-          </Suspense>
-          
           <div className="relative z-10">
             <AnimatePresence mode="wait" initial={false}>
               <Routes>

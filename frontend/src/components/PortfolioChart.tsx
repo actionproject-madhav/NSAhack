@@ -14,12 +14,15 @@ interface PortfolioDataPoint {
   cashBalance: number;
 }
 
-function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartProps) {
+function PortfolioChart({ height = "400px", theme }: PortfolioChartProps) {
   const { user } = useUser();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [data, setData] = useState<PortfolioDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<'1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'>('1M');
+  
+  // Auto-detect theme if not provided
+  const currentTheme = theme || (typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 
   // Calculate current total account value
   const currentTotalValue = useMemo(() => {
@@ -150,7 +153,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     const adjustedMax = maxValue + valuePadding;
 
     // Draw grid
-    ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+          ctx.strokeStyle = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (i / 4);
@@ -209,7 +212,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     }
 
     // Draw value labels
-    ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
+    ctx.fillStyle = currentTheme === 'dark' ? '#ffffff' : '#000000';
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= 4; i++) {
@@ -235,7 +238,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
         ctx.fill();
 
         // Draw value label with change indicator
-        ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
+        ctx.fillStyle = currentTheme === 'dark' ? '#ffffff' : '#000000';
         ctx.font = 'bold 14px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(
@@ -259,7 +262,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       
       // Draw time labels on x-axis
       if (data.length > 1) {
-        ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)';
+        ctx.fillStyle = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)';
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
         
@@ -278,7 +281,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
           height - chartPadding.bottom + 20
         );
       }
-  }, [data, isLoading, theme]);
+  }, [data, isLoading, currentTheme]);
 
   if (isLoading) {
     return (
@@ -298,25 +301,31 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
 
   return (
     <div className="w-full">
+      {/* Title */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold text-black dark:text-white mb-1">Portfolio Performance</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Your total account value over time</p>
+      </div>
+
       {/* Timeframe selector */}
       <div className="flex gap-2 mb-4 justify-end">
         {(['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const).map((tf) => (
-          <button
+            <button
             key={tf}
             onClick={() => setTimeframe(tf)}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
               timeframe === tf
                 ? 'bg-black dark:bg-white text-white dark:text-black'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                : 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 backdrop-blur-sm'
             }`}
           >
             {tf}
-          </button>
-        ))}
+            </button>
+          ))}
       </div>
 
-      {/* Chart */}
-      <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {/* Chart - Transparent background, no border */}
+      <div className="overflow-hidden">
         <canvas
           ref={canvasRef}
           className="w-full"
@@ -327,25 +336,25 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       {/* Stats */}
       {data.length > 0 && (
         <div className="mt-4 grid grid-cols-3 gap-4">
-          <div>
+        <div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Value</div>
             <div className="text-lg font-semibold text-black dark:text-white">
               ${data[data.length - 1].totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-          </div>
-          <div>
+        </div>
+        <div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Portfolio</div>
             <div className="text-lg font-semibold text-black dark:text-white">
               ${data[data.length - 1].portfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-          <div>
+        </div>
+        </div>
+        <div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Cash</div>
             <div className="text-lg font-semibold text-black dark:text-white">
               ${data[data.length - 1].cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
         </div>
+      </div>
+      </div>
       )}
     </div>
   );

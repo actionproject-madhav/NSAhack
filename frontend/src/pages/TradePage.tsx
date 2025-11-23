@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { Search, TrendingUp, TrendingDown, Plus, ScanLine, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
@@ -6,6 +6,9 @@ import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import tradingService from '../services/tradingService'
 import ReceiptScanner from '../components/ReceiptScanner'
+
+// Lazy load Spline for TradePage only
+const SplineBackground = lazy(() => import('../components/SplineBackground'))
 
 // Popular stocks for quick trading
 const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD']
@@ -111,7 +114,12 @@ const TradePage = () => {
 
   return (
     <Layout>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 w-full overflow-x-hidden">
+      {/* Spline Background - Only on Trade Page */}
+      <Suspense fallback={null}>
+        <SplineBackground />
+      </Suspense>
+      
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 w-full overflow-x-hidden">
         
         {/* Header */}
         <div className="mb-8">
