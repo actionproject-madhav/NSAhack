@@ -5,22 +5,50 @@ import confetti from 'canvas-confetti'
 import Lottie from 'lottie-react'
 import { Clock, Flame, Timer, Lightbulb, Shield, Sword } from 'lucide-react'
 
-// Import animations (you'll need to download these)
-// import swordFightAnimation from '../../assets/animations/sword-fight.json'
-// import shieldAnimation from '../../assets/animations/shield.json'
+// Types
+interface Question {
+  question: string
+  options: string[]
+  correctAnswer: number
+  explanation?: string
+}
 
-const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [playerHealth, setPlayerHealth] = useState(100)
-  const [opponentHealth, setOpponentHealth] = useState(100)
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
-  const [showResult, setShowResult] = useState(false)
-  const [combo, setCombo] = useState(0)
-  const [timeRemaining, setTimeRemaining] = useState(30)
-  const [battleLog, setBattleLog] = useState([])
-  const [powerUpActive, setPowerUpActive] = useState(null)
+interface PlayerStats {
+  powerups: {
+    timeFreeze?: number
+    hint?: number
+    shield?: number
+    [key: string]: number | undefined
+  }
+}
+
+interface BattleLogEntry {
+  type: 'player' | 'opponent'
+  message: string
+  damage: number
+}
+
+interface QuizBattleProps {
+  questions?: Question[]
+  onComplete: (score: number) => void
+  playerStats?: PlayerStats
+  opponent?: string
+}
+
+const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }, opponent = 'AI' }: QuizBattleProps) => {
+  const [currentQuestion, setCurrentQuestion] = useState<number>(0)
+  const [playerHealth, setPlayerHealth] = useState<number>(100)
+  const [opponentHealth, setOpponentHealth] = useState<number>(100)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+  const [showResult, setShowResult] = useState<boolean>(false)
+  const [combo, setCombo] = useState<number>(0)
+  const [timeRemaining, setTimeRemaining] = useState<number>(30)
+  const [battleLog, setBattleLog] = useState<BattleLogEntry[]>([])
+  const [powerUpActive, setPowerUpActive] = useState<string | null>(null)
+  const [correctAnswers, setCorrectAnswers] = useState<number>(0)
+  const [maxCombo, setMaxCombo] = useState<number>(0)
   
-  const timerRef = useRef(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sounds = useRef({
     attack: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
     defend: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
@@ -31,17 +59,19 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
 
   // Timer countdown
   useEffect(() => {
-    if (timeRemaining > 0 && !showResult) {
+    if (timeRemaining > 0 && !showResult && questions.length > 0) {
       timerRef.current = setTimeout(() => {
         setTimeRemaining(prev => prev - 1)
       }, 1000)
-    } else if (timeRemaining === 0) {
+    } else if (timeRemaining === 0 && !showResult) {
       // Time's up - count as wrong answer
       handleAnswer(-1)
     }
 
-    return () => clearTimeout(timerRef.current)
-  }, [timeRemaining, showResult])
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [timeRemaining, showResult, questions.length])
 
   const handleAnswer = (answerIndex: number) => {
     if (!questions || questions.length === 0 || !questions[currentQuestion]) {
@@ -49,7 +79,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
       return
     }
     const question = questions[currentQuestion]
-    const isCorrect = answerIndex === question.correctAnswer
+    const isCorrect = answerIndex >= 0 && answerIndex === question.correctAnswer
     
     setSelectedAnswer(answerIndex)
     setShowResult(true)
@@ -62,32 +92,37 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
       
       // Deal damage to opponent
       setOpponentHealth(prev => Math.max(0, prev - damage))
-      sounds.current.attack.play()
+      setCorrectAnswers(prev => prev + 1)
+      const newCombo = combo + 1
+      setCombo(newCombo)
+      setMaxCombo(prev => Math.max(prev, newCombo))
       
-      // Update combo
-      setCombo(prev => prev + 1)
-      if (combo >= 3) {
-        sounds.current.critical.play()
+      try {
+        sounds.current.attack.play()
+        if (newCombo >= 3) {
+          sounds.current.critical.play()
+        }
+      } catch (e) {
+        // Sound failed, ignore
       }
       
       // Add to battle log
       setBattleLog(prev => [...prev, {
         type: 'player',
-        message: `You dealt ${damage} damage! ${combo >= 3 ? 'COMBO!' : ''}`,
+        message: `You dealt ${damage} damage! ${newCombo >= 3 ? 'COMBO!' : ''}`,
         damage
       }])
     } else {
       // Take damage for wrong answer
       const damage = 15
       setPlayerHealth(prev => Math.max(0, prev - damage))
+      setCombo(0)
+      
       try {
         sounds.current.defend.play()
       } catch (e) {
         // Sound failed, ignore
       }
-      
-      // Reset combo
-      setCombo(0)
       
       // Add to battle log
       setBattleLog(prev => [...prev, {
@@ -142,14 +177,15 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
   }
 
   const calculateScore = () => {
+    if (questions.length === 0) return 0
     const healthBonus = playerHealth
     const accuracyBonus = (correctAnswers / questions.length) * 100
     const comboBonus = maxCombo * 10
     return Math.floor(healthBonus + accuracyBonus + comboBonus)
   }
 
-  const usePowerUp = (type) => {
-    if (!powerUpActive && playerStats.powerups[type] > 0) {
+  const usePowerUp = (type: string) => {
+    if (!powerUpActive && playerStats.powerups[type] && playerStats.powerups[type]! > 0) {
       setPowerUpActive(type)
       // Apply power-up effect
       switch(type) {
@@ -256,21 +292,24 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
 
               {/* Power-ups */}
               <div className="flex gap-2">
-                {Object.entries(playerStats.powerups).map(([key, count]) => (
-                  <button
-                    key={key}
-                    onClick={() => usePowerUp(key)}
-                    disabled={count === 0 || powerUpActive}
-                    className={`p-2 rounded-lg ${
-                      count > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700 opacity-50'
-                    } transition-colors`}
-                  >
-                    {key === 'timeFreeze' && <Timer className="w-6 h-6 text-white" />}
-                    {key === 'hint' && <Lightbulb className="w-6 h-6 text-white" />}
-                    {key === 'shield' && <Shield className="w-6 h-6 text-white" />}
-                    <span className="text-xs text-white">{count}</span>
-                  </button>
-                ))}
+                {Object.entries(playerStats.powerups || {}).map(([key, count]) => {
+                  const countNum = typeof count === 'number' ? count : 0
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => usePowerUp(key)}
+                      disabled={countNum === 0 || powerUpActive !== null}
+                      className={`p-2 rounded-lg ${
+                        countNum > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700 opacity-50'
+                      } transition-colors`}
+                    >
+                      {key === 'timeFreeze' && <Timer className="w-6 h-6 text-white" />}
+                      {key === 'hint' && <Lightbulb className="w-6 h-6 text-white" />}
+                      {key === 'shield' && <Shield className="w-6 h-6 text-white" />}
+                      <span className="text-xs text-white">{countNum}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -283,7 +322,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
             <div className="flex justify-between mb-8">
               {/* Player Character */}
               <motion.div
-                animate={selectedAnswer !== null && questions[currentQuestion].correctAnswer === selectedAnswer ? {
+                animate={selectedAnswer !== null && questions[currentQuestion] && questions[currentQuestion].correctAnswer === selectedAnswer ? {
                   x: [0, 50, 0],
                   transition: { duration: 0.5 }
                 } : {}}
@@ -294,7 +333,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
 
               {/* Opponent Character */}
               <motion.div
-                animate={selectedAnswer !== null && questions[currentQuestion].correctAnswer !== selectedAnswer ? {
+                animate={selectedAnswer !== null && questions[currentQuestion] && questions[currentQuestion].correctAnswer !== selectedAnswer ? {
                   x: [0, -50, 0],
                   transition: { duration: 0.5 }
                 } : {}}
@@ -323,7 +362,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
 
               {/* Answer Options */}
               <div className="grid grid-cols-2 gap-4">
-                {questions[currentQuestion].options.map((option, index) => (
+                {questions[currentQuestion]?.options?.map((option: string, index: number) => (
                   <motion.button
                     key={index}
                     whileHover={{ scale: 1.02 }}
@@ -332,7 +371,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
                     disabled={showResult}
                     className={`p-4 rounded-xl text-left transition-all ${
                       showResult
-                        ? index === questions[currentQuestion].correctAnswer
+                        ? index === questions[currentQuestion]?.correctAnswer
                           ? 'bg-green-500 text-white'
                           : index === selectedAnswer
                           ? 'bg-red-500 text-white'
@@ -342,12 +381,12 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
                   >
                     <span className="font-semibold">{String.fromCharCode(65 + index)}.</span> {option}
                   </motion.button>
-                ))}
+                )) || []}
               </div>
 
               {/* Explanation */}
               <AnimatePresence>
-                {showResult && (
+                {showResult && questions[currentQuestion]?.explanation && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -375,7 +414,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }
             {/* Battle Log */}
             <div className="mt-4 max-h-32 overflow-y-auto">
               <AnimatePresence>
-                {battleLog.slice(-3).map((log, index) => (
+                {battleLog.slice(-3).map((log: BattleLogEntry, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: log.type === 'player' ? -50 : 50 }}

@@ -150,8 +150,10 @@ const EducationHub = () => {
     setCurrentIsland(island)
     setGameMode('lessons')
     
-    // Keep theme.mp3 playing (no need to switch to island-specific music)
-    // Theme music continues playing throughout the experience
+    // Switch to island-specific music if available
+    if (island.bgMusic) {
+      startBgMusic(island.bgMusic)
+    }
   }
 
   // Handle Lesson Completion

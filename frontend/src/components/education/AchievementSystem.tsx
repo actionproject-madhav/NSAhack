@@ -117,10 +117,29 @@ export const AchievementPopup = ({ achievement, onClose }: { achievement?: any; 
   )
 }
 
-const AchievementSystem = ({ playerStats, onAchievementUnlock }) => {
-  const [unlockedAchievements, setUnlockedAchievements] = useState([])
-  const [showingAchievement, setShowingAchievement] = useState(null)
-  const [achievementQueue, setAchievementQueue] = useState([])
+interface PlayerStats {
+  streak: number
+  completedLessons: (string | number)[]
+  [key: string]: any
+}
+
+interface Achievement {
+  id: string
+  name: string
+  description: string
+  iconKey: string
+  [key: string]: any
+}
+
+interface AchievementSystemProps {
+  playerStats: PlayerStats
+  onAchievementUnlock: (achievement: Achievement) => void
+}
+
+const AchievementSystem = ({ playerStats, onAchievementUnlock }: AchievementSystemProps) => {
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([])
+  const [showingAchievement, setShowingAchievement] = useState<Achievement | null>(null)
+  const [achievementQueue, setAchievementQueue] = useState<Achievement[]>([])
 
   // Check for new achievements
   useEffect(() => {
@@ -137,7 +156,7 @@ const AchievementSystem = ({ playerStats, onAchievementUnlock }) => {
   }, [showingAchievement, achievementQueue])
 
   const checkAchievements = () => {
-    const newAchievements = []
+    const newAchievements: Achievement[] = []
 
     // Streak achievements
     if (playerStats.streak >= 3 && !hasAchievement('streak_3')) {
@@ -161,19 +180,21 @@ const AchievementSystem = ({ playerStats, onAchievementUnlock }) => {
     // Add new achievements to queue
     if (newAchievements.length > 0) {
       setAchievementQueue(prev => [...prev, ...newAchievements])
-      newAchievements.forEach(ach => {
-        setUnlockedAchievements(prev => [...prev, ach.id])
-        onAchievementUnlock(ach)
+      newAchievements.forEach((ach: Achievement) => {
+        if (ach) {
+          setUnlockedAchievements(prev => [...prev, ach.id])
+          onAchievementUnlock(ach)
+        }
       })
     }
   }
 
-  const hasAchievement = (id) => {
+  const hasAchievement = (id: string) => {
     return unlockedAchievements.includes(id)
   }
 
-  const getAchievement = (id) => {
-    return achievements.find(a => a.id === id)
+  const getAchievement = (id: string): Achievement | undefined => {
+    return achievements.find((a: Achievement) => a.id === id)
   }
 
   return (

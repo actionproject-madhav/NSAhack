@@ -4,7 +4,35 @@ import Lottie from 'lottie-react'
 import { Trophy, Flame, Star, BookOpen } from 'lucide-react'
 // import streakAnimation from '../../assets/animations/streak-fire.json'
 
-const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
+interface PlayerStats {
+  level: number
+  xp: number
+  streak: number
+  dailyXP?: number
+  dailyLessons?: number
+  totalXP?: number
+  completedLessons: (string | number)[]
+  perfectScores?: number
+  timeStudied?: string
+}
+
+interface DailyGoals {
+  xp: number
+  lessons: number
+}
+
+interface Achievement {
+  name: string
+  icon: string
+}
+
+interface ProgressTrackerProps {
+  playerStats: PlayerStats
+  dailyGoals: DailyGoals
+  achievements: Achievement[]
+}
+
+const ProgressTracker = ({ playerStats, dailyGoals, achievements }: ProgressTrackerProps) => {
   const [showStreakAnimation, setShowStreakAnimation] = useState(false)
 
   useEffect(() => {
@@ -15,8 +43,8 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
   }, [playerStats.streak])
 
   const xpProgress = (playerStats.xp % 1000) / 1000 * 100
-  const dailyXPProgress = (playerStats.dailyXP / dailyGoals.xp) * 100
-  const dailyLessonsProgress = (playerStats.dailyLessons / dailyGoals.lessons) * 100
+  const dailyXPProgress = ((playerStats.dailyXP || 0) / dailyGoals.xp) * 100
+  const dailyLessonsProgress = ((playerStats.dailyLessons || 0) / dailyGoals.lessons) * 100
 
   return (
     <div className="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-2xl">
@@ -109,7 +137,7 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
       <div>
         <h3 className="font-semibold mb-3">Recent Achievements</h3>
         <div className="flex gap-2 flex-wrap">
-          {achievements.slice(-5).map((achievement, index) => (
+          {(achievements || []).slice(-5).map((achievement: Achievement, index: number) => (
             <motion.div
               key={index}
               initial={{ scale: 0 }}

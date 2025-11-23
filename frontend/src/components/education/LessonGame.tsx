@@ -101,7 +101,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       case 'interactive-drag':
         return (
           <div className="relative h-96">
-            <h3 className="text-2xl font-bold mb-4">{section.title}</h3>
+            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
             <div className="grid grid-cols-2 gap-8">
               {/* Draggable Items */}
               <div className="space-y-4">
@@ -111,7 +111,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
                     {...bind()}
                     className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-xl cursor-move shadow-lg"
                   >
-                    {item.text}
+                    <span className="text-white">{item.text}</span>
                   </animated.div>
                 ))}
               </div>
@@ -121,7 +121,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
                 {section.dropZones?.map((zone: any, idx: number) => (
                   <div
                     key={idx}
-                    className="border-2 border-dashed border-gray-300 p-4 rounded-xl min-h-[80px] flex items-center justify-center"
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 rounded-xl min-h-[80px] flex items-center justify-center text-gray-700 dark:text-gray-300"
                   >
                     {draggedItems[zone.id] || zone.placeholder}
                   </div>
@@ -142,15 +142,15 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               loop={false}
               className="w-96 h-96 mx-auto"
             />
-            <p className="text-lg mt-4">{section.content}</p>
+            <p className="text-lg mt-4 text-gray-800 dark:text-gray-200">{section.content}</p>
           </div>
         )
         
       default:
         return (
-          <div className="prose prose-lg max-w-none">
-            <h3 className="text-2xl font-bold mb-4">{section.title}</h3>
-            <p>{section.content}</p>
+          <div className="prose prose-lg max-w-none text-black dark:text-white">
+            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
+            <p className="text-gray-800 dark:text-gray-200">{section.content}</p>
           </div>
         )
     }
@@ -237,7 +237,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="bg-white rounded-3xl shadow-2xl p-8"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 text-black dark:text-white"
           >
             {renderSection()}
           </motion.div>
@@ -258,9 +258,17 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-semibold shadow-lg"
-            onClick={() => handleAnswer(true)}
+            onClick={() => {
+              // Move to next section or complete lesson
+              if (currentSection < lesson.content.sections.length - 1) {
+                setCurrentSection(prev => prev + 1)
+              } else {
+                // Lesson complete - mark as correct and finish
+                onComplete(score)
+              }
+            }}
           >
-            Continue
+            {currentSection < lesson.content.sections.length - 1 ? 'Next' : 'Complete'}
           </motion.button>
         </div>
       </div>
