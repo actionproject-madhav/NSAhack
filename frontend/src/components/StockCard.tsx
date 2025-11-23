@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import Logo from './Logo'
 
 interface StockCardProps {
   stock: {
@@ -14,16 +15,19 @@ interface StockCardProps {
 const StockCard = ({ stock }: StockCardProps) => {
   const isPositive = stock.change.startsWith('+')
 
-  // Company logos based on the design
-  const getCompanyLogo = (symbol: string) => {
-    switch (symbol) {
-      case 'NVDA': return ''
-      case 'META': return ''
-      case 'TSLA': return ''
-      case 'AAPL': return ''
-      case 'SHOP': return ''
-      default: return ''
+  // Fallback emojis for common stocks
+  const getFallbackEmoji = (symbol: string) => {
+    const emojiMap: Record<string, string> = {
+      'NVDA': '🔥',
+      'META': '📱',
+      'TSLA': '🚗',
+      'AAPL': '🍎',
+      'SHOP': '🛍️',
+      'MSFT': '💻',
+      'GOOGL': '🔍',
+      'AMZN': '📦'
     }
+    return emojiMap[symbol] || symbol.charAt(0)
   }
 
   // Mini chart SVG that matches the design
@@ -57,7 +61,12 @@ const StockCard = ({ stock }: StockCardProps) => {
       {/* Company Logo/Icon */}
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-          <span className="text-sm">{getCompanyLogo(stock.symbol)}</span>
+          <Logo 
+            company={stock.symbol} 
+            fallback={getFallbackEmoji(stock.symbol)} 
+            size={20}
+            className="brightness-0 invert"
+          />
         </div>
         <div>
           <p className="text-xs opacity-90 font-medium">{stock.company}</p>

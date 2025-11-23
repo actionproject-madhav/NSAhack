@@ -70,26 +70,26 @@ function StockCard({
   quote 
 }: StockCardProps) {
   const getIcon = () => {
-    const companyMap: Record<string, { name: string; fallback: string }> = {
-      'NVDA': { name: 'Nvidia', fallback: '🔥' },
-      'META': { name: 'Meta', fallback: '📱' },
-      'TSLA': { name: 'Tesla', fallback: '🚗' },
-      'AAPL': { name: 'Apple', fallback: '🍎' },
-      'AMD': { name: 'AMD', fallback: '💻' }
+    // Use ticker symbol directly - Logo component will look it up
+    const fallbackEmojis: Record<string, string> = {
+      'NVDA': '🔥',
+      'META': '📱',
+      'TSLA': '🚗',
+      'AAPL': '🍎',
+      'AMD': '💻',
+      'MSFT': '💻',
+      'GOOGL': '🔍',
+      'AMZN': '📦',
+      'NFLX': '📺'
     };
-
-    const companyInfo = companyMap[symbol];
-    if (companyInfo) {
-      return (
-        <Logo 
-          company={companyInfo.name} 
-          fallback={companyInfo.fallback} 
-          size={24}
-        />
-      );
-    }
     
-    return <div className="w-6 h-6 bg-gray-300 rounded" />;
+    return (
+      <Logo 
+        company={symbol} 
+        fallback={fallbackEmojis[symbol] || symbol.charAt(0)} 
+        size={24}
+      />
+    );
   };
 
   const isPositive = changeValue.startsWith('+');

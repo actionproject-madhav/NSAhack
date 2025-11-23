@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, MoreHorizontal } from 'lucide-react'
+import Logo from './Logo'
 
 interface PortfolioItem {
   ticker: string
@@ -30,8 +31,13 @@ const PortfolioCard = ({ item }: PortfolioCardProps) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
-            {item.logo}
+          <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
+            <Logo 
+              company={item.ticker} 
+              fallback={item.logo} 
+              size={32}
+              className="rounded-lg"
+            />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">{item.ticker}</h3>

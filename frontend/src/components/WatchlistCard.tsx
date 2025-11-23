@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
+import Logo from './Logo'
 
 interface WatchlistItem {
   name: string
@@ -96,15 +97,11 @@ const WatchlistItem: React.FC<WatchlistItemProps> = ({ item }) => {
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2">
-        <img 
-          src={item.logo} 
-          alt={`${item.name} logo`} 
-          className="w-6 h-6 object-contain flex-shrink-0"
-          onError={(e) => { 
-            const target = e.target as HTMLImageElement
-            target.onerror = null
-            target.src = `https://placehold.co/24x24/f8f8f8/ccc?text=${item.symbol}`
-          }}
+        <Logo 
+          company={item.symbol} 
+          fallback={item.symbol.charAt(0)} 
+          size={24}
+          className="flex-shrink-0"
         />
         <div className="min-w-0 flex-1">
           <p className="font-medium text-gray-900 text-xs leading-tight truncate">{item.name}</p>

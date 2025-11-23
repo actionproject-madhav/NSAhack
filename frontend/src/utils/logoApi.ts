@@ -46,7 +46,7 @@ export const getLogoWithFallback = (domain: string, fallback: string, options: L
   }
 }
 
-// Company domain mappings for common brands
+// Company domain mappings for common brands (by company name)
 export const COMPANY_DOMAINS = {
   'Google': 'google.com',
   'Facebook': 'facebook.com',
@@ -67,18 +67,68 @@ export const COMPANY_DOMAINS = {
   'AMD': 'amd.com',
   'BMW': 'bmw.com',
   'Coca-Cola': 'coca-cola.com',
-  'UPS': 'ups.com'
+  'UPS': 'ups.com',
+  'Target': 'target.com',
+  'Home Depot': 'homedepot.com',
+  'CVS': 'cvs.com',
+  'Walgreens': 'walgreens.com',
+  'Chipotle': 'chipotle.com',
+  'Costco': 'costco.com'
+} as const
+
+// Ticker symbol to company domain mapping (for direct ticker lookup)
+export const TICKER_TO_DOMAIN: Record<string, string> = {
+  // Tech
+  'AAPL': 'apple.com',
+  'GOOGL': 'google.com',
+  'GOOG': 'google.com',
+  'MSFT': 'microsoft.com',
+  'AMZN': 'amazon.com',
+  'META': 'meta.com',
+  'NFLX': 'netflix.com',
+  'TSLA': 'tesla.com',
+  'NVDA': 'nvidia.com',
+  'AMD': 'amd.com',
+  'SPOT': 'spotify.com',
+  'UBER': 'uber.com',
+  
+  // Retail
+  'WMT': 'walmart.com',
+  'TGT': 'target.com',
+  'COST': 'costco.com',
+  'HD': 'homedepot.com',
+  'SBUX': 'starbucks.com',
+  'MCD': 'mcdonalds.com',
+  'CMG': 'chipotle.com',
+  
+  // Consumer
+  'NKE': 'nike.com',
+  'DIS': 'disney.com',
+  'KO': 'coca-cola.com',
+  
+  // Healthcare/Pharmacy
+  'CVS': 'cvs.com',
+  'WBA': 'walgreens.com',
+  
+  // Add more as needed
 } as const
 
 /**
- * Get logo URL for a known company by name
- * @param companyName - Company name (e.g., 'Apple', 'Google')
+ * Get logo URL for a known company by name or ticker symbol
+ * @param identifier - Company name (e.g., 'Apple', 'Google') or ticker symbol (e.g., 'AAPL', 'GOOGL')
  * @param options - Logo options
  * @returns Logo URL or null if company not found
  */
-export const getCompanyLogo = (companyName: string, options: LogoOptions = {}): string | null => {
-  // Clean company name - remove common suffixes
-  const cleanName = companyName
+export const getCompanyLogo = (identifier: string, options: LogoOptions = {}): string | null => {
+  // First, try ticker symbol lookup (faster and more reliable)
+  const ticker = identifier.toUpperCase().trim()
+  if (TICKER_TO_DOMAIN[ticker]) {
+    const domain = TICKER_TO_DOMAIN[ticker]
+    return getLogoUrl(domain, options)
+  }
+  
+  // If not a ticker, try company name lookup
+  const cleanName = identifier
     .replace(/\s+(Inc\.?|Corp\.?|Corporation|Company|Co\.?|Ltd\.?|LLC)$/i, '')
     .trim()
   
@@ -87,11 +137,19 @@ export const getCompanyLogo = (companyName: string, options: LogoOptions = {}): 
   
   // If no exact match, try original name
   if (!domain) {
-    domain = COMPANY_DOMAINS[companyName as keyof typeof COMPANY_DOMAINS]
+    domain = COMPANY_DOMAINS[identifier as keyof typeof COMPANY_DOMAINS]
   }
   
-  // Debug logging
-  console.log(`Logo lookup for "${companyName}" (cleaned: "${cleanName}") -> domain: ${domain}`)
-  
+  return domain ? getLogoUrl(domain, options) : null
+}
+
+/**
+ * Get logo URL directly from ticker symbol
+ * @param ticker - Stock ticker symbol (e.g., 'AAPL', 'GOOGL')
+ * @param options - Logo options
+ * @returns Logo URL or null if ticker not found
+ */
+export const getLogoByTicker = (ticker: string, options: LogoOptions = {}): string | null => {
+  const domain = TICKER_TO_DOMAIN[ticker.toUpperCase()]
   return domain ? getLogoUrl(domain, options) : null
 }
