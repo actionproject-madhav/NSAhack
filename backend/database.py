@@ -10,6 +10,20 @@ class ReceiptDatabase:
     def __init__(self):
         self.mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
         self.database_name = os.getenv('DATABASE_NAME', 'receipt_scanner')
+        
+        # Log environment check at startup
+        print("=" * 60)
+        print("DATABASE INITIALIZATION")
+        print("=" * 60)
+        print(f"MONGO_URI: {'✅ Set' if self.mongo_uri and self.mongo_uri != 'mongodb://localhost:27017/' else '❌ Missing or default'}")
+        if self.mongo_uri and self.mongo_uri != 'mongodb://localhost:27017/':
+            # Show preview (first 40 chars + last 20 chars for security)
+            preview = self.mongo_uri[:40] + "..." + self.mongo_uri[-20:] if len(self.mongo_uri) > 60 else self.mongo_uri
+            print(f"  Preview: {preview}")
+        print(f"DATABASE_NAME: {'✅ Set' if self.database_name else '❌ Missing'}")
+        if self.database_name:
+            print(f"  Value: {self.database_name}")
+        print("=" * 60)
         self.collection_name = 'scanned_receipts'
         
         try:

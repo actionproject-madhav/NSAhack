@@ -758,6 +758,40 @@ def get_config():
         'api_base_url': request.url_root.rstrip('/')
     })
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint - shows database connection status"""
+    from database import ReceiptDatabase
+    db = ReceiptDatabase()
+    
+    mongo_uri = os.getenv('MONGO_URI', '')
+    database_name = os.getenv('DATABASE_NAME', '')
+    
+    # Check if database is connected
+    is_connected = db.client is not None
+    
+    health_status = {
+        'status': 'healthy' if is_connected else 'unhealthy',
+        'database': {
+            'connected': is_connected,
+            'mongo_uri_set': bool(mongo_uri and mongo_uri != 'mongodb://localhost:27017/'),
+            'database_name_set': bool(database_name),
+            'database_name': database_name if database_name else 'Not set'
+        }
+    }
+    
+    if not is_connected:
+        health_status['database']['error'] = 'Database not connected'
+        health_status['database']['troubleshooting'] = {
+            'check_mongo_uri': 'Set MONGO_URI in Render environment variables',
+            'check_database_name': 'Set DATABASE_NAME in Render environment variables',
+            'check_network_access': 'Allow 0.0.0.0/0 in MongoDB Atlas Network Access',
+            'check_credentials': 'Verify username and password in MONGO_URI are correct'
+        }
+    
+    status_code = 200 if is_connected else 503
+    return jsonify(health_status), status_code
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
  
