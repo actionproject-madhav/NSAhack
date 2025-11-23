@@ -6,7 +6,14 @@ import Lottie from 'lottie-react'
 import { useSpring, animated } from '@react-spring/web'
 import { useDrag } from '@use-gesture/react'
 
-const LessonGame = ({ lesson, hearts, onComplete, onExit }) => {
+interface LessonGameProps {
+  lesson: any
+  hearts: number
+  onComplete: () => void
+  onExit: () => void
+}
+
+const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => {
   const [currentSection, setCurrentSection] = useState(0)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)

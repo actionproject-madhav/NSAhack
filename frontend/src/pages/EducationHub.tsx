@@ -1,18 +1,20 @@
 // pages/EducationHub.tsx
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Float, Text3D } from '@react-three/drei'
+// Temporarily commented out - requires React 19
+// import { Canvas } from '@react-three/fiber'
+// import { OrbitControls, Float, Text3D } from '@react-three/drei'
 import Lottie from 'lottie-react'
 import { Howl } from 'howler'
 import confetti from 'canvas-confetti'
 import Layout from '../components/Layout'
 import { allUnits } from './Curriculumdata'
-import IslandMap from '../components/education/IslandMap'
+// Temporarily disabled - requires @react-three/fiber (React 19)
+// import IslandMap from '../components/education/IslandMap'
 import LessonGame from '../components/education/LessonGame'
 import QuizBattle from '../components/education/QuizBattle'
 import ProgressTracker from '../components/education/ProgressTracker'
-import AchievementPopup from '../components/education/AchievementPopup'
+import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
 
@@ -198,40 +200,30 @@ const EducationHub = () => {
               exit={{ opacity: 0 }}
               className="h-full"
             >
-              {/* 3D Island Map */}
-              <Canvas camera={{ position: [0, 10, 20], fov: 60 }}>
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 5]} />
-                <OrbitControls 
-                  enablePan={false}
-                  maxDistance={30}
-                  minDistance={10}
-                />
-                
-                {/* Sky Background */}
-                <mesh position={[0, 0, -50]}>
-                  <planeGeometry args={[200, 100]} />
-                  <meshBasicMaterial color="#87CEEB" />
-                </mesh>
-
-                {/* Render Islands */}
-                {islands.map(island => (
-                  <IslandModel
-                    key={island.id}
-                    island={island}
-                    isLocked={!playerStats.unlockedIslands.includes(island.id)}
-                    onClick={() => selectIsland(island)}
-                  />
-                ))}
-
-                {/* Animated Clouds */}
-                <Float speed={2} rotationIntensity={0.1} floatIntensity={2}>
-                  <mesh position={[10, 5, -5]}>
-                    <sphereGeometry args={[2, 8, 6]} />
-                    <meshStandardMaterial color="white" opacity={0.8} transparent />
-                  </mesh>
-                </Float>
-              </Canvas>
+              {/* 3D Island Map - Temporarily disabled (requires React 19) */}
+              {/* TODO: Install compatible @react-three/fiber version or upgrade React */}
+              <div className="flex items-center justify-center h-full bg-gradient-to-b from-blue-400 to-blue-600">
+                <div className="text-white text-center">
+                  <h2 className="text-2xl font-bold mb-4">Island Map</h2>
+                  <p className="text-blue-100">3D view temporarily disabled</p>
+                  <div className="mt-8 grid grid-cols-2 gap-4">
+                    {islands.map(island => (
+                      <button
+                        key={island.id}
+                        onClick={() => selectIsland(island)}
+                        disabled={!playerStats.unlockedIslands.includes(island.id)}
+                        className={`p-4 rounded-lg ${
+                          playerStats.unlockedIslands.includes(island.id)
+                            ? 'bg-white text-blue-600 hover:bg-blue-50'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {island.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               {/* HUD Overlay */}
               <div className="absolute top-0 left-0 right-0 p-4">
@@ -251,7 +243,7 @@ const EducationHub = () => {
                         <div className="absolute -bottom-1 left-0 right-0 bg-black/80 text-white text-xs text-center rounded-full px-2 py-0.5">
                           Level
                         </div>
-                      </div>
+                          </div>
 
                       {/* Stats */}
                       <div className="space-y-1">
@@ -279,7 +271,7 @@ const EducationHub = () => {
                               ❤️
                             </motion.div>
                           ))}
-                        </div>
+                            </div>
 
                         {/* Coins */}
                         <div className="flex items-center gap-1">
@@ -289,8 +281,8 @@ const EducationHub = () => {
                           <span className="font-semibold">{playerStats.coins}</span>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
+                        </div>
+                      </motion.div>
 
                   {/* Streak Counter */}
                   <motion.div
@@ -307,8 +299,8 @@ const EducationHub = () => {
                       <div>
                         <div className="text-2xl font-bold text-orange-500">{playerStats.streak}</div>
                         <div className="text-xs text-gray-600">Day Streak</div>
-                      </div>
-                    </div>
+                </div>
+              </div>
                   </motion.div>
 
                   {/* Power-ups */}
@@ -325,18 +317,18 @@ const EducationHub = () => {
                             {key === 'xpBoost' && '2x'}
                             {key === 'streakFreeze' && '❄️'}
                             {key === 'heartRefill' && '💖'}
-                          </div>
+                  </div>
                           {count > 0 && (
                             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                               {count}
                             </div>
-                          )}
-                        </div>
+                              )}
+                            </div>
                       ))}
                     </div>
                   </motion.div>
                 </div>
-              </div>
+                    </div>
 
               {/* Bottom Navigation */}
               <motion.div
@@ -396,59 +388,23 @@ const EducationHub = () => {
 }
 
 // 3D Island Component
-const IslandModel = ({ island, isLocked, onClick }) => {
-  const meshRef = useRef()
-  const [hovered, setHovered] = useState(false)
-
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.001
-    }
-  })
-
+// IslandModel component temporarily disabled (requires @react-three/fiber)
+// TODO: Re-enable when React 19 is available or use compatible version
+const IslandModel = ({ island, isLocked, onClick }: any) => {
   return (
-    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-      <group position={island.position}>
-        <mesh
-          ref={meshRef}
-          onClick={onClick}
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-        >
-          <boxGeometry args={[3, 1, 3]} />
-          <meshStandardMaterial 
-            color={isLocked ? '#666' : island.color} 
-            metalness={0.3}
-            roughness={0.7}
-          />
-        </mesh>
-        
-        {/* Island Name */}
-        <Text3D
-          position={[0, 2, 0]}
-          fontSize={0.3}
-          color={isLocked ? '#999' : '#fff'}
-        >
-          {island.name}
-        </Text3D>
-
-        {/* Lock Icon */}
-        {isLocked && (
-          <mesh position={[0, 0.5, 0]}>
-            <boxGeometry args={[0.5, 0.7, 0.1]} />
-            <meshStandardMaterial color="#444" />
-          </mesh>
-        )}
-
-        {/* Hover Effect */}
-        {hovered && !isLocked && (
-          <mesh position={[0, -0.5, 0]}>
-            <ringGeometry args={[2, 2.5, 32]} />
-            <meshBasicMaterial color={island.color} opacity={0.5} transparent />
-          </mesh>
-        )}
-      </group>
-    </Float>
+    <div className="p-4">
+      {/* Placeholder - will be replaced with 3D model */}
+      <button
+        onClick={onClick}
+        disabled={isLocked}
+        className={`p-4 rounded-lg ${
+          isLocked ? 'bg-gray-300 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'
+        }`}
+      >
+        {island.name}
+        {isLocked && ' 🔒'}
+      </button>
+    </div>
   )
 }
 

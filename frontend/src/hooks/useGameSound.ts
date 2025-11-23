@@ -1,9 +1,11 @@
 // hooks/useGameSound.ts
 import { useRef, useCallback } from 'react'
-import { Howl } from 'howler'
+import { Howl, HowlOptions } from 'howler'
+
+type SoundName = 'click' | 'correct' | 'incorrect' | 'levelUp' | 'coinCollect' | 'unlock' | 'achievement' | 'combo' | 'islandSelect' | 'locked' | 'heartLost'
 
 const useGameSound = () => {
-  const soundsRef = useRef({
+  const soundsRef = useRef<Record<SoundName, Howl>>({
     click: new Howl({ src: ['/sounds/click.mp3'], volume: 0.5 }),
     correct: new Howl({ src: ['/sounds/correct.mp3'], volume: 0.6 }),
     incorrect: new Howl({ src: ['/sounds/incorrect.mp3'], volume: 0.6 }),
@@ -17,15 +19,15 @@ const useGameSound = () => {
     heartLost: new Howl({ src: ['/sounds/heart-lost.mp3'], volume: 0.5 })
   })
 
-  const bgMusicRef = useRef(null)
+  const bgMusicRef = useRef<Howl | null>(null)
 
-  const playSound = useCallback((soundName) => {
+  const playSound = useCallback((soundName: SoundName) => {
     if (soundsRef.current[soundName]) {
       soundsRef.current[soundName].play()
     }
   }, [])
 
-  const startBgMusic = useCallback((musicFile) => {
+  const startBgMusic = useCallback((musicFile: string) => {
     if (bgMusicRef.current) {
       bgMusicRef.current.stop()
     }
@@ -40,7 +42,11 @@ const useGameSound = () => {
   const stopBgMusic = useCallback(() => {
     if (bgMusicRef.current) {
       bgMusicRef.current.fade(0.3, 0, 1000)
-      setTimeout(() => bgMusicRef.current?.stop(), 1000)
+      setTimeout(() => {
+        if (bgMusicRef.current) {
+          bgMusicRef.current.stop()
+        }
+      }, 1000)
     }
   }, [])
 

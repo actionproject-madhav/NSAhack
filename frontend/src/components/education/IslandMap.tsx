@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Float, Text, Box, Sphere, Ring } from '@react-three/drei'
-import { Vector3, Color } from 'three'
-import * as THREE from 'three'
+// Temporarily disabled - requires React 19
+// import { Canvas, useFrame, useThree } from '@react-three/fiber'
+// import { OrbitControls, Float, Text, Box, Sphere, Ring } from '@react-three/drei'
+// import { Vector3, Color } from 'three'
+// import * as THREE from 'three'
 
 // Individual Island Component
 const Island = ({ island, isLocked, isActive, onClick, playerProgress }) => {

@@ -28,7 +28,7 @@ const achievements = [
   { id: 'speed_demon', name: 'Speed Demon', description: 'Complete lesson in under 2 minutes', icon: '⚡', xp: 75 }
 ]
 
-export const AchievementPopup = ({ achievement, onClose }) => {
+export const AchievementPopup = ({ achievement, onClose }: { achievement: any; onClose: () => void }) => {
   useEffect(() => {
     // Play sound
     const sound = new Howl({ src: ['/sounds/achievement.mp3'] })

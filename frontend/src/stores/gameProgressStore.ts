@@ -49,14 +49,14 @@ interface GameProgress {
   unlockIsland: (islandId: string) => void
   addBadge: (badgeId: string) => void
   addAchievement: (achievementId: string) => void
-  usePowerUp: (type: string) => void
+  usePowerUp: (type: keyof GameProgress['powerups']) => void
   updateStreak: () => void
   resetDaily: () => void
 }
 
 const useGameProgressStore = create<GameProgress>()(
   persist(
-    (set, get) => ({
+    (set, get): GameProgress => ({
       // Initial State
       level: 1,
       xp: 0,
@@ -91,7 +91,7 @@ const useGameProgressStore = create<GameProgress>()(
       favoriteSubject: '',
 
       // Actions
-      addXP: (amount) => {
+      addXP: (amount: number) => {
         const currentXP = get().xp
         const currentTotalXP = get().totalXP
         const newXP = currentXP + amount
@@ -107,7 +107,7 @@ const useGameProgressStore = create<GameProgress>()(
         })
       },
 
-      completeLesson: (lessonId) => {
+      completeLesson: (lessonId: string) => {
         const completedLessons = get().completedLessons
         if (!completedLessons.includes(lessonId)) {
           set({
@@ -117,7 +117,7 @@ const useGameProgressStore = create<GameProgress>()(
         }
       },
 
-      unlockIsland: (islandId) => {
+      unlockIsland: (islandId: string) => {
         const unlockedIslands = get().unlockedIslands
         if (!unlockedIslands.includes(islandId)) {
           set({
@@ -126,7 +126,7 @@ const useGameProgressStore = create<GameProgress>()(
         }
       },
 
-      addBadge: (badgeId) => {
+      addBadge: (badgeId: string) => {
         const badges = get().badges
         if (!badges.includes(badgeId)) {
           set({
@@ -135,7 +135,7 @@ const useGameProgressStore = create<GameProgress>()(
         }
       },
 
-      addAchievement: (achievementId) => {
+      addAchievement: (achievementId: string) => {
         const achievements = get().achievements
         if (!achievements.includes(achievementId)) {
           set({
@@ -144,7 +144,7 @@ const useGameProgressStore = create<GameProgress>()(
         }
       },
 
-      usePowerUp: (type) => {
+      usePowerUp: (type: keyof GameProgress['powerups']) => {
         const powerups = get().powerups
         if (powerups[type] > 0) {
           set({
