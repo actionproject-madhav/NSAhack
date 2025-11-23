@@ -288,11 +288,11 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
         </AnimatePresence>
 
         {/* Action Buttons - Fixed at bottom */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex justify-between gap-4 w-full max-w-4xl px-8 z-20">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex justify-between gap-4 w-full max-w-4xl px-8 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg py-4 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             onClick={() => currentSection > 0 && setCurrentSection(prev => prev - 1)}
             disabled={currentSection === 0}
           >
@@ -302,7 +302,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-semibold shadow-lg"
+            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl"
             onClick={() => {
               const section = lesson.content.sections[currentSection]
               const isInteractive = isInteractiveSection()

@@ -24,6 +24,9 @@ import Spline from '@splinetool/react-spline'
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
 import streakFireAnimation from '../assets/animations/streak-fire.json'
 import moneyAnimation from '../assets/animations/Money.json'
+import financeAnimation from '../assets/animations/Finance.json'
+import investingAnimation from '../assets/animations/investing.json'
+import stocksAnimation from '../assets/animations/stocks.json'
 
 
 const EducationHub = () => {
@@ -392,42 +395,50 @@ const EducationHub = () => {
     }))
   }
 
+  // Map island themes to animations
+  const getIslandAnimation = (theme: string) => {
+    const themeMap: Record<string, any> = {
+      'tropical': moneyAnimation,      // Fundamentals - Money flow
+      'volcanic': stocksAnimation,    // Stock Market - Stock charts
+      'arctic': financeAnimation,     // Bonds - Financial stability
+      'sky': investingAnimation       // ETFs - Investment growth
+    }
+    const animation = themeMap[theme] || moneyAnimation
+    if (import.meta.env.DEV) {
+      console.log(`🎬 Island animation for theme "${theme}":`, animation ? 'Loaded' : 'Missing')
+    }
+    return animation
+  }
+
   // Get current island background based on theme
   const getIslandBackground = () => {
     if (!currentIsland) return moneyAnimation
-    
-    // Map island themes to available animations
-    const themeMap: Record<string, any> = {
-      'tropical': moneyAnimation, // Use Money.json for tropical
-      'volcanic': moneyAnimation, // Can add specific animation later
-      'arctic': moneyAnimation,
-      'sky': moneyAnimation
-    }
-    
-    return themeMap[currentIsland.theme] || moneyAnimation
+    return getIslandAnimation(currentIsland.theme)
   }
 
   return (
     <Layout>
-      {/* Island Theme Background */}
-      <div 
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          opacity: 0.3,
-          filter: 'blur(1px)'
-        }}
-      >
-        <Lottie 
-          animationData={getIslandBackground()}
-          loop={true}
-          autoplay={true}
+      {/* Island Theme Background - Only show when island is selected */}
+      {currentIsland && (
+        <div 
+          className="fixed inset-0 z-0 pointer-events-none"
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover'
+            opacity: 0.25,
+            filter: 'blur(2px)'
           }}
-        />
-      </div>
+        >
+          <Lottie 
+            animationData={getIslandBackground()}
+            loop={true}
+            autoplay={true}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+          />
+        </div>
+      )}
       <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           {gameMode === 'map' && (
@@ -440,12 +451,35 @@ const EducationHub = () => {
             >
               {/* Island Map with 3D Visualization */}
               <div className="flex items-center justify-center h-full relative p-8">
-                {/* 3D Island Background using Spline */}
-                <div className="absolute inset-0 z-0 opacity-30">
+                {/* 3D Island Background using Spline - Subtle background */}
+                <div className="absolute inset-0 z-0 opacity-20">
                   <Spline 
                     scene="https://prod.spline.design/f7MEBGBa8Fh0o30l/scene.splinecode"
                     style={{ width: '100%', height: '100%' }}
                   />
+                </div>
+                
+                {/* Animated background layers for each unlocked island */}
+                <div className="absolute inset-0 z-0 opacity-15 pointer-events-none">
+                  {islands
+                    .filter(i => playerStats.unlockedIslands.includes(i.id))
+                    .map((island, idx) => (
+                      <div 
+                        key={island.id} 
+                        className="absolute inset-0"
+                        style={{
+                          transform: `translate(${idx * 15}%, ${idx * 10}%) scale(0.8)`,
+                          opacity: 0.2
+                        }}
+                      >
+                        <Lottie 
+                          animationData={getIslandAnimation(island.theme)}
+                          loop={true}
+                          autoplay={true}
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      </div>
+                    ))}
                 </div>
                 
                 <div className="max-w-6xl w-full relative z-10">
@@ -499,12 +533,34 @@ const EducationHub = () => {
                               </div>
                             )}
                             
-                            {/* Island Icon/Color */}
+                            {/* Island Animation Preview */}
                             <div 
-                              className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white shadow-lg"
-                              style={{ backgroundColor: island.color }}
+                              className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden flex items-center justify-center relative"
+                              style={{ 
+                                backgroundColor: island.color + '10',
+                                minHeight: '128px',
+                                minWidth: '128px'
+                              }}
                             >
-                              {island.name.charAt(0)}
+                              <Lottie 
+                                animationData={getIslandAnimation(island.theme)}
+                                loop={true}
+                                autoplay={true}
+                                className="w-full h-full"
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%',
+                                  zIndex: 1
+                                }}
+                              />
+                              {/* Very subtle color tint */}
+                              <div 
+                                className="absolute inset-0 opacity-10 pointer-events-none"
+                                style={{ 
+                                  backgroundColor: island.color,
+                                  zIndex: 2
+                                }}
+                              />
                             </div>
                             
                             {/* Island Name */}
