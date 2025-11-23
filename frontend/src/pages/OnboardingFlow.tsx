@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { ArrowRight, Wallet, TrendingUp, GraduationCap, Zap, Globe, Microscope, Briefcase, Flag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, generatePortfolioReason } from '../utils/mockData'
 import Logo from '../components/Logo'
 import apiService from '../services/apiService'
+import SplineBackground from '../components/SplineBackground'
 
 const OnboardingFlow = () => {
   const [step, setStep] = useState(1)
@@ -143,7 +144,11 @@ const OnboardingFlow = () => {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
+      {/* Spline Background */}
+      <Suspense fallback={null}>
+        <SplineBackground />
+      </Suspense>
       {/* Left Side - Background Image with Content */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <div
@@ -205,7 +210,7 @@ const OnboardingFlow = () => {
       </div>
 
       {/* Right Side - Form Content */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white/90 backdrop-blur relative z-10">
         <div className="w-full max-w-lg">
           {/* Progress Indicator */}
           <div className="flex items-center justify-center mb-8">

@@ -17,7 +17,7 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-import { Heart, Coins, Trophy, Users, Gift } from 'lucide-react'
+import { Heart, Coins, Trophy, Users, Gift, Snowflake, Heart as HeartIcon, Zap } from 'lucide-react'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -215,7 +215,7 @@ const EducationHub = () => {
             objectFit: 'cover'
           }}
         />
-      </div>
+          </div>
       <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           {gameMode === 'map' && (
@@ -342,9 +342,9 @@ const EducationHub = () => {
                       {Object.entries(playerStats.powerups).map(([key, count]) => (
                         <div key={key} className="relative">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                            {key === 'xpBoost' && '2x'}
-                            {key === 'streakFreeze' && '❄️'}
-                            {key === 'heartRefill' && '💖'}
+                            {key === 'xpBoost' && <Zap className="w-6 h-6 text-white" />}
+                            {key === 'streakFreeze' && <Snowflake className="w-6 h-6 text-white" />}
+                            {key === 'heartRefill' && <HeartIcon className="w-6 h-6 text-white fill-white" />}
                   </div>
                           {count > 0 && (
                             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">

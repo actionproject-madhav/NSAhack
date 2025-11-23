@@ -6,6 +6,7 @@ import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
 import tradingService from '../services/tradingService'
 import ReceiptScanner from '../components/ReceiptScanner'
+import Logo from '../components/Logo'
 
 // Popular stocks for quick trading
 const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD']
