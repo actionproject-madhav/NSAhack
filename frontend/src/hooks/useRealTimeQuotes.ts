@@ -24,28 +24,23 @@ export const useRealTimeQuotes = ({
   const fetchQuotes = useCallback(async () => {
     if (!enabled || symbols.length === 0) return;
 
-    // Only log in development
-    if (import.meta.env.DEV) {
-      console.log('Fetching quotes for symbols:', symbols);
-    }
     setIsLoading(true);
     setError(null);
 
     try {
       const newQuotes = await finnhubAPI.getMultipleQuotes(symbols);
-      if (import.meta.env.DEV) {
-        console.log('Fetched quotes:', newQuotes);
-      }
       setQuotes(newQuotes);
       setLastUpdated(new Date());
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quotes';
       setError(errorMessage);
-      console.error('Real-time quotes error:', err);
+      if (import.meta.env.DEV) {
+        console.error('Real-time quotes error:', err);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [symbols, enabled]);
+  }, [symbolsKey, enabled]); // Use symbolsKey instead of symbols array
 
   useEffect(() => {
     if (!enabled) return;

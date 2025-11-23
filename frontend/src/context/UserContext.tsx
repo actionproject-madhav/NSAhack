@@ -56,11 +56,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userId = user.email || user.id
       const apiUserId = user.email || userId
       if (!userId) {
-        console.error('No user identifier available for refresh')
         return
       }
       
-      console.log('Refreshing user data from trading API...')
       const portfolioData = await tradingService.getPortfolio(apiUserId)
       
       const updatedUser = {
@@ -72,11 +70,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(updatedUser)
       localStorage.removeItem('user') // Clear old data first
       localStorage.setItem('user', JSON.stringify(updatedUser))
-      console.log('User data refreshed:', portfolioData.portfolio.length, 'positions, $' + portfolioData.portfolio_value.toFixed(2))
     } catch (error) {
-      console.error('Error refreshing user data:', error)
+      // Silently fail - don't spam console
+      if (import.meta.env.DEV) {
+        console.error('Error refreshing user data:', error)
+      }
     }
-  }, [user])
+  }, [user?.email, user?.id]) // Only depend on identifiers, not entire user object
 
   useEffect(() => {
     // Check for authenticated user on app start and load full profile from database
@@ -94,7 +94,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userId = currentUser.email || currentUser.id
         
         if (!userId) {
-          console.warn('No user ID or email found')
           setUser({
             ...currentUser,
             portfolio: [],
@@ -104,46 +103,39 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return
         }
 
-        console.log('Loading user profile from database...')
-        // Try to get user profile - use email if available, otherwise try userId
+        // Try to get user profile and portfolio in parallel for faster loading
         const lookupId = currentUser.email || userId
-        const dbUser = await apiService.getUserProfile(lookupId)
+        const apiUserId = currentUser.email || userId
         
-        // ALWAYS load portfolio ONLY from trading API (never from database user profile)
-        // This ensures only actual trades are shown, no mock data
-        let portfolio = []
-        let totalValue = 0
+        // Load both in parallel instead of sequentially
+        const [dbUser, portfolioData] = await Promise.allSettled([
+          apiService.getUserProfile(lookupId),
+          tradingService.getPortfolio(apiUserId).catch(() => ({ portfolio: [], portfolio_value: 0 }))
+        ])
         
-        // ALWAYS use email for API calls (most reliable identifier)
-        // If dbUser exists, use its email, otherwise use currentUser.email, fallback to userId
-        const apiUserId = dbUser?.email || currentUser.email || userId
+        // Process results
+        const userProfile = dbUser.status === 'fulfilled' ? dbUser.value : null
+        const portfolio = portfolioData.status === 'fulfilled' 
+          ? (portfolioData.value.portfolio || [])
+          : []
+        const totalValue = portfolioData.status === 'fulfilled'
+          ? (portfolioData.value.portfolio_value || 0)
+          : 0
         
-        try {
-          const portfolioData = await tradingService.getPortfolio(apiUserId)
-          portfolio = portfolioData.portfolio || []
-          totalValue = portfolioData.portfolio_value || 0
-          console.log('✅ Loaded real portfolio from trading API:', portfolio.length, 'positions')
-        } catch (error) {
-          console.warn('⚠️ Trading API error, portfolio will be empty until trades are made:', error)
-          // Keep empty - user has not made any trades yet
-          portfolio = []
-          totalValue = 0
-        }
-        
-        if (dbUser) {
+        if (userProfile) {
           // Build user object - portfolio ONLY from trading API, never from dbUser.portfolio
           // CRITICAL: Always ensure email is set (required for API calls)
-          const userEmail = dbUser.email || currentUser.email || userId
+          const userEmail = userProfile.email || currentUser.email || userId
           const fullUser: User = {
-            id: dbUser._id || userId,
+            id: userProfile._id || userId,
             email: userEmail, // ALWAYS set email (required for trading API)
-            name: dbUser.name || currentUser.name,
-            picture: dbUser.picture || currentUser.picture,
-            goal: dbUser.investment_goal as User['goal'],
-            language: dbUser.language || 'en',
-            lifestyle: dbUser.lifestyle_brands || [],
-            visaStatus: dbUser.visa_status,
-            homeCountry: dbUser.home_country,
+            name: userProfile.name || currentUser.name,
+            picture: userProfile.picture || currentUser.picture,
+            goal: userProfile.investment_goal as User['goal'],
+            language: userProfile.language || 'en',
+            lifestyle: userProfile.lifestyle_brands || [],
+            visaStatus: userProfile.visa_status,
+            homeCountry: userProfile.home_country,
             portfolio: portfolio, // ONLY from trading API
             totalValue: totalValue // ONLY from trading API
           }
@@ -152,30 +144,25 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Store in localStorage (but portfolio is always from trading API)
           localStorage.removeItem('user') // Clear old data first
           localStorage.setItem('user', JSON.stringify(fullUser))
-          console.log('✅ User profile loaded - Portfolio:', portfolio.length, 'positions (from trading API only)')
         } else {
           // If dbUser is null, still set user with currentUser data (but empty portfolio)
           // CRITICAL: Always ensure email is set (required for API calls)
           const fallbackEmail = currentUser.email || userId
           if (!fallbackEmail) {
-            console.error('❌ No email available for user! Cannot proceed.')
             setIsLoading(false)
             return
           }
-          console.warn('⚠️ Could not load from database, using empty portfolio')
           setUser({
             ...currentUser,
             email: fallbackEmail, // ALWAYS set email (required for trading API)
-            portfolio: [], // Empty - no mock data
-            totalValue: 0
+            portfolio: portfolio, // Use portfolio from parallel call
+            totalValue: totalValue
           })
         }
       } catch (error) {
-        console.error('Error loading profile from database:', error)
         // CRITICAL: Always ensure email is set (required for API calls)
         const fallbackEmail = currentUser.email || currentUser.id
         if (!fallbackEmail) {
-          console.error('❌ No email available for user! Cannot proceed.')
           setIsLoading(false)
           return
         }
