@@ -18,10 +18,12 @@ import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
 
-// Import Lottie animations (placeholder paths - you'll download these)
+// Import Lottie animations
 import islandUnlockAnimation from '../assets/animations/island-unlock.json'
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
 import streakFireAnimation from '../assets/animations/streak-fire.json'
+import moneyAnimation from '../assets/animations/Money.json'
+
 
 const EducationHub = () => {
   // Game State
@@ -195,7 +197,26 @@ const EducationHub = () => {
 
   return (
     <Layout>
-      <div className="h-screen overflow-hidden relative">
+      {/* Money Animation Background */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          opacity: 0.3,
+          filter: 'blur(1px)'
+        }}
+      >
+        <Lottie 
+          animationData={moneyAnimation}
+          loop={true}
+          autoplay={true}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
+        />
+      </div>
+      <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           {gameMode === 'map' && (
             <motion.div
@@ -207,20 +228,22 @@ const EducationHub = () => {
             >
               {/* 3D Island Map - Temporarily disabled (requires React 19) */}
               {/* TODO: Install compatible @react-three/fiber version or upgrade React */}
-              <div className="flex items-center justify-center h-full bg-gradient-to-b from-blue-400 to-blue-600">
-                <div className="text-white text-center">
-                  <h2 className="text-2xl font-bold mb-4">Island Map</h2>
-                  <p className="text-blue-100">3D view temporarily disabled</p>
+              <div className="flex items-center justify-center h-full relative">
+                {/* Subtle overlay for better text readability over Spline */}
+                <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
+                <div className="text-white text-center relative z-10">
+                  <h2 className="text-2xl font-bold mb-4 drop-shadow-lg">Island Map</h2>
+                  <p className="text-white/90 drop-shadow-md">3D view temporarily disabled</p>
                   <div className="mt-8 grid grid-cols-2 gap-4">
                     {islands.map(island => (
                       <button
                         key={island.id}
                         onClick={() => selectIsland(island)}
                         disabled={!playerStats.unlockedIslands.includes(island.id)}
-                        className={`p-4 rounded-lg ${
+                        className={`p-4 rounded-lg backdrop-blur-md transition-all ${
                           playerStats.unlockedIslands.includes(island.id)
-                            ? 'bg-white text-blue-600 hover:bg-blue-50'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-white/90 text-black hover:bg-white shadow-lg'
+                            : 'bg-gray-300/80 text-gray-500 cursor-not-allowed'
                         }`}
                       >
                         {island.name}
