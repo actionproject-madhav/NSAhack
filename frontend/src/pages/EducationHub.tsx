@@ -124,12 +124,17 @@ const EducationHub = () => {
     setGameMode('lessons')
     
     // Start island-specific music
-    const music = new Howl({
-      src: [`/sounds/music/${island.bgMusic}`],
-      loop: true,
-      volume: 0.3
-    })
-    music.play()
+    try {
+      const music = new Howl({
+        src: [`/assets/sounds/music/${island.bgMusic}`],
+        loop: true,
+        volume: 0.3,
+        preload: false
+      })
+      music.play()
+    } catch (e) {
+      // Music file not found, ignore
+    }
   }
 
   // Handle Lesson Completion
