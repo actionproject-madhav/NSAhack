@@ -270,9 +270,11 @@ def get_user_profile(user_id):
 
 @auth_bp.route('/onboarding', methods=['POST'])
 def save_onboarding_data():
-    """Save user onboarding data"""
+    """Save user onboarding data - auto-creates user if not found"""
     if db.client is None:
-        return jsonify({'error': 'Database not connected'}), 500
+        from db_connection_helper import get_db_error_response, log_db_error
+        log_db_error('save_onboarding_data')
+        return jsonify(get_db_error_response()), 500
     
     try:
         data = request.get_json()
@@ -327,8 +329,22 @@ def save_onboarding_data():
             user = users_collection.find_one({'google_id': user_id})
         
         if not user:
-            print(f"User not found for onboarding: {user_id}")
-            return jsonify({'error': 'User not found', 'user_id_received': str(user_id)}), 404
+            # Auto-create user if not found (similar to trading endpoints)
+            print(f"⚠️ User not found for onboarding: {user_id}, attempting auto-create...")
+            # Assume user_id is an email for auto-creation
+            from trading import STARTING_CASH
+            new_user_data = {
+                'email': user_id if '@' in user_id else f'{user_id}@unknown.com',
+                'name': user_id.split('@')[0] if '@' in user_id else user_id,
+                'cash_balance': STARTING_CASH,
+                'onboarding_completed': False,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc),
+                'last_login': datetime.now(timezone.utc)
+            }
+            result = users_collection.insert_one(new_user_data)
+            user = users_collection.find_one({'_id': result.inserted_id})
+            print(f"✅ Auto-created user: {user.get('email')} with ID: {str(user.get('_id'))}")
         
         # Update the found user
         result = users_collection.update_one(
@@ -347,7 +363,9 @@ def save_onboarding_data():
         })
         
     except Exception as e:
-        print(f" Error saving onboarding data: {e}")
+        print(f"❌ Error saving onboarding data: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/cleanup-portfolio', methods=['POST'])

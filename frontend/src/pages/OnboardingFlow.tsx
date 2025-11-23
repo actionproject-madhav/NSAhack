@@ -44,52 +44,51 @@ const OnboardingFlow = () => {
       homeCountry,
       portfolio: [], // EMPTY - users must buy stocks through trading
       totalValue: 0, // EMPTY - users start with virtual cash only
-      onboarding_completed: false // Will be set to true after saving
+      onboarding_completed: true // Always mark as completed (frontend-first approach)
     }
 
-    // Save onboarding data to backend (NO portfolio - users start fresh)
-    try {
-      // Use email if available, otherwise use id
-      const userId = user.email || user.id
-      if (!userId) {
-        console.error('No user identifier available for onboarding')
-        alert('User ID not found. Please log in again.')
-        navigate('/auth')
-        return
-      }
-      
-      const success = await apiService.updateOnboarding(userId, {
-        lifestyle_brands: selectedBrands,
-        investment_goal: selectedGoal,
-        language: selectedLanguage,
-        visa_status: visaStatus,
-        home_country: homeCountry,
-        // NO portfolio or total_value - users start with empty portfolio
-      })
-      
-      if (success) {
-        console.log('✅ Onboarding data saved to database (empty portfolio - users must buy stocks)')
-        // Mark onboarding as completed
-        user.onboarding_completed = true
-        // Clear any old mock data from localStorage
-        localStorage.removeItem('user')
-        localStorage.setItem('user', JSON.stringify(user))
-      } else {
-        console.error('❌ Failed to save onboarding data')
-        // Still mark as completed in localStorage even if backend fails
-        user.onboarding_completed = true
-        localStorage.removeItem('user')
-        localStorage.setItem('user', JSON.stringify(user))
-      }
-    } catch (error) {
-      console.error('❌ Error saving onboarding data:', error)
-      // Still mark as completed in localStorage even if backend fails
-      user.onboarding_completed = true
-      localStorage.removeItem('user')
-      localStorage.setItem('user', JSON.stringify(user))
-    }
-
+    // Mark onboarding as completed in localStorage FIRST (before API call)
+    // This ensures user can proceed even if backend is down
+    localStorage.removeItem('user')
+    localStorage.setItem('user', JSON.stringify(user))
     setUser(user)
+
+    // Try to save onboarding data to backend (with timeout)
+    // This is best-effort - if it fails, user can still proceed
+    const userId = user.email || user.id
+    if (userId) {
+      try {
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
+        )
+        
+        const savePromise = apiService.updateOnboarding(userId, {
+          lifestyle_brands: selectedBrands,
+          investment_goal: selectedGoal,
+          language: selectedLanguage,
+          visa_status: visaStatus,
+          home_country: homeCountry,
+        })
+        
+        const success = await Promise.race([savePromise, timeoutPromise]) as boolean
+        
+        if (success) {
+          console.log('✅ Onboarding data saved to database')
+        } else {
+          console.warn('⚠️ Backend returned false, but onboarding marked complete in localStorage')
+        }
+      } catch (error: any) {
+        console.warn('⚠️ Backend save failed (non-critical):', error.message || error)
+        console.log('✅ Onboarding marked complete in localStorage - user can proceed')
+        // Don't block navigation - user can proceed even if backend fails
+      }
+    } else {
+      console.warn('⚠️ No user ID available, skipping backend save')
+    }
+
+    // Always navigate to dashboard (frontend-first approach)
+    console.log('✅ Navigating to dashboard...')
     navigate('/dashboard')
   }
 
