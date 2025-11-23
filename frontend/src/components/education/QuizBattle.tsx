@@ -9,7 +9,7 @@ import { Clock, Flame, Timer, Lightbulb, Shield, Sword } from 'lucide-react'
 // import swordFightAnimation from '../../assets/animations/sword-fight.json'
 // import shieldAnimation from '../../assets/animations/shield.json'
 
-const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => {
+const QuizBattle = ({ questions = [], onComplete, playerStats, opponent = 'AI' }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [playerHealth, setPlayerHealth] = useState(100)
   const [opponentHealth, setOpponentHealth] = useState(100)
@@ -22,11 +22,11 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
   
   const timerRef = useRef(null)
   const sounds = useRef({
-    attack: new Howl({ src: ['/sounds/attack.mp3'] }),
-    defend: new Howl({ src: ['/sounds/defend.mp3'] }),
-    critical: new Howl({ src: ['/sounds/critical.mp3'] }),
-    victory: new Howl({ src: ['/sounds/victory.mp3'] }),
-    defeat: new Howl({ src: ['/sounds/defeat.mp3'] })
+    attack: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
+    defend: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
+    critical: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
+    victory: new Howl({ src: ['/assets/sounds/effects/level_up.mp3'], volume: 0.8, preload: false }),
+    defeat: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false })
   })
 
   // Timer countdown
@@ -43,7 +43,11 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
     return () => clearTimeout(timerRef.current)
   }, [timeRemaining, showResult])
 
-  const handleAnswer = (answerIndex) => {
+  const handleAnswer = (answerIndex: number) => {
+    if (!questions || questions.length === 0 || !questions[currentQuestion]) {
+      onComplete(0)
+      return
+    }
     const question = questions[currentQuestion]
     const isCorrect = answerIndex === question.correctAnswer
     
@@ -76,7 +80,11 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
       // Take damage for wrong answer
       const damage = 15
       setPlayerHealth(prev => Math.max(0, prev - damage))
-      sounds.current.defend.play()
+      try {
+        sounds.current.defend.play()
+      } catch (e) {
+        // Sound failed, ignore
+      }
       
       // Reset combo
       setCombo(0)
@@ -156,6 +164,24 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
           break
       }
     }
+  }
+
+  // Show error if no questions
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden flex items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 text-center max-w-md">
+          <h2 className="text-2xl font-bold text-white mb-4">No Quiz Available</h2>
+          <p className="text-white/80 mb-6">This lesson doesn't have quiz questions yet.</p>
+          <button
+            onClick={() => onComplete(0)}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Return to Map
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -279,6 +305,7 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
             </div>
 
             {/* Question Card */}
+            {questions.length > 0 && questions[currentQuestion] ? (
             <motion.div
               key={currentQuestion}
               initial={{ scale: 0, rotate: -180 }}
@@ -291,7 +318,7 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
               </h2>
               
               <p className="text-xl text-white mb-8">
-                {questions[currentQuestion].question}
+                {questions[currentQuestion]?.question || 'No question available'}
               </p>
 
               {/* Answer Options */}

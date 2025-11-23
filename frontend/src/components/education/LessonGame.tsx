@@ -10,7 +10,7 @@ import { Heart, X } from 'lucide-react'
 interface LessonGameProps {
   lesson: any
   hearts: number
-  onComplete: () => void
+  onComplete: (score: number) => void
   onExit: () => void
 }
 

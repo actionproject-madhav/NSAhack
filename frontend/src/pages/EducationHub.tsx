@@ -27,8 +27,8 @@ import moneyAnimation from '../assets/animations/Money.json'
 
 const EducationHub = () => {
   // Game State
-  const [currentIsland, setCurrentIsland] = useState(null)
-  const [currentLesson, setCurrentLesson] = useState(null)
+  const [currentIsland, setCurrentIsland] = useState<any>(null)
+  const [currentLesson, setCurrentLesson] = useState<any>(null)
   const [gameMode, setGameMode] = useState('map') // 'map', 'lesson', 'quiz', 'battle'
   const [playerStats, setPlayerStats] = useState<{
     level: number
@@ -181,8 +181,36 @@ const EducationHub = () => {
       levelUp(newLevel)
     }
 
-    // Check for island unlock
-    checkIslandUnlocks()
+    // Check for island unlock based on completed lessons
+    const completedCount = playerStats.completedLessons.length
+    const newUnlockedIslands: string[] = []
+    
+    // Unlock unit-2 after 3 lessons
+    if (completedCount >= 3 && !playerStats.unlockedIslands.includes('unit-2')) {
+      newUnlockedIslands.push('unit-2')
+    }
+    
+    // Unlock unit-3 at level 5
+    if (playerStats.level >= 5 && !playerStats.unlockedIslands.includes('unit-3')) {
+      newUnlockedIslands.push('unit-3')
+    }
+    
+    // Unlock unit-4 after getting required badges
+    const hasFundamentalsBadge = playerStats.badges.includes('fundamentals-master')
+    const hasStocksBadge = playerStats.badges.includes('stocks-master')
+    if (hasFundamentalsBadge && hasStocksBadge && !playerStats.unlockedIslands.includes('unit-4')) {
+      newUnlockedIslands.push('unit-4')
+    }
+    
+    // Update unlocked islands if any new ones were unlocked
+    if (newUnlockedIslands.length > 0) {
+      setPlayerStats(prev => ({
+        ...prev,
+        unlockedIslands: [...prev.unlockedIslands, ...newUnlockedIslands]
+      }))
+      // Play unlock sound for each new island
+      newUnlockedIslands.forEach(() => playSound('unlock'))
+    }
   }
 
   // Level Up Celebration
@@ -460,15 +488,22 @@ const EducationHub = () => {
             <LessonGame
               lesson={currentLesson}
               hearts={playerStats.hearts}
-              onComplete={(score) => completeLesson(currentLesson.id, score)}
+              onComplete={(score: number) => completeLesson(currentLesson.id, score)}
               onExit={() => setGameMode('lessons')}
             />
           )}
 
           {gameMode === 'quiz' && (
             <QuizBattle
-              questions={currentIsland?.lessons[0]?.content.practiceQuestions || []}
-              onComplete={(score) => {
+              questions={(() => {
+                // Get questions from the first lesson of current island
+                const questions = currentIsland?.lessons?.[0]?.content?.practiceQuestions || []
+                if (import.meta.env.DEV) {
+                  console.log('Quiz questions:', questions, 'from island:', currentIsland?.name)
+                }
+                return questions
+              })()}
+              onComplete={(score: number) => {
                 completeLesson('quiz', score)
                 setGameMode('map')
               }}

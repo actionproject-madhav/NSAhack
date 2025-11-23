@@ -22,7 +22,7 @@ const EnhancedChatWidget: React.FC<EnhancedChatWidgetProps> = ({ currentCourse, 
       id: 1,
       text: currentCourse 
         ? `Hi! I'm your AI tutor for "${currentCourse}" 🎓 I know everything about this course and can help you understand any concept better!` 
-        : "Hi! I'm your AI investment advisor 🤖 Ask me anything about investing, your portfolio, or financial concepts!",
+        : "Hi! I'm your AI investment advisor. Ask me anything about investing, your portfolio, or financial concepts!",
       isBot: true,
       timestamp: new Date()
     }

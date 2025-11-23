@@ -70,7 +70,7 @@ const AIChatSidebar = () => {
       - Number of Positions: ${user?.portfolio?.length || 0}
       ${hasPositions ? '- The user has an active portfolio and is learning to invest' : '- The user is just starting out and has not made any trades yet'}
 
-      Please provide personalized, helpful advice based on their actual portfolio. Be specific about their holdings when relevant. Keep responses conversational and engaging, using emojis appropriately. Focus on education and practical tips. Remind them this is educational content, not professional financial advice.`
+      Please provide personalized, helpful advice based on their actual portfolio. Be specific about their holdings when relevant. Keep responses conversational and engaging. Focus on education and practical tips. Remind them this is educational content, not professional financial advice.`
 
       console.log('🔵 AIChatSidebar: Calling GeminiService with portfolio context...')
       const aiResponse = await GeminiService.generateContent(investmentPrompt, context)

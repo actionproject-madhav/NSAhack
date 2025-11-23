@@ -166,7 +166,7 @@ const StockAnalysisChat: React.FC<StockAnalysisChatProps> = ({ isOpen, onClose, 
 
       User Question: ${currentInput}
       
-      Please provide detailed stock analysis and investment insights. Use the specific data provided above to give accurate, contextual responses. Include relevant financial metrics, comparisons, and actionable insights. Be conversational but professional, and use emojis appropriately to make the analysis engaging.`
+      Please provide detailed stock analysis and investment insights. Use the specific data provided above to give accurate, contextual responses. Include relevant financial metrics, comparisons, and actionable insights. Be conversational but professional.`
 
       const aiResponse = await GeminiService.generateContent(analysisPrompt, context)
       
