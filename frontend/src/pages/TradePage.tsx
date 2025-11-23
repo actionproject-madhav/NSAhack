@@ -184,10 +184,21 @@ const TradePage = () => {
                   className="bg-white/60 dark:bg-black/60 backdrop-blur-md border border-black/20 dark:border-white/20 rounded-lg p-4 hover:border-black/40 dark:hover:border-white/40 transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-black dark:text-white mb-1">
-                        {quote.symbol}
-                      </h3>
+                    <div className="flex items-center gap-3 flex-1">
+                      <Logo 
+                        company={quote.symbol} 
+                        fallback={quote.symbol.charAt(0)} 
+                        size={40}
+                      />
+                      <div>
+                        <h3 className="text-2xl font-bold text-black dark:text-white mb-1">
+                          {quote.symbol}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {quote.companyName || quote.symbol}
+                        </p>
+                      </div>
+                    </div>
                       <div className="flex items-center gap-2">
                         <span className="text-3xl font-medium text-black dark:text-white">
                           ${quote.price.toFixed(2)}
