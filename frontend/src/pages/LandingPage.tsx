@@ -4,10 +4,10 @@ import { useUser } from '../context/UserContext'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Lottie from 'lottie-react'
 
-// Import your animations (from src/animations folder)
-import financeAnimation from '../animations/Finance.json'
-import investingAnimation from '../animations/investing.json'
-import stocksAnimation from '../animations/stocks.json'
+// Import your animations (from src/assets/animations folder)
+import financeAnimation from '../assets/animations/Finance.json'
+import investingAnimation from '../assets/animations/investing.json'
+import stocksAnimation from '../assets/animations/stocks.json'
 
 const LandingPage = () => {
   const navigate = useNavigate()
