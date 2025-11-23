@@ -17,7 +17,7 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-import { Heart, Coins, Trophy, Users, Gift, Snowflake, Zap, ShoppingBag, Lock } from 'lucide-react'
+import { Heart, Coins, Trophy, Users, Gift, Snowflake, Zap, ShoppingBag, Lock, BookOpen, ArrowLeft } from 'lucide-react'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -401,7 +401,8 @@ const EducationHub = () => {
                   onClick={() => setGameMode('map')}
                   className="mb-6 flex items-center gap-2 text-black dark:text-white hover:underline"
                 >
-                  ← Back to Islands
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Islands
                 </button>
                 <h2 className="text-3xl font-bold text-black dark:text-white mb-2">{currentIsland.name}</h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-8">
@@ -426,9 +427,12 @@ const EducationHub = () => {
                         {lesson.description || lesson.content?.sections?.[0]?.title || 'Start learning'}
                       </p>
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span>📚 {lesson.duration || '10 min'}</span>
+                        <BookOpen className="w-4 h-4" />
+                        <span>{lesson.duration || '10 min'}</span>
                         {playerStats.completedLessons.includes(lesson.id || index) && (
-                          <span className="text-green-500">✓ Completed</span>
+                          <span className="text-green-500 flex items-center gap-1">
+                            <span>✓</span> Completed
+                          </span>
                         )}
                       </div>
                     </motion.button>
