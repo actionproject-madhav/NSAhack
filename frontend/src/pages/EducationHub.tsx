@@ -387,9 +387,10 @@ const EducationHub = () => {
                       {Object.entries(playerStats.powerups).map(([key, count]) => (
                         <div key={key} className="relative">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                            {key === 'xpBoost' && <Zap className="w-6 h-6 text-white" />}
-                            {key === 'streakFreeze' && <Snowflake className="w-6 h-6 text-white" />}
-                            {key === 'heartRefill' && <Heart className="w-6 h-6 text-white fill-white" />}
+                            {/* TODO: Replace with custom power-up icons from /assets/icons/powerups/ */}
+                            {key === 'xpBoost' && <span className="text-white text-xs font-bold">⚡</span>}
+                            {key === 'streakFreeze' && <span className="text-white text-xs font-bold">❄</span>}
+                            {key === 'heartRefill' && <span className="text-white text-xs font-bold">❤</span>}
                   </div>
                           {count > 0 && (
                             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -412,19 +413,23 @@ const EducationHub = () => {
                 <div className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg">
                   <div className="flex justify-around">
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <Trophy className="w-8 h-8 text-yellow-500" />
+                      {/* TODO: Replace with trophy icon from /assets/icons/achievements/trophy.svg */}
+                      <div className="w-8 h-8 bg-yellow-500 rounded-full" />
                       <span className="text-xs">Achievements</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <Users className="w-8 h-8 text-blue-500" />
+                      {/* TODO: Replace with users icon from /assets/icons/ui/users.svg */}
+                      <div className="w-8 h-8 bg-blue-500 rounded-full" />
                       <span className="text-xs">Leaderboard</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <Gift className="w-8 h-8 text-purple-500" />
+                      {/* TODO: Replace with gift icon from /assets/icons/ui/gift.svg */}
+                      <div className="w-8 h-8 bg-purple-500 rounded-full" />
                       <span className="text-xs">Daily Rewards</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <ShoppingBag className="w-8 h-8 text-purple-500" />
+                      {/* TODO: Replace with shopping bag icon from /assets/icons/ui/shopping-bag.svg */}
+                      <div className="w-8 h-8 bg-purple-500 rounded-full" />
                       <span className="text-xs">Shop</span>
                     </button>
                   </div>
@@ -446,7 +451,8 @@ const EducationHub = () => {
                   onClick={() => setGameMode('map')}
                   className="mb-6 flex items-center gap-2 text-black dark:text-white hover:underline"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  {/* TODO: Replace with arrow icon from /assets/icons/ui/arrow-left.svg */}
+                  <span>←</span>
                   Back to Islands
                 </button>
                 <h2 className="text-3xl font-bold text-black dark:text-white mb-2">{currentIsland.name}</h2>
