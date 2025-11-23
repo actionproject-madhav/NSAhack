@@ -110,61 +110,83 @@ class AuthService {
 
       console.log('✅ Token decoded successfully! User:', user)
         
-      // Clear old mock data and store user in localStorage immediately (no backend call!)
+      // Check if user already exists in localStorage with onboarding completed (BEFORE clearing)
+      const existingUser = localStorage.getItem('user')
+      let hasExistingOnboarding = false
+      if (existingUser) {
+        try {
+          const parsed = JSON.parse(existingUser)
+          if (parsed.email === user.email && parsed.onboarding_completed === true) {
+            hasExistingOnboarding = true
+            console.log('✅ Found existing user with completed onboarding in localStorage')
+          }
+        } catch (e) {
+          // Invalid JSON, continue
+        }
+      }
+        
+      // Store user in localStorage - preserve onboarding status if it exists
       localStorage.removeItem('user')
-      // Store user WITHOUT portfolio - portfolio is only from trading API
-      const userWithoutPortfolio = { ...user, portfolio: [], totalValue: 0 }
+      const userWithoutPortfolio = { 
+        ...user, 
+        portfolio: [], 
+        totalValue: 0,
+        onboarding_completed: hasExistingOnboarding // Preserve onboarding status
+      }
       localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
       localStorage.setItem('google_token', response.credential) // Store token for later backend sync
-        console.log('✅ User data stored in localStorage')
+      console.log('✅ User data stored in localStorage (onboarding_completed:', hasExistingOnboarding, ')')
         
-      // Try to check backend first for onboarding status (with timeout for cold starts)
-      let hasCompletedOnboarding = false
-      try {
-        console.log('🔍 Checking backend for onboarding status...')
-        console.log('Querying backend with email:', user.email)
-        // Quick check with 10 second timeout
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-        
-        // Use email to query backend (backend supports email lookup)
-        const response = await fetch(`${API_BASE_URL}/auth/user/${encodeURIComponent(user.email)}`, {
-          credentials: 'include',
-          signal: controller.signal
-        })
-        
-        clearTimeout(timeoutId)
-        
-        if (response.ok) {
-          const data = await response.json()
-          hasCompletedOnboarding = data.user?.onboarding_completed || false
-          console.log('✅ Backend check successful. Onboarding completed:', hasCompletedOnboarding)
+      // Use the onboarding status we just preserved
+      let hasCompletedOnboarding = hasExistingOnboarding
+      
+      // If not found in localStorage, check backend (with timeout for cold starts)
+      if (!hasCompletedOnboarding) {
+        try {
+          console.log('🔍 Checking backend for onboarding status...')
+          console.log('Querying backend with email:', user.email)
+          // Increased timeout to 15 seconds for Render cold starts
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
           
-          // Update localStorage with backend data (but remove portfolio - it's only from trading API)
-          if (data.user) {
-            const userWithoutPortfolio = { ...data.user, portfolio: [], totalValue: 0 }
-            localStorage.removeItem('user')
-            localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
-            console.log('✅ Updated localStorage with backend user data (portfolio removed - only from trading API)')
+          // Use email to query backend (backend supports email lookup)
+          const response = await fetch(`${API_BASE_URL}/auth/user/${encodeURIComponent(user.email)}`, {
+            credentials: 'include',
+            signal: controller.signal
+          })
+          
+          clearTimeout(timeoutId)
+          
+          if (response.ok) {
+            const data = await response.json()
+            hasCompletedOnboarding = data.user?.onboarding_completed === true || false
+            console.log('✅ Backend check successful. Onboarding completed:', hasCompletedOnboarding)
+            
+            // Update localStorage with backend data (but remove portfolio - it's only from trading API)
+            if (data.user) {
+              const userWithoutPortfolio = { 
+                ...user,
+                ...data.user, 
+                onboarding_completed: hasCompletedOnboarding, // Ensure it's explicitly set
+                portfolio: [], // Never use portfolio from backend user profile
+                totalValue: 0 
+              }
+              localStorage.removeItem('user')
+              localStorage.setItem('user', JSON.stringify(userWithoutPortfolio))
+              console.log('✅ Updated localStorage with backend user data')
+            }
+          } else {
+            console.warn('⚠️ Backend returned non-OK status, using localStorage status')
+            // Keep localStorage status (already checked above)
           }
-        } else {
-          console.warn('⚠️ Backend returned non-OK status, checking localStorage...')
-          // Fall back to localStorage
-          const storedUser = localStorage.getItem('user')
-          const parsedUser = storedUser ? JSON.parse(storedUser) : null
-          hasCompletedOnboarding = parsedUser?.onboarding_completed || false
+        } catch (error) {
+          console.warn('⚠️ Backend check failed (may be cold start), using localStorage status...', error)
+          // Use localStorage status (already checked above)
+          // Try to sync with backend in background (non-blocking)
+          this.syncWithBackend(response.credential, user).catch(syncError => {
+            console.warn('⚠️ Backend sync failed (non-critical):', syncError)
+          })
         }
-      } catch (error) {
-        console.warn('⚠️ Backend check failed (may be cold start), checking localStorage...', error)
-        // Fall back to localStorage if backend is unavailable
-        const storedUser = localStorage.getItem('user')
-        const parsedUser = storedUser ? JSON.parse(storedUser) : null
-        hasCompletedOnboarding = parsedUser?.onboarding_completed || false
-        
-        // Try to sync with backend in background (non-blocking)
-        this.syncWithBackend(response.credential, user).catch(syncError => {
-          console.warn('⚠️ Backend sync failed (non-critical):', syncError)
-        })
       }
       
       console.log('Final onboarding status:', hasCompletedOnboarding)
