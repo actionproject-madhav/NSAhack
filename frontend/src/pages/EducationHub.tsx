@@ -388,12 +388,62 @@ const EducationHub = () => {
             </motion.div>
           )}
 
+          {gameMode === 'lessons' && currentIsland && (
+            <motion.div
+              key="lessons"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              className="h-full flex flex-col items-center justify-center p-8"
+            >
+              <div className="max-w-4xl w-full">
+                <button
+                  onClick={() => setGameMode('map')}
+                  className="mb-6 flex items-center gap-2 text-black dark:text-white hover:underline"
+                >
+                  ← Back to Islands
+                </button>
+                <h2 className="text-3xl font-bold text-black dark:text-white mb-2">{currentIsland.name}</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                  Select a lesson to begin learning
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentIsland.lessons?.map((lesson: any, index: number) => (
+                    <motion.button
+                      key={lesson.id || index}
+                      onClick={() => {
+                        setCurrentLesson(lesson)
+                        setGameMode('lesson')
+                      }}
+                      className="p-6 bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl shadow-lg text-left hover:shadow-xl transition-all border border-black/10 dark:border-white/10"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <h3 className="text-xl font-bold text-black dark:text-white mb-2">
+                        Lesson {index + 1}: {lesson.title || lesson.name || `Lesson ${index + 1}`}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        {lesson.description || lesson.content?.sections?.[0]?.title || 'Start learning'}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span>📚 {lesson.duration || '10 min'}</span>
+                        {playerStats.completedLessons.includes(lesson.id || index) && (
+                          <span className="text-green-500">✓ Completed</span>
+                        )}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {gameMode === 'lesson' && currentLesson && (
             <LessonGame
               lesson={currentLesson}
               hearts={playerStats.hearts}
               onComplete={(score) => completeLesson(currentLesson.id, score)}
-              onExit={() => setGameMode('map')}
+              onExit={() => setGameMode('lessons')}
             />
           )}
 
