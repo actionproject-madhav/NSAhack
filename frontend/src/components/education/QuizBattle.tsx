@@ -223,20 +223,27 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
-      {/* 3D Island Background */}
+    <div className="h-screen bg-transparent relative overflow-hidden">
+      {/* 3D Island Background - More visible and contextual */}
       {islandModel && (
-        <div className="absolute inset-0 opacity-15 pointer-events-none">
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-0"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 0.3, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
           <IslandModelViewer
             modelPath={islandModel}
             autoRotate={true}
-            scale={2}
+            scale={1.5}
             className="w-full h-full"
           />
-        </div>
+          {/* Subtle gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-purple-900/30" />
+        </motion.div>
       )}
-      {/* Animated Background */}
-      <div className="absolute inset-0">
+      {/* Subtle animated background for depth */}
+      <div className="absolute inset-0 opacity-20">
         <div className="stars"></div>
         <div className="twinkling"></div>
       </div>

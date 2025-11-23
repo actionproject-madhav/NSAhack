@@ -421,20 +421,21 @@ const EducationHub = () => {
     <Layout>
       {/* 3D Island Model Background - Show when island is selected (lesson/quiz mode) */}
       {currentIsland && (gameMode === 'lesson' || gameMode === 'quiz') && (
-        <div 
+        <motion.div 
           className="fixed inset-0 z-0 pointer-events-none"
-          style={{
-            opacity: 0.15,
-            filter: 'blur(3px)'
-          }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 0.2, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
         >
           <IslandModelViewer
             modelPath={currentIsland.model}
             autoRotate={true}
-            scale={2}
+            scale={1.5}
             className="w-full h-full"
           />
-        </div>
+          {/* Gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-black/30" />
+        </motion.div>
       )}
       <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">

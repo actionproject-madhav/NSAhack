@@ -203,34 +203,25 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-      {/* 3D Island Background */}
+    <div className="h-screen bg-transparent relative overflow-hidden">
+      {/* 3D Island Background - More visible and contextual */}
       {islandModel && (
-        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-0"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 0.3, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
           <IslandModelViewer
             modelPath={islandModel}
             autoRotate={true}
-            scale={2}
+            scale={1.5}
             className="w-full h-full"
           />
-        </div>
+          {/* Subtle gradient overlay for better text readability - only at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/20 dark:to-black/20" />
+        </motion.div>
       )}
-      {/* Background Animation */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="floating-shapes">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="shape"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 20}s`,
-                animationDuration: `${20 + Math.random() * 10}s`
-              }}
-            />
-          ))}
-        </div>
-      </div>
 
       {/* Top Bar */}
       <div className="relative z-10 bg-white/90 backdrop-blur shadow-lg p-4">
@@ -294,14 +285,15 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 text-black dark:text-white mb-8 max-h-[60vh] overflow-y-auto"
+            className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-black dark:text-white mb-8 max-h-[60vh] overflow-y-auto border border-gray-200/50 dark:border-gray-700/50"
           >
             {renderSection()}
           </motion.div>
         </AnimatePresence>
 
-        {/* Action Buttons - Fixed at bottom */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex justify-between gap-4 w-full max-w-4xl px-8 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg py-4 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+        {/* Action Buttons - Aligned with content container */}
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="flex justify-between gap-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg py-4 px-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -339,6 +331,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
               ? (isInteractiveSection() ? 'Check Answer' : 'Next') 
               : 'Complete Lesson'}
           </motion.button>
+          </div>
         </div>
       </div>
 
