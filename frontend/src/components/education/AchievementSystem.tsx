@@ -11,7 +11,7 @@ import {
   GraduationCap, 
   Target, 
   Sparkles, 
-  Island, 
+  MapPin, 
   Globe, 
   Moon, 
   Sun, 
@@ -30,7 +30,7 @@ const iconMap = {
   'lessons_50': GraduationCap,
   'perfect_1': Target,
   'perfect_10': Sparkles,
-  'island_complete': Island,
+  'island_complete': MapPin,
   'all_islands': Globe,
   'night_owl': Moon,
   'early_bird': Sun,
@@ -100,7 +100,8 @@ export const AchievementPopup = ({ achievement, onClose }: { achievement?: any; 
     >
       <div className="flex items-start gap-4">
         {(() => {
-          const IconComponent = iconMap[achievement.iconKey] || iconMap.default
+          const iconKey = achievement?.iconKey as keyof typeof iconMap
+          const IconComponent = (iconKey && iconMap[iconKey]) || iconMap.default
           return <IconComponent className="w-12 h-12 text-white" />
         })()}
         <div className="flex-1">
@@ -200,8 +201,12 @@ const AchievementSystem = ({ playerStats, onAchievementUnlock }) => {
                   : 'bg-gray-200'
               }`}
             >
-              <div className={`text-4xl mb-2 ${!isUnlocked && 'grayscale opacity-50'}`}>
-                {achievement.icon}
+              <div className={`mb-2 ${!isUnlocked && 'grayscale opacity-50'}`}>
+                {(() => {
+                  const iconKey = achievement.iconKey as keyof typeof iconMap
+                  const IconComponent = (iconKey && iconMap[iconKey]) || iconMap.default
+                  return <IconComponent className="w-10 h-10" />
+                })()}
               </div>
               <h4 className={`font-semibold text-sm ${
                 isUnlocked ? 'text-white' : 'text-gray-500'
@@ -215,7 +220,7 @@ const AchievementSystem = ({ playerStats, onAchievementUnlock }) => {
               </p>
               {!isUnlocked && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-5xl opacity-20">🔒</span>
+                  <Lock className="w-10 h-10 opacity-20" />
                 </div>
               )}
             </motion.div>

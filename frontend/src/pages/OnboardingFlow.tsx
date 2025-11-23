@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Wallet, TrendingUp, GraduationCap, Zap, Globe, Microscope, Briefcase, Flag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, generatePortfolioReason } from '../utils/mockData'
@@ -291,7 +291,10 @@ const OnboardingFlow = () => {
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-xl">{goal.emoji}</div>
+                    {goal.id === 'save' && <Wallet className="w-6 h-6" />}
+                    {goal.id === 'grow' && <TrendingUp className="w-6 h-6" />}
+                    {goal.id === 'learn' && <GraduationCap className="w-6 h-6" />}
+                    {goal.id === 'options' && <Zap className="w-6 h-6" />}
                     <div className="flex-1">
                       <h3 className={`font-semibold mb-1 ${selectedGoal === goal.id ? 'text-white' : 'text-gray-900'
                         }`}>
@@ -320,7 +323,7 @@ const OnboardingFlow = () => {
                     : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                     }`}
                 >
-                  <div className="text-xl mb-1">{lang.flag}</div>
+                  <Globe className="w-6 h-6 mb-1" />
                   <div className={`font-medium text-sm ${selectedLanguage === lang.code ? 'text-white' : 'text-gray-900'
                     }`}>
                     {lang.name}
@@ -334,34 +337,37 @@ const OnboardingFlow = () => {
           {step === 5 && (
             <div className="space-y-3">
               {[
-                { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', emoji: '🎓' },
-                { id: 'J-1', title: 'J-1 Exchange Visitor', description: 'Exchange programs and research', emoji: '🔬' },
-                { id: 'H-1B', title: 'H-1B Work Visa', description: 'Specialty occupation worker', emoji: '💼' },
-                { id: 'Other', title: 'Other/US Citizen', description: 'Other visa status or US citizen', emoji: '🇺🇸' }
-              ].map((visa) => (
-                <button
-                  key={visa.id}
-                  onClick={() => setVisaStatus(visa.id)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${visaStatus === visa.id
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-xl">{visa.emoji}</div>
-                    <div className="flex-1">
-                      <h3 className={`font-semibold mb-1 ${visaStatus === visa.id ? 'text-white' : 'text-gray-900'
-                        }`}>
-                        {visa.title}
-                      </h3>
-                      <p className={`text-sm ${visaStatus === visa.id ? 'text-blue-100' : 'text-gray-600'
-                        }`}>
-                        {visa.description}
-                      </p>
+                { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', icon: GraduationCap },
+                { id: 'J-1', title: 'J-1 Exchange Visitor', description: 'Exchange programs and research', icon: Microscope },
+                { id: 'H-1B', title: 'H-1B Work Visa', description: 'Specialty occupation worker', icon: Briefcase },
+                { id: 'Other', title: 'Other/US Citizen', description: 'Other visa status or US citizen', icon: Flag }
+              ].map((visa) => {
+                const IconComponent = visa.icon
+                return (
+                  <button
+                    key={visa.id}
+                    onClick={() => setVisaStatus(visa.id)}
+                    className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${visaStatus === visa.id
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <IconComponent className="w-6 h-6" />
+                      <div className="flex-1">
+                        <h3 className={`font-semibold mb-1 ${visaStatus === visa.id ? 'text-white' : 'text-gray-900'
+                          }`}>
+                          {visa.title}
+                        </h3>
+                        <p className={`text-sm ${visaStatus === visa.id ? 'text-blue-100' : 'text-gray-600'
+                          }`}>
+                          {visa.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                )
+              })}
             </div>
           )}
 
@@ -370,15 +376,15 @@ const OnboardingFlow = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { code: 'IN', name: 'India', flag: '🇮🇳', treaty: '15% tax rate' },
-                  { code: 'CN', name: 'China', flag: '🇨🇳', treaty: '10% tax rate' },
-                  { code: 'KR', name: 'South Korea', flag: '🇰🇷', treaty: '15% tax rate' },
-                  { code: 'CA', name: 'Canada', flag: '🇨🇦', treaty: '0% tax rate' },
-                  { code: 'DE', name: 'Germany', flag: '🇩🇪', treaty: '5% tax rate' },
-                  { code: 'JP', name: 'Japan', flag: '🇯🇵', treaty: '15% tax rate' },
-                  { code: 'BR', name: 'Brazil', flag: '🇧🇷', treaty: '15% tax rate' },
-                  { code: 'MX', name: 'Mexico', flag: '🇲🇽', treaty: '10% tax rate' },
-                  { code: 'NP', name: 'Nepal', flag: '🇳🇵', treaty: '30% tax rate' }
+                  { code: 'IN', name: 'India', treaty: '15% tax rate' },
+                  { code: 'CN', name: 'China', treaty: '10% tax rate' },
+                  { code: 'KR', name: 'South Korea', treaty: '15% tax rate' },
+                  { code: 'CA', name: 'Canada', treaty: '0% tax rate' },
+                  { code: 'DE', name: 'Germany', treaty: '5% tax rate' },
+                  { code: 'JP', name: 'Japan', treaty: '15% tax rate' },
+                  { code: 'BR', name: 'Brazil', treaty: '15% tax rate' },
+                  { code: 'MX', name: 'Mexico', treaty: '10% tax rate' },
+                  { code: 'NP', name: 'Nepal', treaty: '30% tax rate' }
                 ].map((country) => (
                   <button
                     key={country.code}
@@ -389,7 +395,7 @@ const OnboardingFlow = () => {
                       }`}
                   >
                     <div className="text-center">
-                      <div className="text-2xl mb-1">{country.flag}</div>
+                      <Globe className="w-8 h-8 mx-auto mb-1" />
                       <div className={`font-medium text-sm mb-1 ${homeCountry === country.code ? 'text-white' : 'text-gray-900'
                         }`}>
                         {country.name}

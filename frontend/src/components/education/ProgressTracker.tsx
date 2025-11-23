@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import Lottie from 'lottie-react'
+import { Trophy, Flame, Star, BookOpen } from 'lucide-react'
 // import streakAnimation from '../../assets/animations/streak-fire.json'
 
 const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
@@ -23,7 +24,7 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Progress Tracker</h2>
         <div className="flex items-center gap-2">
-          <span className="text-3xl">🏆</span>
+          <Trophy className="w-8 h-8 text-yellow-500" />
           <span className="text-xl font-bold">{playerStats.level}</span>
         </div>
       </div>
@@ -35,7 +36,7 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
             <p className="text-white/80 text-sm">Current Streak</p>
             <p className="text-white text-3xl font-bold">{playerStats.streak} Days</p>
           </div>
-          <div className="text-5xl">🔥</div>
+          <Flame className="w-12 h-12 text-orange-500" />
         </div>
         
         {showStreakAnimation && (
@@ -71,7 +72,7 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm flex items-center gap-2">
-              <span>⭐</span> Earn {dailyGoals.xp} XP
+              <Star className="w-4 h-4 text-yellow-500" /> Earn {dailyGoals.xp} XP
             </span>
             <span className="text-sm text-gray-500">
               {playerStats.dailyXP}/{dailyGoals.xp}
@@ -89,7 +90,7 @@ const ProgressTracker = ({ playerStats, dailyGoals, achievements }) => {
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm flex items-center gap-2">
-              <span>📚</span> Complete {dailyGoals.lessons} lessons
+              <BookOpen className="w-4 h-4 text-blue-500" /> Complete {dailyGoals.lessons} lessons
             </span>
             <span className="text-sm text-gray-500">
               {playerStats.dailyLessons}/{dailyGoals.lessons}

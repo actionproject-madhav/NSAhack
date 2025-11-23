@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Howl } from 'howler'
 import confetti from 'canvas-confetti'
 import Lottie from 'lottie-react'
+import { Clock, Flame, Timer, Lightbulb, Shield, Sword } from 'lucide-react'
 
 // Import animations (you'll need to download these)
 // import swordFightAnimation from '../../assets/animations/sword-fight.json'
@@ -210,7 +211,7 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
               <div className="flex items-center gap-4">
                 {/* Timer */}
                 <div className={`flex items-center gap-2 ${timeRemaining < 10 ? 'text-red-500' : 'text-white'}`}>
-                  <span className="text-2xl">⏱️</span>
+                  <Clock className="w-6 h-6" />
                   <span className="font-bold text-xl">{timeRemaining}s</span>
                 </div>
 
@@ -221,7 +222,7 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
                     animate={{ scale: 1 }}
                     className="flex items-center gap-2 text-yellow-400"
                   >
-                    <span className="text-2xl">🔥</span>
+                    <Flame className="w-6 h-6" />
                     <span className="font-bold text-xl">{combo}x COMBO!</span>
                   </motion.div>
                 )}
@@ -238,11 +239,9 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
                       count > 0 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700 opacity-50'
                     } transition-colors`}
                   >
-                    <span className="text-2xl">
-                      {key === 'timeFreeze' && '⏰'}
-                      {key === 'hint' && '💡'}
-                      {key === 'shield' && '🛡️'}
-                    </span>
+                    {key === 'timeFreeze' && <Timer className="w-6 h-6 text-white" />}
+                    {key === 'hint' && <Lightbulb className="w-6 h-6 text-white" />}
+                    {key === 'shield' && <Shield className="w-6 h-6 text-white" />}
                     <span className="text-xs text-white">{count}</span>
                   </button>
                 ))}
@@ -262,9 +261,9 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
                   x: [0, 50, 0],
                   transition: { duration: 0.5 }
                 } : {}}
-                className="text-8xl"
+                className="w-24 h-24 flex items-center justify-center"
               >
-                🗡️
+                <Sword className="w-full h-full text-blue-400" />
               </motion.div>
 
               {/* Opponent Character */}
@@ -273,9 +272,9 @@ const QuizBattle = ({ questions, onComplete, playerStats, opponent = 'AI' }) => 
                   x: [0, -50, 0],
                   transition: { duration: 0.5 }
                 } : {}}
-                className="text-8xl transform scale-x-[-1]"
+                className="w-24 h-24 flex items-center justify-center transform scale-x-[-1]"
               >
-                🗡️
+                <Sword className="w-full h-full text-red-400" />
               </motion.div>
             </div>
 
