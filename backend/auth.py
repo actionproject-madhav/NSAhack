@@ -234,7 +234,7 @@ def get_current_user():
 @auth_bp.route('/user/<user_id>', methods=['GET'])
 def get_user_profile(user_id):
     """Get full user profile including onboarding data"""
-    if db.client is None:
+    if not db.is_connected:
         from db_connection_helper import get_db_error_response, log_db_error
         log_db_error('get_user_profile')
         return jsonify(get_db_error_response()), 500
@@ -271,7 +271,7 @@ def get_user_profile(user_id):
 @auth_bp.route('/onboarding', methods=['POST'])
 def save_onboarding_data():
     """Save user onboarding data - auto-creates user if not found"""
-    if db.client is None:
+    if not db.is_connected:
         from db_connection_helper import get_db_error_response, log_db_error
         log_db_error('save_onboarding_data')
         return jsonify(get_db_error_response()), 500
@@ -372,7 +372,7 @@ def save_onboarding_data():
 @auth_bp.route('/cleanup-portfolio', methods=['POST'])
 def cleanup_mock_portfolio():
     """Remove mock portfolio data from all users (one-time cleanup)"""
-    if db.client is None:
+    if not db.is_connected:
         return jsonify({'error': 'Database not connected'}), 500
     
     try:
@@ -593,7 +593,7 @@ def get_multiple_quotes():
 
 def save_or_update_user(user_data):
     """Save or update user in database"""
-    if db.client is None:
+    if not db.is_connected:
         raise Exception("Database not connected")
     
     try:

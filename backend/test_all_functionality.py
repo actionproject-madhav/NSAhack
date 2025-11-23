@@ -101,7 +101,7 @@ def test_portfolio_endpoint():
                 cash = data.get('cash_balance', 0)
                 value = data.get('portfolio_value', 0)
                 
-                print(f"✅ Portfolio retrieved")
+                print(f" Portfolio retrieved")
                 print(f"   Cash: ${cash:,.2f}")
                 print(f"   Portfolio Value: ${value:,.2f}")
                 print(f"   Positions: {len(portfolio)}")
@@ -133,16 +133,16 @@ def test_cash_balance():
             data = response.json()
             if data.get('success'):
                 balance = data.get('cash_balance', 0)
-                print(f"✅ Cash balance: ${balance:,.2f}")
+                print(f" Cash balance: ${balance:,.2f}")
                 return True
             else:
-                print(f"❌ Failed: {data.get('error')}")
+                print(f" Failed: {data.get('error')}")
                 return False
         else:
-            print(f"❌ Failed: {response.status_code}")
+            print(f" Failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_stock_quote():
@@ -157,19 +157,19 @@ def test_stock_quote():
             data = response.json()
             if data.get('success'):
                 quote = data.get('quote', {})
-                print(f"✅ Stock quote retrieved")
+                print(f" Stock quote retrieved")
                 print(f"   Symbol: {quote.get('symbol')}")
                 print(f"   Price: ${quote.get('price', 0):.2f}")
                 print(f"   Change: {quote.get('changePercent', 0):.2f}%")
                 return True
             else:
-                print(f"❌ Failed: {data.get('error')}")
+                print(f" Failed: {data.get('error')}")
                 return False
         else:
-            print(f"❌ Failed: {response.status_code}")
+            print(f" Failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_transactions():
@@ -184,18 +184,18 @@ def test_transactions():
             data = response.json()
             if data.get('success'):
                 txs = data.get('transactions', [])
-                print(f"✅ Transactions retrieved: {len(txs)}")
+                print(f" Transactions retrieved: {len(txs)}")
                 for tx in txs[:3]:
                     print(f"   - {tx.get('type').upper()}: {tx.get('quantity')} {tx.get('ticker')} @ ${tx.get('price', 0):.2f}")
                 return True
             else:
-                print(f"❌ Failed: {data.get('error')}")
+                print(f" Failed: {data.get('error')}")
                 return False
         else:
-            print(f"❌ Failed: {response.status_code}")
+            print(f" Failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_ai_hub():
@@ -210,18 +210,18 @@ def test_ai_hub():
         if response.status_code == 200:
             data = response.json()
             if data.get('success'):
-                print(f"✅ Daily brief generated")
+                print(f" Daily brief generated")
                 summary = data.get('summary', '')[:100]
                 print(f"   Preview: {summary}...")
                 return True
             else:
-                print(f"⚠️  Daily brief failed: {data.get('error', 'Unknown error')}")
+                print(f"  Daily brief failed: {data.get('error', 'Unknown error')}")
                 return False
         else:
-            print(f"⚠️  Daily brief returned {response.status_code}")
+            print(f"  Daily brief returned {response.status_code}")
             return False
     except Exception as e:
-        print(f"⚠️  AI Hub error (may need API keys): {e}")
+        print(f"  AI Hub error (may need API keys): {e}")
         return False
 
 def test_database_data_integrity():
@@ -235,32 +235,32 @@ def test_database_data_integrity():
         # Check user
         user = users.find_one({'email': TEST_USER_EMAIL})
         if not user:
-            print(f"❌ User not found in database")
+            print(f" User not found in database")
             return False
         
-        print(f"✅ User found: {user.get('name')}")
+        print(f" User found: {user.get('name')}")
         
         # Check for old portfolio data
         if 'portfolio' in user and user['portfolio']:
-            print(f"⚠️  WARNING: User still has old portfolio data!")
+            print(f"  WARNING: User still has old portfolio data!")
             print(f"   Run cleanup: python3 cleanup_old_portfolio.py")
         else:
-            print(f"✅ No old portfolio data (good!)")
+            print(f" No old portfolio data (good!)")
         
         # Check transactions
         user_id_str = str(user['_id'])
         txs = list(transactions.find({'user_id': user_id_str}))
-        print(f"✅ Transactions found: {len(txs)}")
+        print(f" Transactions found: {len(txs)}")
         
         # Verify portfolio can be built from transactions
         if len(txs) > 0:
-            print(f"✅ Portfolio can be built from {len(txs)} transaction(s)")
+            print(f" Portfolio can be built from {len(txs)} transaction(s)")
         else:
-            print(f"ℹ️  No transactions yet (user hasn't made trades)")
+            print(f"ℹ  No transactions yet (user hasn't made trades)")
         
         return True
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 def test_cors():
@@ -281,14 +281,14 @@ def test_cors():
         }
         
         if cors_headers['access-control-allow-origin']:
-            print(f"✅ CORS configured")
+            print(f" CORS configured")
             print(f"   Allow-Origin: {cors_headers['access-control-allow-origin']}")
             return True
         else:
-            print(f"⚠️  CORS headers not found")
+            print(f"  CORS headers not found")
             return False
     except Exception as e:
-        print(f"⚠️  CORS test error: {e}")
+        print(f"  CORS test error: {e}")
         return False
 
 def main():

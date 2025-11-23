@@ -48,9 +48,10 @@ Keep it under 200 words. Use clear, simple language. No jargon. Be objective and
     def analyze_stock(self, ticker, news, quote):
         """Analyze a specific stock"""
         
-        current_price = quote.get('c', 0)
-        change = quote.get('d', 0)
-        change_percent = quote.get('dp', 0)
+        # Handle None values to prevent format string errors
+        current_price = quote.get('c', 0) or 0
+        change = quote.get('d', 0) or 0
+        change_percent = quote.get('dp', 0) or 0
         
         news_text = "\n".join([
             f"- {item.get('headline', '')}"

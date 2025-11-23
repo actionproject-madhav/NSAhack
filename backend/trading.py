@@ -34,7 +34,7 @@ def get_balance():
     """Get user's cash balance"""
     try:
         # Check if database is connected
-        if db.client is None:
+        if not db.is_connected:
             log_db_error('get_balance')
             return jsonify(get_db_error_response()), 500
         
@@ -106,7 +106,7 @@ def buy_stock():
     """Execute a buy order"""
     try:
         # Check if database is connected
-        if db.client is None:
+        if not db.is_connected:
             log_db_error('buy_stock')
             return jsonify(get_db_error_response()), 500
         data = request.get_json()
@@ -262,7 +262,7 @@ def sell_stock():
     """Execute a sell order"""
     try:
         # Check if database is connected
-        if db.client is None:
+        if not db.is_connected:
             log_db_error('sell_stock')
             return jsonify(get_db_error_response()), 500
         data = request.get_json()
@@ -398,7 +398,7 @@ def get_transactions():
     """Get user's transaction history"""
     try:
         # Check if database is connected
-        if db.client is None:
+        if not db.is_connected:
             log_db_error('get_transactions')
             return jsonify(get_db_error_response()), 500
         user_id = request.args.get('user_id')
@@ -475,7 +475,7 @@ def get_portfolio():
     """Get user's current portfolio built from actual transactions only (no mock/onboarding data)"""
     try:
         # Check if database is connected
-        if db.client is None:
+        if not db.is_connected:
             log_db_error('get_portfolio')
             return jsonify(get_db_error_response()), 500
         user_id = request.args.get('user_id')

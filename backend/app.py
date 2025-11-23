@@ -744,7 +744,7 @@ def update_receipt(receipt_id):
 
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'healthy', 'database': 'connected' if db.client else 'disconnected'})
+    return jsonify({'status': 'healthy', 'database': 'connected' if db.is_connected else 'disconnected'})
 
 @app.route('/', methods=['GET'])
 def home():
