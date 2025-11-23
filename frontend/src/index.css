@@ -6,6 +6,7 @@
 
 /* Import Robinhood-style theme */
 @import './styles/robinhood-theme.css';
+@import './styles/education-game.css';
 
 @layer base {
   * {
