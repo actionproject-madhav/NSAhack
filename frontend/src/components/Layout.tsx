@@ -35,7 +35,7 @@ const Layout = ({ children }: LayoutProps) => {
   }, [darkMode])
 
   return (
-    <div className="min-h-screen bg-white/80 dark:bg-black/80 backdrop-blur-sm transition-colors flex relative z-10 overflow-x-hidden">
+    <div className="h-screen bg-transparent flex relative z-10 overflow-hidden">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
@@ -44,8 +44,8 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
-      {/* Left Sidebar */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0`}>
+      {/* Left Sidebar - Fixed, doesn't scroll */}
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:fixed inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white/95 dark:bg-black/95 backdrop-blur-md border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col flex-shrink-0`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -124,11 +124,11 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Top Header */}
-        <header className="border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30 bg-white dark:bg-black flex-shrink-0">
-          <div className="px-4 h-16 flex items-center justify-between max-w-full">
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden ml-0 lg:ml-64">
+        {/* Top Header - Fixed */}
+        <header className="border-b border-gray-200/50 dark:border-gray-800/50 fixed top-0 right-0 left-0 lg:left-64 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md flex-shrink-0 h-16">
+          <div className="px-4 h-full flex items-center justify-between max-w-full">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -170,8 +170,8 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* Page Content - Scrollable with top padding for fixed header */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-16">
           {children}
         </div>
       </div>

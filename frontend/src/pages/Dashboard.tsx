@@ -110,7 +110,7 @@ const Dashboard = () => {
                 )}
               </div>
               {portfolioChange !== 0 && (
-                <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
                   {portfolioChange >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                   <span>{portfolioChange >= 0 ? '+' : ''}${Math.abs(portfolioChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   <span>({portfolioChange >= 0 ? '+' : ''}{portfolioChangePercent.toFixed(2)}%)</span>
@@ -137,7 +137,8 @@ const Dashboard = () => {
                     const currentPrice = quote?.price || stock.currentPrice
                     const currentValue = stock.quantity * currentPrice
                     const totalGain = currentValue - (stock.quantity * stock.avgPrice)
-                    const totalGainPercent = ((totalGain / (stock.quantity * stock.avgPrice)) * 100)
+                    const totalGainPercent = stock.avgPrice > 0 ? ((totalGain / (stock.quantity * stock.avgPrice)) * 100) : 0
+                    const isPositive = totalGain >= 0
 
                     return (
                       <button
@@ -158,9 +159,10 @@ const Dashboard = () => {
                           <div className="font-medium text-black dark:text-white">
                             ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </div>
-                          <div className={`text-sm font-medium ${totalGain >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                            {totalGain >= 0 ? '+' : ''}${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            {' '}({totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%)
+                          {/* Robinhood-style colors: #00C805 for green, #FF5000 for red */}
+                          <div className={`text-sm font-medium ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
+                            {isPositive ? '+' : ''}${Math.abs(totalGain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {' '}({isPositive ? '+' : ''}{totalGainPercent.toFixed(2)}%)
                           </div>
                         </div>
                       </button>

@@ -59,15 +59,15 @@ const PortfolioCard = ({ item }: PortfolioCardProps) => {
         </div>
       </div>
 
-      {/* Performance */}
+      {/* Performance - Robinhood colors */}
       <div className="flex items-center justify-between mb-4">
-        <div className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`flex items-center gap-1 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
           {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
           <span className="font-medium">
             {isPositive ? '+' : ''}${Math.abs(gainLoss).toFixed(2)}
           </span>
         </div>
-        <div className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`text-sm font-medium ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
           {isPositive ? '+' : ''}{gainLossPercent.toFixed(2)}%
         </div>
       </div>

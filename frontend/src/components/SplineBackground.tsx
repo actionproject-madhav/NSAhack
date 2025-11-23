@@ -32,7 +32,7 @@ const SplineBackground = memo(() => {
 
   return (
     <>
-      {/* Spline 3D Background - Fixed behind everything */}
+      {/* Spline 3D Background - Fixed behind everything, smooth and blended */}
       <div 
         style={{
           position: 'fixed',
@@ -41,10 +41,11 @@ const SplineBackground = memo(() => {
           width: '250vw',
           height: '250vh',
           transform: 'translate(-50%, -50%) scale(0.35)',
-          opacity: 0.5,
+          opacity: 0.3,
           pointerEvents: 'none',
           zIndex: 0,
-          willChange: 'transform' // Optimize for animations
+          willChange: 'transform',
+          mixBlendMode: 'normal'
         }}
         className="spline-background"
       >

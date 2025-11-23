@@ -160,9 +160,18 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       ctx.stroke();
     }
 
-    // Draw chart line
+    // Draw chart line with Robinhood-style colors (green for gains, red for losses)
     if (data.length > 0) {
-      ctx.strokeStyle = theme === 'dark' ? '#ffffff' : '#000000';
+      // Determine if overall trend is up or down
+      const firstValue = data[0].totalValue;
+      const lastValue = data[data.length - 1].totalValue;
+      const isPositive = lastValue >= firstValue;
+      
+      // Robinhood colors: green (#00C805) for gains, red (#FF5000) for losses
+      const lineColor = isPositive ? '#00C805' : '#FF5000';
+      const fillColor = isPositive ? 'rgba(0, 200, 5, 0.1)' : 'rgba(255, 80, 0, 0.1)';
+      
+      ctx.strokeStyle = lineColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
 
@@ -189,9 +198,9 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
 
       ctx.stroke();
 
-      // Fill area under curve
+      // Fill area under curve with Robinhood-style gradient
       if (data.length > 1) {
-        ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+        ctx.fillStyle = fillColor;
         ctx.lineTo(width - chartPadding.right, height - chartPadding.bottom);
         ctx.lineTo(chartPadding.left, height - chartPadding.bottom);
         ctx.closePath();
@@ -209,29 +218,66 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       ctx.fillText(`$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, chartPadding.left - 10, y + 4);
     }
 
-    // Draw current value
-    if (data.length > 0) {
-      const lastPoint = data[data.length - 1];
-      const x = width - chartPadding.right;
-      const normalizedValue = range > 0 ? (lastPoint.totalValue - adjustedMin) / range : 0.5;
-      const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (1 - normalizedValue);
-      
-      // Draw dot
-      ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, 2 * Math.PI);
-      ctx.fill();
+      // Draw current value with Robinhood-style
+      if (data.length > 0) {
+        const lastPoint = data[data.length - 1];
+        const firstPoint = data[0];
+        const change = lastPoint.totalValue - firstPoint.totalValue;
+        const isPositive = change >= 0;
+        const x = width - chartPadding.right;
+        const normalizedValue = range > 0 ? (lastPoint.totalValue - adjustedMin) / range : 0.5;
+        const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (1 - normalizedValue);
+        
+        // Draw dot with Robinhood color
+        ctx.fillStyle = isPositive ? '#00C805' : '#FF5000';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fill();
 
-      // Draw value label
-      ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(
-        `$${lastPoint.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        x + 10,
-        y - 5
-      );
-    }
+        // Draw value label with change indicator
+        ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(
+          `$${lastPoint.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          x + 10,
+          y - 5
+        );
+        
+        // Draw change label (Robinhood style)
+        if (data.length > 1) {
+          const changePercent = firstPoint.totalValue > 0 ? (change / firstPoint.totalValue) * 100 : 0;
+          ctx.fillStyle = isPositive ? '#00C805' : '#FF5000';
+          ctx.font = '12px sans-serif';
+          ctx.fillText(
+            `${isPositive ? '+' : ''}$${change.toFixed(2)} (${isPositive ? '+' : ''}${changePercent.toFixed(2)}%)`,
+            x + 10,
+            y + 15
+          );
+        }
+      }
+      
+      // Draw time labels on x-axis
+      if (data.length > 1) {
+        ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        
+        // Show first and last timestamps
+        const firstTime = new Date(data[0].timestamp);
+        const lastTime = new Date(data[data.length - 1].timestamp);
+        
+        ctx.fillText(
+          firstTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          chartPadding.left,
+          height - chartPadding.bottom + 20
+        );
+        ctx.fillText(
+          lastTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          width - chartPadding.right,
+          height - chartPadding.bottom + 20
+        );
+      }
   }, [data, isLoading, theme]);
 
   if (isLoading) {

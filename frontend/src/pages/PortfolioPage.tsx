@@ -87,10 +87,10 @@ const PortfolioPage = () => {
 
           <div className="bg-white dark:bg-black p-6 rounded-lg border border-gray-200 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Return</span>
-            <div className={`text-3xl font-bold mt-2 ${isPositive ? 'rh-green' : 'rh-red'}`}>
+            <div className={`text-3xl font-bold mt-2 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
               {isPositive ? '+' : ''}${Math.abs(totalGainLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <div className={`text-sm mt-1 ${isPositive ? 'rh-green' : 'rh-red'}`}>
+            <div className={`text-sm mt-1 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
               {isPositive ? '+' : ''}{totalGainLossPercent.toFixed(2)}%
             </div>
           </div>
@@ -138,8 +138,9 @@ const PortfolioPage = () => {
                 const currentValue = holding.quantity * currentPrice
                 const originalValue = holding.quantity * holding.avgPrice
                 const gainLoss = currentValue - originalValue
-                const gainLossPercent = ((gainLoss / originalValue) * 100)
+                const gainLossPercent = originalValue > 0 ? ((gainLoss / originalValue) * 100) : 0
                 const isPositive = gainLoss >= 0
+                const priceIsPositive = priceChange >= 0
 
                 return (
                   <motion.div
@@ -162,14 +163,14 @@ const PortfolioPage = () => {
                         <div className="font-semibold text-black dark:text-white text-lg">
                           ${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
-                        <div className={`text-sm font-medium mt-1 ${isPositive ? 'rh-green' : 'rh-red'}`}>
+                        <div className={`text-sm font-medium mt-1 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
                           {isPositive ? '+' : ''}${Math.abs(gainLoss).toFixed(2)} ({isPositive ? '+' : ''}{gainLossPercent.toFixed(2)}%)
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           ${currentPrice.toFixed(2)}/share
                           {quote && (
-                            <span className={`ml-2 ${priceChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                              {priceChange >= 0 ? '+' : ''}{priceChangePercent.toFixed(2)}%
+                            <span className={`ml-2 ${priceIsPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
+                              {priceIsPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%
                             </span>
                           )}
                         </div>
