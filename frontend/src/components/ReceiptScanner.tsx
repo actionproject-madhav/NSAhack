@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Upload, X, Check, TrendingUp, DollarSign, AlertCircle, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
+import { useUser } from '../context/UserContext'
 
 // Types for backend response
 interface ReceiptScanResponse {
@@ -72,8 +73,7 @@ const COMPANY_TICKER_MAP: Record<string, { ticker: string; logo: string; isPremi
   'chipotle': { ticker: 'CMG', logo: '🌯', isPremium: true }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-// Change this to your backend URL
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '')
 
 const ReceiptScanner = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -87,10 +87,14 @@ const ReceiptScanner = () => {
   const [isInvesting, setIsInvesting] = useState(false)
   const [investmentSuccess, setInvestmentSuccess] = useState(false)
 
-  // Get user ID - modify this based on your user context
+  // Get user ID from user context
+  const { user } = useUser()
   const getUserId = () => {
-    // Replace this with your actual user context/auth system
-    return 'demo_user_123' // or get from useUser() hook
+    if (user) {
+      // Prefer email over ID for user lookup
+      return user.email || user.id || 'anonymous'
+    }
+    return 'anonymous'
   }
 
   const mapCompanyToTicker = (companyName: string, backendTicker?: string, backendLogo?: string): { ticker?: string; logo?: string; isPremium?: boolean } => {
