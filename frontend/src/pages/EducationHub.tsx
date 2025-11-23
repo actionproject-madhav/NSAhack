@@ -30,7 +30,21 @@ const EducationHub = () => {
   const [currentIsland, setCurrentIsland] = useState(null)
   const [currentLesson, setCurrentLesson] = useState(null)
   const [gameMode, setGameMode] = useState('map') // 'map', 'lesson', 'quiz', 'battle'
-  const [playerStats, setPlayerStats] = useState({
+  const [playerStats, setPlayerStats] = useState<{
+    level: number
+    xp: number
+    streak: number
+    hearts: number
+    coins: number
+    badges: string[]
+    unlockedIslands: string[]
+    completedLessons: (string | number)[]
+    powerups: {
+      xpBoost: number
+      streakFreeze: number
+      heartRefill: number
+    }
+  }>({
     level: 1,
     xp: 0,
     streak: 0,
@@ -409,7 +423,7 @@ const EducationHub = () => {
                   Select a lesson to begin learning
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentIsland.lessons?.map((lesson: any, index: number) => (
+                  {(currentIsland.lessons || []).map((lesson: any, index: number) => (
                     <motion.button
                       key={lesson.id || index}
                       onClick={() => {
@@ -429,7 +443,7 @@ const EducationHub = () => {
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <BookOpen className="w-4 h-4" />
                         <span>{lesson.duration || '10 min'}</span>
-                        {playerStats.completedLessons.includes(lesson.id || index) && (
+                        {playerStats.completedLessons && playerStats.completedLessons.includes(lesson.id || index) && (
                           <span className="text-green-500 flex items-center gap-1">
                             <span>✓</span> Completed
                           </span>

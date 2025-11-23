@@ -26,12 +26,12 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [heartsRemaining, setHeartsRemaining] = useState(hearts)
 
-  // Sound Effects
+  // Sound Effects - using correct paths
   const sounds = {
-    correct: new Howl({ src: ['/sounds/correct.mp3'] }),
-    incorrect: new Howl({ src: ['/sounds/incorrect.mp3'] }),
-    combo: new Howl({ src: ['/sounds/combo.mp3'] }),
-    heartLost: new Howl({ src: ['/sounds/heart-lost.mp3'] })
+    correct: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
+    incorrect: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
+    combo: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
+    heartLost: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }) // Using wrong.mp3 as fallback
   }
 
   // Progress Bar Animation
