@@ -14,7 +14,11 @@ def test_database_connection():
     
     db = ReceiptDatabase()
     
-    if db.client is None:
+    # Test connection (lazy connection will trigger here)
+    print("Attempting to connect to database...")
+    is_connected = db.is_connected
+    
+    if not is_connected:
         print(" Database NOT connected!")
         print("\nTo connect MongoDB:")
         print("1. Install MongoDB locally: brew install mongodb-community")
@@ -35,7 +39,7 @@ def test_user_collection():
     
     db = ReceiptDatabase()
     
-    if db.client is None:
+    if not db.is_connected:
         print(" Database not connected, skipping test")
         return
     
@@ -79,7 +83,7 @@ def test_receipt_collection():
     
     db = ReceiptDatabase()
     
-    if db.client is None:
+    if not db.is_connected:
         print(" Database not connected, skipping test")
         return
     
@@ -114,7 +118,7 @@ def main():
         print("=" * 60)
         print("\nThe app will work with limited functionality:")
         print(" Google authentication will work")
-        -print(" Stock data and portfolio will work (in-memory)")
+        print(" Stock data and portfolio will work (in-memory)")
         print(" User data won't persist after refresh")
         print(" Receipt scanner won't save data")
         print("\nTo enable full functionality, connect a MongoDB database.")

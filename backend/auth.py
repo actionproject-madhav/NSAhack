@@ -23,24 +23,24 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 # Validate required environment variables
 if not GOOGLE_CLIENT_ID:
-    print("❌ ERROR: GOOGLE_CLIENT_ID environment variable is not set!")
+    print(" ERROR: GOOGLE_CLIENT_ID environment variable is not set!")
     print("   Please set it in Render Dashboard → Environment Variables")
 if not GOOGLE_CLIENT_SECRET:
-    print("❌ ERROR: GOOGLE_CLIENT_SECRET environment variable is not set!")
+    print("ERROR: GOOGLE_CLIENT_SECRET environment variable is not set!")
     print("   Please set it in Render Dashboard → Environment Variables")
 if not GOOGLE_REDIRECT_URI:
-    print("❌ ERROR: GOOGLE_REDIRECT_URI environment variable is not set!")
+    print(" ERROR: GOOGLE_REDIRECT_URI environment variable is not set!")
     print("   Should be: https://finlit-nsa.onrender.com/auth/google/callback")
 
 # Debug output
 print("=" * 60)
 print("Google OAuth Configuration Check:")
 print("=" * 60)
-print(f"GOOGLE_CLIENT_ID: {'✅ Set' if GOOGLE_CLIENT_ID else '❌ Missing'}")
+print(f"GOOGLE_CLIENT_ID: {' Set' if GOOGLE_CLIENT_ID else 'Missing'}")
 if GOOGLE_CLIENT_ID:
     print(f"  Value: {GOOGLE_CLIENT_ID[:30]}...{GOOGLE_CLIENT_ID[-10:]}")
-print(f"GOOGLE_CLIENT_SECRET: {'✅ Set' if GOOGLE_CLIENT_SECRET else '❌ Missing'}")
-print(f"GOOGLE_REDIRECT_URI: {'✅ Set' if GOOGLE_REDIRECT_URI else '❌ Missing'}")
+print(f"GOOGLE_CLIENT_SECRET: {'Set' if GOOGLE_CLIENT_SECRET else ' Missing'}")
+print(f"GOOGLE_REDIRECT_URI: {' Set' if GOOGLE_REDIRECT_URI else ' Missing'}")
 if GOOGLE_REDIRECT_URI:
     print(f"  Value: {GOOGLE_REDIRECT_URI}")
 print(f"FRONTEND_URL: {FRONTEND_URL}")

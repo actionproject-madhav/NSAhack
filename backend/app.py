@@ -761,14 +761,17 @@ def get_config():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint - shows database connection status"""
-    from database import ReceiptDatabase
-    db = ReceiptDatabase()
-    
+    # Use the global db instance (already initialized)
     mongo_uri = os.getenv('MONGO_URI', '')
-    database_name = os.getenv('DATABASE_NAME', '')
+    database_name = os.getenv('DATABASE_NAME', 'receipt_scanner')
     
-    # Check if database is connected
-    is_connected = db.client is not None
+    # Check if database is connected (triggers lazy connection)
+    # This will attempt to connect if not already connected
+    try:
+        is_connected = db.is_connected
+    except Exception as e:
+        print(f"Error checking database connection: {e}")
+        is_connected = False
     
     health_status = {
         'status': 'healthy' if is_connected else 'unhealthy',
@@ -782,11 +785,20 @@ def health_check():
     
     if not is_connected:
         health_status['database']['error'] = 'Database not connected'
+        # Show MONGO_URI preview (first 40 chars + last 20 chars for security)
+        mongo_uri_preview = ''
+        if mongo_uri:
+            if len(mongo_uri) > 60:
+                mongo_uri_preview = mongo_uri[:40] + "..." + mongo_uri[-20:]
+            else:
+                mongo_uri_preview = mongo_uri[:40] + "..."
+        health_status['database']['mongo_uri_preview'] = mongo_uri_preview
         health_status['database']['troubleshooting'] = {
             'check_mongo_uri': 'Set MONGO_URI in Render environment variables',
             'check_database_name': 'Set DATABASE_NAME in Render environment variables',
             'check_network_access': 'Allow 0.0.0.0/0 in MongoDB Atlas Network Access',
-            'check_credentials': 'Verify username and password in MONGO_URI are correct'
+            'check_credentials': 'Verify username and password in MONGO_URI are correct',
+            'check_render_logs': 'Check Render logs for connection error details'
         }
     
     status_code = 200 if is_connected else 503
