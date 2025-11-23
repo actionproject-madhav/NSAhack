@@ -541,39 +541,159 @@ def get_portfolio():
         for ticker, holding in holdings.items():
             if holding['quantity'] > 0:
                 avg_price = holding['total_cost'] / holding['quantity'] if holding['quantity'] > 0 else 0
+                # Fetch REAL-TIME current price from Yahoo Finance
                 current_price = get_real_stock_price(ticker)
+                
+                if current_price is None:
+                    # If price fetch fails, use avg_price as fallback
+                    current_price = avg_price
+                    print(f"⚠️ Could not fetch current price for {ticker}, using avg_price: {avg_price}")
                 
                 portfolio.append({
                     'ticker': ticker,
                     'company': ticker,  # Can be enhanced with company name lookup
                     'quantity': holding['quantity'],
                     'avgPrice': avg_price,
-                    'currentPrice': current_price or avg_price,
+                    'currentPrice': current_price,  # REAL-TIME price from Yahoo Finance
                     'reason': 'Paper trading purchase',
                     'logo': ''
                 })
         
-        # Update current prices for all positions
-        for position in portfolio:
-            current_price = get_real_stock_price(position['ticker'])
-            if current_price:
-                position['currentPrice'] = current_price
-        
-        # Calculate total value
+        # Calculate total portfolio value using REAL-TIME prices
         total_value = sum(p['quantity'] * p['currentPrice'] for p in portfolio)
         cash_balance = user.get('cash_balance', STARTING_CASH)
+        total_account_value = total_value + cash_balance
         
-        print(f"Portfolio built from {len(all_transactions)} transactions: {len(portfolio)} positions")
+        print(f"✅ Portfolio built from {len(all_transactions)} transactions: {len(portfolio)} positions")
+        print(f"   Portfolio value: ${total_value:.2f}, Cash: ${cash_balance:.2f}, Total: ${total_account_value:.2f}")
         
         return jsonify({
             'success': True,
             'portfolio': portfolio,
             'cash_balance': cash_balance,
             'portfolio_value': total_value,
-            'total_account_value': total_value + cash_balance
+            'total_account_value': total_account_value
         })
         
     except Exception as e:
         print(f"Error in get_portfolio: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@trading_bp.route('/portfolio/history', methods=['GET'])
+def get_portfolio_history():
+    """Get portfolio value history over time based on transactions"""
+    try:
+        if not db.is_connected:
+            log_db_error('get_portfolio_history')
+            return jsonify(get_db_error_response()), 500
+        
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'user_id required'}), 400
+        
+        users = get_user_collection()
+        transactions = get_transactions_collection()
+        
+        # Find user
+        try:
+            user = users.find_one({'_id': ObjectId(user_id)})
+        except:
+            user = users.find_one({'email': user_id})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user_obj_id = str(user['_id'])
+        cash_balance = user.get('cash_balance', STARTING_CASH)
+        
+        # Get all transactions sorted by timestamp
+        all_transactions = list(transactions.find({'user_id': user_obj_id}).sort('timestamp', 1))
+        
+        if not all_transactions:
+            # No transactions - return starting cash balance
+            now = datetime.now(timezone.utc)
+            return jsonify({
+                'success': True,
+                'history': [{
+                    'timestamp': now.isoformat(),
+                    'total_value': cash_balance,
+                    'portfolio_value': 0,
+                    'cash_balance': cash_balance
+                }]
+            })
+        
+        # Calculate portfolio value at each transaction point
+        history = []
+        holdings = {}  # Track holdings over time
+        running_cash = STARTING_CASH
+        
+        for tx in all_transactions:
+            ticker = tx['ticker']
+            tx_timestamp = tx['timestamp']
+            
+            # Update holdings based on transaction
+            if ticker not in holdings:
+                holdings[ticker] = {'quantity': 0, 'total_cost': 0}
+            
+            if tx['type'] == 'buy':
+                holdings[ticker]['quantity'] += tx['quantity']
+                holdings[ticker]['total_cost'] += tx['total']
+                running_cash -= tx['total']
+            elif tx['type'] == 'sell':
+                sold_qty = tx['quantity']
+                remaining_qty = holdings[ticker]['quantity']
+                if remaining_qty > 0:
+                    avg_cost_per_share = holdings[ticker]['total_cost'] / remaining_qty
+                    holdings[ticker]['quantity'] -= sold_qty
+                    holdings[ticker]['total_cost'] -= (avg_cost_per_share * sold_qty)
+                running_cash += tx['total']
+            
+            # Calculate portfolio value at this point in time
+            # Use transaction price as current price (historical approximation)
+            portfolio_value = 0
+            for t, h in holdings.items():
+                if h['quantity'] > 0:
+                    # Use the price from the most recent transaction for this ticker
+                    # Or fetch current price for the last point
+                    avg_price = h['total_cost'] / h['quantity'] if h['quantity'] > 0 else 0
+                    portfolio_value += h['quantity'] * avg_price
+            
+            total_value = portfolio_value + running_cash
+            
+            history.append({
+                'timestamp': tx_timestamp.isoformat() if isinstance(tx_timestamp, datetime) else str(tx_timestamp),
+                'total_value': total_value,
+                'portfolio_value': portfolio_value,
+                'cash_balance': running_cash
+            })
+        
+        # Add current point with real-time prices
+        current_portfolio_value = 0
+        for ticker, holding in holdings.items():
+            if holding['quantity'] > 0:
+                current_price = get_real_stock_price(ticker)
+                if current_price:
+                    current_portfolio_value += holding['quantity'] * current_price
+        
+        current_total = current_portfolio_value + running_cash
+        now = datetime.now(timezone.utc)
+        history.append({
+            'timestamp': now.isoformat(),
+            'total_value': current_total,
+            'portfolio_value': current_portfolio_value,
+            'cash_balance': running_cash
+        })
+        
+        return jsonify({
+            'success': True,
+            'history': history
+        })
+        
+    except Exception as e:
+        print(f"Error in get_portfolio_history: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 

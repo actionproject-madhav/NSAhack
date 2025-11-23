@@ -194,6 +194,40 @@ class TradingService {
       throw error;
     }
   }
+
+  async getPortfolioHistory(userId: string): Promise<{
+    success: boolean;
+    history: Array<{
+      timestamp: string;
+      total_value: number;
+      portfolio_value: number;
+      cash_balance: number;
+    }>;
+  }> {
+    try {
+      const userIdentifier = userId.includes('@') ? userId : userId;
+      
+      const response = await fetch(`${API_BASE}/api/trading/portfolio/history?user_id=${encodeURIComponent(userIdentifier)}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `Failed to fetch portfolio history: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch portfolio history');
+      }
+      
+      return data;
+    } catch (error: any) {
+      console.error('Error fetching portfolio history:', error);
+      throw error;
+    }
+  }
 }
 
 export default new TradingService();

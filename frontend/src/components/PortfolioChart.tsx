@@ -45,41 +45,71 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
           return;
         }
 
-        // Get current portfolio data
-        const portfolioData = await tradingService.getPortfolio(userId);
-        const cashBalance = portfolioData.cash_balance || 0;
-        const portfolioValue = portfolioData.portfolio_value || 0;
-        const totalValue = portfolioData.total_account_value || (portfolioValue + cashBalance);
-
-        // For now, create a simple chart with current value
-        // In a real implementation, you'd fetch historical data from backend
-        // For demo, we'll create a simple line showing current value
-        const now = Date.now();
-        const dataPoints: PortfolioDataPoint[] = [];
+        // Get portfolio history from backend (real data based on transactions)
+        const historyData = await tradingService.getPortfolioHistory(userId);
         
-        // Create data points for the selected timeframe
+        if (!historyData.history || historyData.history.length === 0) {
+          // No transactions - show starting cash balance
+          const cashBalance = user.cashBalance || 10000;
+          const now = Date.now();
+          setData([{
+            timestamp: now,
+            totalValue: cashBalance,
+            portfolioValue: 0,
+            cashBalance: cashBalance
+          }]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Filter history based on timeframe
+        const now = Date.now();
         const days = timeframe === '1D' ? 1 : 
                      timeframe === '1W' ? 7 : 
                      timeframe === '1M' ? 30 : 
                      timeframe === '3M' ? 90 : 
-                     timeframe === '1Y' ? 365 : 365;
+                     timeframe === '1Y' ? 365 : 
+                     365; // ALL
         
-        const points = Math.min(days, 30); // Max 30 points for performance
+        const cutoffTime = now - (days * 24 * 60 * 60 * 1000);
         
-        for (let i = points; i >= 0; i--) {
-          const timestamp = now - (i * (days * 24 * 60 * 60 * 1000) / points);
-          // For now, show current value (in real app, fetch historical data)
+        const filteredHistory = historyData.history.filter((point: any) => {
+          if (timeframe === 'ALL') return true;
+          const pointTime = new Date(point.timestamp).getTime();
+          return pointTime >= cutoffTime;
+        });
+
+        // Convert to chart data points
+        const dataPoints: PortfolioDataPoint[] = filteredHistory.map((point: any) => ({
+          timestamp: new Date(point.timestamp).getTime(),
+          totalValue: point.total_value || 0,
+          portfolioValue: point.portfolio_value || 0,
+          cashBalance: point.cash_balance || 0
+        }));
+
+        // If no data points in timeframe, show at least the current value
+        if (dataPoints.length === 0) {
+          const latest = historyData.history[historyData.history.length - 1];
           dataPoints.push({
-            timestamp,
-            totalValue: totalValue, // Current value
-            portfolioValue: portfolioValue,
-            cashBalance: cashBalance
+            timestamp: now,
+            totalValue: latest.total_value || 0,
+            portfolioValue: latest.portfolio_value || 0,
+            cashBalance: latest.cash_balance || 0
           });
         }
 
         setData(dataPoints);
       } catch (error) {
         console.error('Error loading portfolio history:', error);
+        // Fallback to current value if history fails
+        const cashBalance = user.cashBalance || 10000;
+        const portfolioValue = user.totalValue || 0;
+        setData([{
+          timestamp: Date.now(),
+          totalValue: portfolioValue + cashBalance,
+          portfolioValue: portfolioValue,
+          cashBalance: cashBalance
+        }]);
       } finally {
         setIsLoading(false);
       }
