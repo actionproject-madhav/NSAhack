@@ -15,6 +15,8 @@ interface User {
   homeCountry?: string
   portfolio: PortfolioItem[]
   totalValue: number
+  cashBalance?: number
+  totalAccountValue?: number
 }
 
 interface PortfolioItem {
@@ -64,7 +66,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updatedUser = {
         ...user,
         portfolio: portfolioData.portfolio || [],
-        totalValue: portfolioData.portfolio_value || 0
+        totalValue: portfolioData.portfolio_value || 0,
+        cashBalance: portfolioData.cash_balance || 0,
+        totalAccountValue: portfolioData.total_account_value || (portfolioData.portfolio_value + portfolioData.cash_balance)
       }
       
       setUser(updatedUser)
@@ -110,17 +114,29 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Load both in parallel instead of sequentially
         const [dbUser, portfolioData] = await Promise.allSettled([
           apiService.getUserProfile(lookupId),
-          tradingService.getPortfolio(apiUserId).catch(() => ({ portfolio: [], portfolio_value: 0 }))
+          tradingService.getPortfolio(apiUserId).catch(() => ({ 
+            success: false,
+            portfolio: [], 
+            portfolio_value: 0,
+            cash_balance: 10000,
+            total_account_value: 10000
+          } as any))
         ])
         
         // Process results
         const userProfile = dbUser.status === 'fulfilled' ? dbUser.value : null
-        const portfolio = portfolioData.status === 'fulfilled' 
-          ? (portfolioData.value.portfolio || [])
-          : []
-        const totalValue = portfolioData.status === 'fulfilled'
-          ? (portfolioData.value.portfolio_value || 0)
-          : 0
+        let portfolio: PortfolioItem[] = []
+        let totalValue = 0
+        let cashBalance = 10000 // Default starting cash
+        let totalAccountValue = 10000
+        
+        if (portfolioData.status === 'fulfilled') {
+          const portfolioResponse = portfolioData.value
+          portfolio = portfolioResponse.portfolio || []
+          totalValue = portfolioResponse.portfolio_value || 0
+          cashBalance = portfolioResponse.cash_balance || 10000
+          totalAccountValue = portfolioResponse.total_account_value || (totalValue + cashBalance)
+        }
         
         if (userProfile) {
           // Build user object - portfolio ONLY from trading API, never from dbUser.portfolio
@@ -137,7 +153,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             visaStatus: userProfile.visa_status,
             homeCountry: userProfile.home_country,
             portfolio: portfolio, // ONLY from trading API
-            totalValue: totalValue // ONLY from trading API
+            totalValue: totalValue, // ONLY from trading API
+            cashBalance: cashBalance, // From trading API
+            totalAccountValue: totalAccountValue // From trading API
           }
           
           setUser(fullUser)
@@ -156,7 +174,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...currentUser,
             email: fallbackEmail, // ALWAYS set email (required for trading API)
             portfolio: portfolio, // Use portfolio from parallel call
-            totalValue: totalValue
+            totalValue: totalValue,
+            cashBalance: cashBalance,
+            totalAccountValue: totalAccountValue
           })
         }
       } catch (error) {

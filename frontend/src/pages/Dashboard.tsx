@@ -4,14 +4,17 @@ import { useUser } from '../context/UserContext'
 import { useEffect, useState, useMemo } from 'react'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
-import TradingViewMiniWidget from '../components/TradingViewMiniWidget'
+import PortfolioChart from '../components/PortfolioChart'
 import AIChatSidebar from '../components/AIChatSidebar'
+import tradingService from '../services/tradingService'
 
 const Dashboard = () => {
   const { user, isLoading } = useUser()
   const navigate = useNavigate()
   const [darkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
   const [showAIChat, setShowAIChat] = useState(false)
+  const [cashBalance, setCashBalance] = useState<number | null>(null)
+  const [totalAccountValue, setTotalAccountValue] = useState<number | null>(null)
   
   // Get user's portfolio symbols
   const userSymbols = user?.portfolio?.map(p => p.ticker) || []
@@ -22,6 +25,27 @@ const Dashboard = () => {
     refreshInterval: 60000,
     enabled: userSymbols.length > 0
   })
+
+  // Load cash balance and total account value from database
+  useEffect(() => {
+    const loadAccountData = async () => {
+      if (!user) return
+      try {
+        const userId = user.email || user.id
+        if (!userId) return
+        
+        const portfolioData = await tradingService.getPortfolio(userId)
+        setCashBalance(portfolioData.cash_balance || 0)
+        setTotalAccountValue(portfolioData.total_account_value || (portfolioData.portfolio_value + portfolioData.cash_balance))
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error loading account data:', error)
+        }
+      }
+    }
+    
+    loadAccountData()
+  }, [user])
 
   // Memoize expensive portfolio calculations
   const { portfolioChange, portfolioChangePercent } = useMemo(() => {
@@ -67,10 +91,23 @@ const Dashboard = () => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="max-w-4xl mx-auto px-4 py-8 w-full">
 
-            {/* Portfolio Value */}
+            {/* Portfolio Value - Total Account Value (Portfolio + Cash) */}
             <div className="mb-8">
               <div className="text-5xl font-medium text-black dark:text-white mb-2">
-                ${user?.totalValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                ${totalAccountValue !== null 
+                  ? totalAccountValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : (user?.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                }
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                {cashBalance !== null && (
+                  <span>Cash: ${cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                )}
+                {user?.portfolio && user.portfolio.length > 0 && (
+                  <span className="ml-4">
+                    Portfolio: ${(user.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                )}
               </div>
               {portfolioChange !== 0 && (
                 <div className={`flex items-center gap-2 text-base font-medium ${portfolioChange >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
@@ -82,15 +119,12 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Chart - Real TradingView Data */}
+            {/* Portfolio Chart - Shows Total Account Value Over Time */}
             <div className="mb-8">
-              <div className="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden" style={{ height: '400px' }}>
-                <TradingViewMiniWidget 
-                  symbol={user?.portfolio?.[0]?.ticker || 'AAPL'} 
-                  height="400px"
-                  theme={darkMode ? 'dark' : 'light'}
-                />
-              </div>
+              <PortfolioChart 
+                height="400px"
+                theme={darkMode ? 'dark' : 'light'}
+              />
             </div>
 
             {/* Stocks List - Real Prices from Yahoo Finance */}
