@@ -199,8 +199,8 @@ export function ModernStockCards({ quotes = [] }: ModernStockCardsProps) {
   console.log('ModernStockCards quotes:', quotes); // Debug log
 
   return (
-    <div className="bg-white box-border rounded-lg p-3">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+    <div className="bg-white box-border rounded-lg p-3 overflow-hidden">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-full">
         <div className="flex gap-2 min-w-max">
           {stocksConfig.slice(0, 4).map((stock) => {
             const quote = quotes.find(q => q.symbol === stock.symbol);

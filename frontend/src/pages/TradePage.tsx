@@ -111,7 +111,7 @@ const TradePage = () => {
 
   return (
     <Layout>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 w-full overflow-x-hidden">
         
         {/* Header */}
         <div className="mb-8">

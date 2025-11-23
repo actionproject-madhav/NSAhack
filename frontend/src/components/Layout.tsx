@@ -35,7 +35,7 @@ const Layout = ({ children }: LayoutProps) => {
   }, [darkMode])
 
   return (
-    <div className="min-h-screen bg-white/80 dark:bg-black/80 backdrop-blur-sm transition-colors flex relative z-10">
+    <div className="min-h-screen bg-white/80 dark:bg-black/80 backdrop-blur-sm transition-colors flex relative z-10 overflow-x-hidden">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
@@ -45,7 +45,7 @@ const Layout = ({ children }: LayoutProps) => {
       )}
       
       {/* Left Sidebar */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col`}>
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -125,10 +125,10 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* Top Header */}
-        <header className="border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30 bg-white dark:bg-black">
-          <div className="px-4 h-16 flex items-center justify-between">
+        <header className="border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30 bg-white dark:bg-black flex-shrink-0">
+          <div className="px-4 h-16 flex items-center justify-between max-w-full">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -171,7 +171,7 @@ const Layout = ({ children }: LayoutProps) => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {children}
         </div>
       </div>

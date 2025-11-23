@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import OnboardingFlow from './pages/OnboardingFlow'
@@ -12,7 +12,6 @@ import PortfolioPage from './pages/PortfolioPage'
 import WalletPage from './pages/WalletPage'
 import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
-import SplineBackground from './components/SplineBackground'
 import { UserProvider } from './context/UserContext'
 
 // Backend warm-up: Ping health endpoint on app load to wake up Render free tier
@@ -43,10 +42,7 @@ function App() {
   return (
     <UserProvider>
       <Router>
-        <div className="min-h-screen bg-transparent transition-colors relative">
-          {/* Global Spline 3D Background */}
-          <SplineBackground />
-          
+        <div className="min-h-screen bg-transparent transition-colors relative overflow-x-hidden">
           <div className="relative z-10">
             <AnimatePresence mode="wait" initial={false}>
               <Routes>

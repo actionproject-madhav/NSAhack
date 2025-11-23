@@ -62,10 +62,10 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="flex h-full relative">
+      <div className="flex h-full relative overflow-x-hidden">
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="max-w-4xl mx-auto px-4 py-8 w-full">
 
             {/* Portfolio Value */}
             <div className="mb-8">
