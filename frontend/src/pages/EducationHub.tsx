@@ -500,24 +500,39 @@ const EducationHub = () => {
             <LessonGame
               lesson={currentLesson}
               hearts={playerStats.hearts}
-              onComplete={(score: number) => completeLesson(currentLesson.id, score)}
+              onComplete={(score: number) => {
+                completeLesson(currentLesson.id, score)
+                // After completing lesson, offer quiz if practice questions exist
+                if (currentLesson.content?.practiceQuestions && currentLesson.content.practiceQuestions.length > 0) {
+                  // Small delay to show completion, then offer quiz
+                  setTimeout(() => {
+                    if (window.confirm('Great job! Would you like to take a quiz to test your knowledge?')) {
+                      setGameMode('quiz')
+                    } else {
+                      setGameMode('lessons')
+                    }
+                  }, 1000)
+                } else {
+                  setGameMode('lessons')
+                }
+              }}
               onExit={() => setGameMode('lessons')}
             />
           )}
 
-          {gameMode === 'quiz' && (
+          {gameMode === 'quiz' && currentLesson && (
             <QuizBattle
               questions={(() => {
-                // Get questions from the first lesson of current island
-                const questions = currentIsland?.lessons?.[0]?.content?.practiceQuestions || []
+                // Get questions from the current lesson
+                const questions = currentLesson?.content?.practiceQuestions || []
                 if (import.meta.env.DEV) {
-                  console.log('Quiz questions:', questions, 'from island:', currentIsland?.name)
+                  console.log('Quiz questions:', questions, 'from lesson:', currentLesson?.title)
                 }
                 return questions
               })()}
               onComplete={(score: number) => {
-                completeLesson('quiz', score)
-                setGameMode('map')
+                completeLesson(`quiz-${currentLesson.id}`, score)
+                setGameMode('lessons')
               }}
               playerStats={playerStats}
             />

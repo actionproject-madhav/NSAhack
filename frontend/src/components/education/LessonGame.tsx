@@ -93,6 +93,15 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
     return memo
   })
 
+  // Check if current section is interactive (requires answer/feedback)
+  const isInteractiveSection = () => {
+    const section = lesson.content.sections[currentSection]
+    return section.type === 'interactive-drag' || 
+           section.type === 'mini-game' || 
+           section.type === 'question' ||
+           section.hasQuestion === true
+  }
+
   // Render Different Section Types
   const renderSection = () => {
     const section = lesson.content.sections[currentSection]
@@ -146,11 +155,46 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
           </div>
         )
         
+      case 'comparison':
+        return (
+          <div className="prose prose-lg max-w-none text-black dark:text-white">
+            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
+            <p className="text-gray-800 dark:text-gray-200 mb-4">{section.content}</p>
+            {section.data && (
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                {Object.entries(section.data).map(([key, value]: [string, any]) => (
+                  <div key={key} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                    <h4 className="font-bold mb-2 capitalize">{key}</h4>
+                    {typeof value === 'object' && value !== null && (
+                      <ul className="space-y-1 text-sm">
+                        {Object.entries(value).map(([k, v]: [string, any]) => (
+                          <li key={k}><span className="font-semibold">{k}:</span> {String(v)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+        
+      case 'example':
+      case 'text':
+      case 'warning':
+      case 'calculation':
       default:
         return (
           <div className="prose prose-lg max-w-none text-black dark:text-white">
             <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
-            <p className="text-gray-800 dark:text-gray-200">{section.content}</p>
+            <p className="text-gray-800 dark:text-gray-200 mb-4">{section.content}</p>
+            {section.details && (
+              <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                {section.details.map((detail: string, idx: number) => (
+                  <li key={idx}>{detail}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )
     }
@@ -248,8 +292,9 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gray-200 text-gray-700 rounded-2xl font-semibold"
+            className="px-8 py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => currentSection > 0 && setCurrentSection(prev => prev - 1)}
+            disabled={currentSection === 0}
           >
             Previous
           </motion.button>
@@ -259,23 +304,34 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             whileTap={{ scale: 0.95 }}
             className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-semibold shadow-lg"
             onClick={() => {
-              // Move to next section or complete lesson
-              if (currentSection < lesson.content.sections.length - 1) {
-                setCurrentSection(prev => prev + 1)
+              const section = lesson.content.sections[currentSection]
+              const isInteractive = isInteractiveSection()
+              
+              // Only show feedback for interactive sections
+              if (isInteractive) {
+                // For interactive sections, handle answer (this will show feedback)
+                handleAnswer(true)
               } else {
-                // Lesson complete - mark as correct and finish
-                onComplete(score)
+                // For regular content sections, just move to next without feedback
+                if (currentSection < lesson.content.sections.length - 1) {
+                  setCurrentSection(prev => prev + 1)
+                } else {
+                  // All sections done - complete lesson
+                  onComplete(score)
+                }
               }
             }}
           >
-            {currentSection < lesson.content.sections.length - 1 ? 'Next' : 'Complete'}
+            {currentSection < lesson.content.sections.length - 1 
+              ? (isInteractiveSection() ? 'Check Answer' : 'Next') 
+              : 'Complete Lesson'}
           </motion.button>
         </div>
       </div>
 
-      {/* Feedback Overlay */}
+      {/* Feedback Overlay - Only show for interactive sections */}
       <AnimatePresence>
-        {showFeedback && (
+        {showFeedback && isInteractiveSection() && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
