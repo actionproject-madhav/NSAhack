@@ -6,15 +6,17 @@ import Lottie from 'lottie-react'
 import { useSpring, animated } from '@react-spring/web'
 import { useDrag } from '@use-gesture/react'
 import { Heart, X } from 'lucide-react'
+import IslandModelViewer from './IslandModelViewer'
 
 interface LessonGameProps {
   lesson: any
   hearts: number
   onComplete: (score: number) => void
   onExit: () => void
+  islandModel?: string
 }
 
-const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => {
+const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonGameProps) => {
   const [currentSection, setCurrentSection] = useState(0)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
@@ -151,7 +153,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               loop={false}
               className="w-96 h-96 mx-auto"
             />
-            <p className="text-lg mt-4 text-gray-800 dark:text-gray-200">{section.content}</p>
+            <p className="text-xl font-semibold mt-4 text-gray-900 dark:text-gray-100 leading-relaxed">{section.content}</p>
           </div>
         )
         
@@ -164,11 +166,11 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               <div className="grid grid-cols-2 gap-4 mt-6">
                 {Object.entries(section.data).map(([key, value]: [string, any]) => (
                   <div key={key} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                    <h4 className="font-bold mb-2 capitalize">{key}</h4>
+                    <h4 className="font-extrabold text-lg mb-3 capitalize text-gray-900 dark:text-gray-100">{key}</h4>
                     {typeof value === 'object' && value !== null && (
-                      <ul className="space-y-1 text-sm">
+                      <ul className="space-y-2 text-base">
                         {Object.entries(value).map(([k, v]: [string, any]) => (
-                          <li key={k}><span className="font-semibold">{k}:</span> {String(v)}</li>
+                          <li key={k} className="font-semibold text-gray-800 dark:text-gray-200"><span className="font-extrabold">{k}:</span> {String(v)}</li>
                         ))}
                       </ul>
                     )}
@@ -202,6 +204,17 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
 
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
+      {/* 3D Island Background */}
+      {islandModel && (
+        <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+          <IslandModelViewer
+            modelPath={islandModel}
+            autoRotate={true}
+            scale={2}
+            className="w-full h-full"
+          />
+        </div>
+      )}
       {/* Background Animation */}
       <div className="absolute inset-0 opacity-10">
         <div className="floating-shapes">

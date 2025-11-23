@@ -4,6 +4,7 @@ import { Howl } from 'howler'
 import confetti from 'canvas-confetti'
 import Lottie from 'lottie-react'
 import { Clock, Flame, Timer, Lightbulb, Shield, Sword } from 'lucide-react'
+import IslandModelViewer from './IslandModelViewer'
 
 // Types
 interface Question {
@@ -33,9 +34,10 @@ interface QuizBattleProps {
   onComplete: (score: number) => void
   playerStats?: PlayerStats
   opponent?: string
+  islandModel?: string
 }
 
-const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }, opponent = 'AI' }: QuizBattleProps) => {
+const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }, opponent = 'AI', islandModel }: QuizBattleProps) => {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0)
   const [playerHealth, setPlayerHealth] = useState<number>(100)
   const [opponentHealth, setOpponentHealth] = useState<number>(100)
@@ -222,6 +224,17 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
 
   return (
     <div className="h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      {/* 3D Island Background */}
+      {islandModel && (
+        <div className="absolute inset-0 opacity-15 pointer-events-none">
+          <IslandModelViewer
+            modelPath={islandModel}
+            autoRotate={true}
+            scale={2}
+            className="w-full h-full"
+          />
+        </div>
+      )}
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="stars"></div>
@@ -352,11 +365,11 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
               transition={{ type: "spring", stiffness: 100 }}
               className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">
+              <h2 className="text-3xl font-extrabold text-white mb-6 tracking-tight">
                 Question {currentQuestion + 1} of {questions.length}
               </h2>
               
-              <p className="text-xl text-white mb-8">
+              <p className="text-2xl font-bold text-white mb-8 leading-relaxed">
                 {questions[currentQuestion]?.question || 'No question available'}
               </p>
 
@@ -379,7 +392,8 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
                         : 'bg-white/20 hover:bg-white/30 text-white'
                     }`}
                   >
-                    <span className="font-semibold">{String.fromCharCode(65 + index)}.</span> {option}
+                    <span className="font-extrabold text-lg mr-2">{String.fromCharCode(65 + index)}.</span> 
+                    <span className="font-bold text-lg">{option}</span>
                   </motion.button>
                 )) || []}
               </div>
@@ -392,7 +406,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-6 p-4 bg-white/10 rounded-xl"
                   >
-                    <p className="text-white">
+                    <p className="text-white text-lg font-semibold leading-relaxed">
                       {questions[currentQuestion].explanation}
                     </p>
                   </motion.div>

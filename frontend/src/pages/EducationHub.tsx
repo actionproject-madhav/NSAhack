@@ -419,24 +419,20 @@ const EducationHub = () => {
 
   return (
     <Layout>
-      {/* Island Theme Background - Only show when island is selected */}
-      {currentIsland && (
+      {/* 3D Island Model Background - Show when island is selected (lesson/quiz mode) */}
+      {currentIsland && (gameMode === 'lesson' || gameMode === 'quiz') && (
         <div 
           className="fixed inset-0 z-0 pointer-events-none"
           style={{
-            opacity: 0.25,
-            filter: 'blur(2px)'
+            opacity: 0.15,
+            filter: 'blur(3px)'
           }}
         >
-          <Lottie 
-            animationData={getIslandBackground()}
-            loop={true}
-            autoplay={true}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
+          <IslandModelViewer
+            modelPath={currentIsland.model}
+            autoRotate={true}
+            scale={2}
+            className="w-full h-full"
           />
         </div>
       )}
@@ -452,39 +448,10 @@ const EducationHub = () => {
             >
               {/* Island Map with 3D Visualization */}
               <div className="flex items-center justify-center h-full relative p-8">
-                {/* 3D Island Background using Spline - Subtle background */}
-                <div className="absolute inset-0 z-0 opacity-20">
-                  <Spline 
-                    scene="https://prod.spline.design/f7MEBGBa8Fh0o30l/scene.splinecode"
-                    style={{ width: '100%', height: '100%' }}
-                  />
-                </div>
-                
-                {/* Animated background layers for each unlocked island */}
-                <div className="absolute inset-0 z-0 opacity-15 pointer-events-none">
-                  {islands
-                    .filter(i => playerStats.unlockedIslands.includes(i.id))
-                    .map((island, idx) => (
-                      <div 
-                        key={island.id} 
-                        className="absolute inset-0"
-                        style={{
-                          transform: `translate(${idx * 15}%, ${idx * 10}%) scale(0.8)`,
-                          opacity: 0.2
-                        }}
-                      >
-                        <Lottie 
-                          animationData={getIslandAnimation(island.theme)}
-                          loop={true}
-                          autoplay={true}
-                          style={{ width: '100%', height: '100%' }}
-                        />
-                      </div>
-                    ))}
-                </div>
+                {/* Clean background - no Spline */}
                 
                 <div className="max-w-6xl w-full relative z-10">
-                  <h2 className="text-4xl font-bold mb-8 text-center text-black dark:text-white drop-shadow-lg">
+                  <h2 className="text-5xl font-extrabold mb-8 text-center text-black dark:text-white drop-shadow-lg tracking-tight">
                     Choose Your Learning Island
                   </h2>
                   
@@ -560,12 +527,12 @@ const EducationHub = () => {
                             </div>
                             
                             {/* Island Name */}
-                            <h3 className="text-xl font-bold text-black dark:text-white mb-2">
+                            <h3 className="text-2xl font-extrabold text-black dark:text-white mb-2 tracking-tight">
                               {island.name}
                             </h3>
                             
                             {/* Lesson Count */}
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-base font-bold text-gray-700 dark:text-gray-300">
                               {island.lessons?.length || 0} Lessons
                             </p>
                             
@@ -762,10 +729,10 @@ const EducationHub = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <h3 className="text-xl font-bold text-black dark:text-white mb-2">
+                      <h3 className="text-2xl font-extrabold text-black dark:text-white mb-2 tracking-tight">
                         Lesson {index + 1}: {lesson.title || lesson.name || `Lesson ${index + 1}`}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                      <p className="text-gray-700 dark:text-gray-300 text-base font-semibold mb-4 leading-relaxed">
                         {lesson.description || lesson.content?.sections?.[0]?.title || 'Start learning'}
                       </p>
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -824,6 +791,7 @@ const EducationHub = () => {
                 setGameMode('lessons')
               }}
               playerStats={playerStats}
+              islandModel={currentIsland?.model}
             />
           )}
         </AnimatePresence>
