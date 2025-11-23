@@ -5,25 +5,31 @@ import { Howl, HowlOptions } from 'howler'
 type SoundName = 'click' | 'correct' | 'incorrect' | 'levelUp' | 'coinCollect' | 'unlock' | 'achievement' | 'combo' | 'islandSelect' | 'locked' | 'heartLost'
 
 const useGameSound = () => {
-  const soundsRef = useRef<Record<SoundName, Howl>>({
-    click: new Howl({ src: ['/sounds/click.mp3'], volume: 0.5 }),
-    correct: new Howl({ src: ['/sounds/correct.mp3'], volume: 0.6 }),
-    incorrect: new Howl({ src: ['/sounds/incorrect.mp3'], volume: 0.6 }),
-    levelUp: new Howl({ src: ['/sounds/levelup.mp3'], volume: 0.8 }),
-    coinCollect: new Howl({ src: ['/sounds/coin.mp3'], volume: 0.5 }),
-    unlock: new Howl({ src: ['/sounds/unlock.mp3'], volume: 0.7 }),
-    achievement: new Howl({ src: ['/sounds/achievement.mp3'], volume: 0.8 }),
-    combo: new Howl({ src: ['/sounds/combo.mp3'], volume: 0.6 }),
-    islandSelect: new Howl({ src: ['/sounds/island-select.mp3'], volume: 0.5 }),
-    locked: new Howl({ src: ['/sounds/locked.mp3'], volume: 0.4 }),
-    heartLost: new Howl({ src: ['/sounds/heart-lost.mp3'], volume: 0.5 })
+  // Only load sounds that actually exist - others will be silent
+  const soundsRef = useRef<Partial<Record<SoundName, Howl>>>({
+    // click: File doesn't exist - will be silent
+    correct: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
+    incorrect: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
+    levelUp: new Howl({ src: ['/assets/sounds/effects/level_up.mp3'], volume: 0.8, preload: false }),
+    coinCollect: new Howl({ src: ['/assets/sounds/effects/coin-collect.mp3'], volume: 0.5, preload: false }),
+    unlock: new Howl({ src: ['/assets/sounds/effects/unlock.mp3'], volume: 0.7, preload: false }),
+    // achievement: File doesn't exist - will be silent
+    combo: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
+    // islandSelect: File doesn't exist - will be silent
+    // locked: File doesn't exist - will be silent
+    // heartLost: File doesn't exist - will be silent
   })
 
   const bgMusicRef = useRef<Howl | null>(null)
 
   const playSound = useCallback((soundName: SoundName) => {
-    if (soundsRef.current[soundName]) {
-      soundsRef.current[soundName].play()
+    const sound = soundsRef.current[soundName]
+    if (sound) {
+      try {
+        sound.play()
+      } catch (e) {
+        // Silently fail if sound can't play
+      }
     }
   }, [])
 
@@ -32,9 +38,10 @@ const useGameSound = () => {
       bgMusicRef.current.stop()
     }
     bgMusicRef.current = new Howl({
-      src: [`/sounds/music/${musicFile}`],
+      src: [`/assets/sounds/music/${musicFile}`],
       loop: true,
-      volume: 0.3
+      volume: 0.3,
+      preload: false
     })
     bgMusicRef.current.play()
   }, [])

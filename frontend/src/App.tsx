@@ -41,7 +41,7 @@ function App() {
 
   return (
     <UserProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-transparent transition-colors relative overflow-hidden">
           <div className="relative z-10">
             <AnimatePresence mode="wait" initial={false}>

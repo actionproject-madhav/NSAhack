@@ -28,11 +28,17 @@ const achievements = [
   { id: 'speed_demon', name: 'Speed Demon', description: 'Complete lesson in under 2 minutes', icon: '⚡', xp: 75 }
 ]
 
-export const AchievementPopup = ({ achievement, onClose }: { achievement: any; onClose: () => void }) => {
+export const AchievementPopup = ({ achievement, onClose }: { achievement?: any; onClose?: () => void }) => {
   useEffect(() => {
-    // Play sound
-    const sound = new Howl({ src: ['/sounds/achievement.mp3'] })
-    sound.play()
+    if (!achievement) return
+    
+    // Play sound - achievement.mp3 doesn't exist, so use unlock sound instead
+    try {
+      const sound = new Howl({ src: ['/assets/sounds/effects/unlock.mp3'], volume: 0.8, preload: false })
+      sound.play()
+    } catch (e) {
+      // Sound file not found, ignore
+    }
 
     // Trigger confetti
     confetti({
@@ -42,9 +48,13 @@ export const AchievementPopup = ({ achievement, onClose }: { achievement: any; o
     })
 
     // Auto close after 5 seconds
-    const timer = setTimeout(onClose, 5000)
-    return () => clearTimeout(timer)
-  }, [])
+    if (onClose) {
+      const timer = setTimeout(onClose, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [achievement, onClose])
+
+  if (!achievement) return null
 
   return (
     <motion.div
@@ -54,13 +64,13 @@ export const AchievementPopup = ({ achievement, onClose }: { achievement: any; o
       className="fixed top-20 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 shadow-2xl z-50 max-w-sm"
     >
       <div className="flex items-start gap-4">
-        <div className="text-5xl">{achievement.icon}</div>
+        <div className="text-5xl">{achievement.icon || '🏆'}</div>
         <div className="flex-1">
           <h3 className="text-white font-bold text-xl mb-1">Achievement Unlocked!</h3>
-          <p className="text-white/90 font-semibold">{achievement.name}</p>
-          <p className="text-white/80 text-sm">{achievement.description}</p>
+          <p className="text-white/90 font-semibold">{achievement.name || 'Achievement'}</p>
+          <p className="text-white/80 text-sm">{achievement.description || ''}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-white/90">+{achievement.xp} XP</span>
+            <span className="text-white/90">+{achievement.xp || 0} XP</span>
           </div>
         </div>
       </div>

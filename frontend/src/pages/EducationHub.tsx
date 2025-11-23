@@ -58,7 +58,7 @@ const EducationHub = () => {
       color: '#4ECDC4',
       model: '/models/island-tropical.glb',
       theme: 'tropical',
-      bgMusic: 'tropical-adventure.mp3',
+      bgMusic: 'island-tropical.mp3',
       lessons: allUnits[0].lessons,
       boss: {
         name: 'The Market Bear',
@@ -73,7 +73,7 @@ const EducationHub = () => {
       color: '#FF6B6B',
       model: '/models/island-volcano.glb',
       theme: 'volcanic',
-      bgMusic: 'volcanic-intensity.mp3',
+      bgMusic: 'island-volcano.mp3',
       lessons: allUnits[1].lessons,
       locked: true,
       unlockRequirement: { completeLessons: 3, fromIsland: 'unit-1' }
@@ -85,7 +85,7 @@ const EducationHub = () => {
       color: '#A8E6CF',
       model: '/models/island-ice.glb',
       theme: 'arctic',
-      bgMusic: 'arctic-winds.mp3',
+      bgMusic: 'island-ice.mp3',
       lessons: allUnits[2].lessons,
       locked: true,
       unlockRequirement: { level: 5 }
@@ -97,7 +97,7 @@ const EducationHub = () => {
       color: '#FFD93D',
       model: '/models/island-floating.glb',
       theme: 'sky',
-      bgMusic: 'sky-symphony.mp3',
+      bgMusic: 'island-sky.mp3',
       lessons: allUnits[3].lessons,
       locked: true,
       unlockRequirement: { badges: ['fundamentals-master', 'stocks-master'] }
@@ -381,7 +381,7 @@ const EducationHub = () => {
         </AnimatePresence>
 
         {/* Achievement Popups */}
-        <AchievementPopup />
+        {/* AchievementPopup will be shown when achievement is unlocked */}
       </div>
     </Layout>
   )
