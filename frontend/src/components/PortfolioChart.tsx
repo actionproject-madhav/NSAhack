@@ -139,11 +139,15 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Calculate value range
+    // Calculate value range with padding
     const values = data.map(d => d.totalValue);
-    const minValue = Math.min(...values, 0);
+    const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
-    const range = maxValue - minValue || 1;
+    // Add 5% padding on top and bottom for better visualization
+    const padding = (maxValue - minValue) * 0.05 || maxValue * 0.05 || 100;
+    const range = (maxValue - minValue) + (padding * 2) || maxValue * 0.1 || 1000;
+    const adjustedMin = minValue - padding;
+    const adjustedMax = maxValue + padding;
 
     // Draw grid
     ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -157,14 +161,15 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     }
 
     // Draw chart line
-    if (data.length > 1) {
+    if (data.length > 0) {
       ctx.strokeStyle = theme === 'dark' ? '#ffffff' : '#000000';
       ctx.lineWidth = 2;
       ctx.beginPath();
 
       data.forEach((point, index) => {
-        const x = padding.left + (width - padding.left - padding.right) * (index / (data.length - 1));
-        const y = height - padding.bottom - ((point.totalValue - minValue) / range) * (height - padding.top - padding.bottom);
+        const x = padding.left + (width - padding.left - padding.right) * (data.length > 1 ? index / (data.length - 1) : 0);
+        const normalizedValue = range > 0 ? (point.totalValue - adjustedMin) / range : 0.5;
+        const y = height - padding.bottom - normalizedValue * (height - padding.top - padding.bottom);
         
         if (index === 0) {
           ctx.moveTo(x, y);
@@ -173,14 +178,25 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
         }
       });
 
+      // If only one point, draw a horizontal line
+      if (data.length === 1) {
+        const point = data[0];
+        const normalizedValue = range > 0 ? (point.totalValue - adjustedMin) / range : 0.5;
+        const y = height - padding.bottom - normalizedValue * (height - padding.top - padding.bottom);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+      }
+
       ctx.stroke();
 
       // Fill area under curve
-      ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
-      ctx.lineTo(width - padding.right, height - padding.bottom);
-      ctx.lineTo(padding.left, height - padding.bottom);
-      ctx.closePath();
-      ctx.fill();
+      if (data.length > 1) {
+        ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+        ctx.lineTo(width - padding.right, height - padding.bottom);
+        ctx.lineTo(padding.left, height - padding.bottom);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     // Draw value labels
@@ -188,7 +204,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= 4; i++) {
-      const value = minValue + (range * (4 - i) / 4);
+      const value = adjustedMin + (range * (4 - i) / 4);
       const y = padding.top + (height - padding.top - padding.bottom) * (i / 4);
       ctx.fillText(`$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, padding.left - 10, y + 4);
     }
@@ -197,7 +213,8 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     if (data.length > 0) {
       const lastPoint = data[data.length - 1];
       const x = width - padding.right;
-      const y = padding.top + (height - padding.top - padding.bottom) * (1 - (lastPoint.totalValue - minValue) / range);
+      const normalizedValue = range > 0 ? (lastPoint.totalValue - adjustedMin) / range : 0.5;
+      const y = padding.top + (height - padding.top - padding.bottom) * (1 - normalizedValue);
       
       // Draw dot
       ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
