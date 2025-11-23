@@ -47,9 +47,19 @@ const EducationHub = () => {
   })
 
   // Hooks
-  const { playSound, toggleMusic } = useGameSound()
+  const { playSound, toggleMusic, startBgMusic, stopBgMusic } = useGameSound()
   const { addXP, calculateLevel } = useXPSystem()
   const controls = useAnimation()
+
+  // Start theme music on initial load
+  useEffect(() => {
+    startBgMusic('theme.mp3')
+    
+    // Cleanup: stop music when component unmounts
+    return () => {
+      stopBgMusic()
+    }
+  }, [startBgMusic, stopBgMusic])
 
   // Island Configuration
   const islands = [
@@ -125,18 +135,8 @@ const EducationHub = () => {
     setCurrentIsland(island)
     setGameMode('lessons')
     
-    // Start island-specific music
-    try {
-      const music = new Howl({
-        src: [`/assets/sounds/music/${island.bgMusic}`],
-        loop: true,
-        volume: 0.3,
-        preload: false
-      })
-      music.play()
-    } catch (e) {
-      // Music file not found, ignore
-    }
+    // Keep theme.mp3 playing (no need to switch to island-specific music)
+    // Theme music continues playing throughout the experience
   }
 
   // Handle Lesson Completion
