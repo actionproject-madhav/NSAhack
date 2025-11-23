@@ -5,6 +5,7 @@ import { Howl } from 'howler'
 import Lottie from 'lottie-react'
 import { useSpring, animated } from '@react-spring/web'
 import { useDrag } from '@use-gesture/react'
+import { Heart, X } from 'lucide-react'
 
 interface LessonGameProps {
   lesson: any
@@ -169,7 +170,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             onClick={onExit}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
 
           {/* Progress Bar */}
@@ -191,9 +192,9 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
                   scale: i < heartsRemaining ? 1 : 0.5,
                   opacity: i < heartsRemaining ? 1 : 0.3
                 }}
-                className="text-2xl"
+                className={`w-6 h-6 ${i < heartsRemaining ? 'text-red-500' : 'text-gray-300'}`}
               >
-                ❤️
+                <Heart className="w-full h-full fill-current" />
               </motion.div>
             ))}
           </div>

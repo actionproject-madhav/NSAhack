@@ -17,9 +17,9 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
+import { Heart, Coins, Trophy, Users, Gift } from 'lucide-react'
 
 // Import Lottie animations
-import islandUnlockAnimation from '../assets/animations/island-unlock.json'
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
 import streakFireAnimation from '../assets/animations/streak-fire.json'
 import moneyAnimation from '../assets/animations/Money.json'
@@ -296,7 +296,7 @@ const EducationHub = () => {
                               animate={{ scale: i < playerStats.hearts ? 1 : 0.5 }}
                               className={`w-6 h-6 ${i < playerStats.hearts ? 'text-red-500' : 'text-gray-300'}`}
                             >
-                              ❤️
+                              <Heart className="w-full h-full fill-current" />
                             </motion.div>
                           ))}
                             </div>
@@ -304,7 +304,7 @@ const EducationHub = () => {
                         {/* Coins */}
                         <div className="flex items-center gap-1">
                           <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-bold">₹</span>
+                            <Coins className="w-4 h-4 text-yellow-900" />
                           </div>
                           <span className="font-semibold">{playerStats.coins}</span>
                         </div>
@@ -367,15 +367,15 @@ const EducationHub = () => {
                 <div className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg">
                   <div className="flex justify-around">
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <div className="w-8 h-8">🏆</div>
+                      <Trophy className="w-8 h-8 text-yellow-500" />
                       <span className="text-xs">Achievements</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <div className="w-8 h-8">👥</div>
+                      <Users className="w-8 h-8 text-blue-500" />
                       <span className="text-xs">Leaderboard</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <div className="w-8 h-8">🎁</div>
+                      <Gift className="w-8 h-8 text-purple-500" />
                       <span className="text-xs">Daily Rewards</span>
                     </button>
                     <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
