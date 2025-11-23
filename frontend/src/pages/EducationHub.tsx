@@ -131,7 +131,7 @@ const EducationHub = () => {
   ]
 
   // Handle Island Selection
-  const selectIsland = async (island) => {
+  const selectIsland = async (island: any) => {
     if (island.locked) {
       playSound('locked')
       // Show unlock requirements
@@ -154,7 +154,7 @@ const EducationHub = () => {
   }
 
   // Handle Lesson Completion
-  const completeLesson = (lessonId, score) => {
+  const completeLesson = (lessonId: string | number, score: number) => {
     const xpEarned = Math.floor(score * 10)
     const coinsEarned = Math.floor(score * 2)
     
@@ -168,7 +168,7 @@ const EducationHub = () => {
     }))
 
     // Play success animation
-    playSound('levelComplete')
+    playSound('levelUp')
     confetti({
       particleCount: 100,
       spread: 70,
@@ -186,7 +186,7 @@ const EducationHub = () => {
   }
 
   // Level Up Celebration
-  const levelUp = (newLevel) => {
+  const levelUp = (newLevel: number) => {
     playSound('levelUp')
     
     // Epic celebration
