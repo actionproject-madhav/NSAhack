@@ -134,7 +134,7 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
 
     const width = rect.width;
     const height = rect.height;
-    const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+    const chartPadding = { top: 20, right: 20, bottom: 40, left: 60 };
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -144,19 +144,19 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
     // Add 5% padding on top and bottom for better visualization
-    const padding = (maxValue - minValue) * 0.05 || maxValue * 0.05 || 100;
-    const range = (maxValue - minValue) + (padding * 2) || maxValue * 0.1 || 1000;
-    const adjustedMin = minValue - padding;
-    const adjustedMax = maxValue + padding;
+    const valuePadding = (maxValue - minValue) * 0.05 || maxValue * 0.05 || 100;
+    const range = (maxValue - minValue) + (valuePadding * 2) || maxValue * 0.1 || 1000;
+    const adjustedMin = minValue - valuePadding;
+    const adjustedMax = maxValue + valuePadding;
 
     // Draw grid
     ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
-      const y = padding.top + (height - padding.top - padding.bottom) * (i / 4);
+      const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (i / 4);
       ctx.beginPath();
-      ctx.moveTo(padding.left, y);
-      ctx.lineTo(width - padding.right, y);
+      ctx.moveTo(chartPadding.left, y);
+      ctx.lineTo(width - chartPadding.right, y);
       ctx.stroke();
     }
 
@@ -167,9 +167,9 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       ctx.beginPath();
 
       data.forEach((point, index) => {
-        const x = padding.left + (width - padding.left - padding.right) * (data.length > 1 ? index / (data.length - 1) : 0);
+        const x = chartPadding.left + (width - chartPadding.left - chartPadding.right) * (data.length > 1 ? index / (data.length - 1) : 0);
         const normalizedValue = range > 0 ? (point.totalValue - adjustedMin) / range : 0.5;
-        const y = height - padding.bottom - normalizedValue * (height - padding.top - padding.bottom);
+        const y = height - chartPadding.bottom - normalizedValue * (height - chartPadding.top - chartPadding.bottom);
         
         if (index === 0) {
           ctx.moveTo(x, y);
@@ -182,9 +182,9 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       if (data.length === 1) {
         const point = data[0];
         const normalizedValue = range > 0 ? (point.totalValue - adjustedMin) / range : 0.5;
-        const y = height - padding.bottom - normalizedValue * (height - padding.top - padding.bottom);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(width - padding.right, y);
+        const y = height - chartPadding.bottom - normalizedValue * (height - chartPadding.top - chartPadding.bottom);
+        ctx.moveTo(chartPadding.left, y);
+        ctx.lineTo(width - chartPadding.right, y);
       }
 
       ctx.stroke();
@@ -192,8 +192,8 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
       // Fill area under curve
       if (data.length > 1) {
         ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
-        ctx.lineTo(width - padding.right, height - padding.bottom);
-        ctx.lineTo(padding.left, height - padding.bottom);
+        ctx.lineTo(width - chartPadding.right, height - chartPadding.bottom);
+        ctx.lineTo(chartPadding.left, height - chartPadding.bottom);
         ctx.closePath();
         ctx.fill();
       }
@@ -205,16 +205,16 @@ function PortfolioChart({ height = "400px", theme = "light" }: PortfolioChartPro
     ctx.textAlign = 'right';
     for (let i = 0; i <= 4; i++) {
       const value = adjustedMin + (range * (4 - i) / 4);
-      const y = padding.top + (height - padding.top - padding.bottom) * (i / 4);
-      ctx.fillText(`$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, padding.left - 10, y + 4);
+      const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (i / 4);
+      ctx.fillText(`$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, chartPadding.left - 10, y + 4);
     }
 
     // Draw current value
     if (data.length > 0) {
       const lastPoint = data[data.length - 1];
-      const x = width - padding.right;
+      const x = width - chartPadding.right;
       const normalizedValue = range > 0 ? (lastPoint.totalValue - adjustedMin) / range : 0.5;
-      const y = padding.top + (height - padding.top - padding.bottom) * (1 - normalizedValue);
+      const y = chartPadding.top + (height - chartPadding.top - chartPadding.bottom) * (1 - normalizedValue);
       
       // Draw dot
       ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#000000';
