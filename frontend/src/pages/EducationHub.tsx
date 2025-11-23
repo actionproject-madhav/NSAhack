@@ -17,8 +17,8 @@ import ProgressTracker from '../components/education/ProgressTracker'
 import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-// Icons removed - will be replaced with custom downloaded icons
-// See ICON_REPLACEMENT_GUIDE.md for what to download and where
+import { Lock, BookOpen } from 'lucide-react'
+import Spline from '@splinetool/react-spline'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -438,9 +438,17 @@ const EducationHub = () => {
               exit={{ opacity: 0 }}
               className="h-full"
             >
-              {/* Island Map */}
+              {/* Island Map with 3D Visualization */}
               <div className="flex items-center justify-center h-full relative p-8">
-                <div className="max-w-6xl w-full">
+                {/* 3D Island Background using Spline */}
+                <div className="absolute inset-0 z-0 opacity-30">
+                  <Spline 
+                    scene="https://prod.spline.design/f7MEBGBa8Fh0o30l/scene.splinecode"
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+                
+                <div className="max-w-6xl w-full relative z-10">
                   <h2 className="text-4xl font-bold mb-8 text-center text-black dark:text-white drop-shadow-lg">
                     Choose Your Learning Island
                   </h2>

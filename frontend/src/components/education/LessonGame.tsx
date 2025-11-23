@@ -273,7 +273,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-4xl mx-auto p-8 mt-8">
+      <div className="relative z-10 max-w-4xl mx-auto p-8 mt-8 pb-32">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSection}
@@ -281,14 +281,14 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ type: "spring", stiffness: 100 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 text-black dark:text-white"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 text-black dark:text-white mb-8 max-h-[60vh] overflow-y-auto"
           >
             {renderSection()}
           </motion.div>
         </AnimatePresence>
 
-        {/* Action Buttons */}
-        <div className="flex justify-between mt-8">
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex justify-between gap-4 w-full max-w-4xl px-8 z-20">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -341,7 +341,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             <div className={`text-6xl font-bold ${
               feedbackType === 'correct' ? 'text-green-500' : 'text-red-500'
             }`}>
-              {feedbackType === 'correct' ? '✓ Correct!' : '✗ Try Again'}
+              {feedbackType === 'correct' ? 'Correct!' : 'Try Again'}
             </div>
           </motion.div>
         )}
