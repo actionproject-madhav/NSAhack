@@ -1,13 +1,21 @@
 import { useRef, useState, useEffect } from 'react'
-// Temporarily disabled - requires React 19
-// import { Canvas, useFrame, useThree } from '@react-three/fiber'
-// import { OrbitControls, Float, Text, Box, Sphere, Ring } from '@react-three/drei'
-// import { Vector3, Color } from 'three'
-// import * as THREE from 'three'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrbitControls, Float, Text, Box, Sphere, Ring } from '@react-three/drei'
+import { Vector3, Color } from 'three'
+import * as THREE from 'three'
 
 // Individual Island Component
-const Island = ({ island, isLocked, isActive, onClick, playerProgress }) => {
-  const meshRef = useRef()
+interface IslandProps {
+  island: any
+  isLocked: boolean
+  isActive: boolean
+  onClick: (island: any) => void
+  playerProgress: any
+  islands: any[]
+}
+
+const Island = ({ island, isLocked, isActive, onClick, playerProgress, islands }: IslandProps) => {
+  const meshRef = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
   const { camera } = useThree()
 
@@ -32,7 +40,7 @@ const Island = ({ island, isLocked, isActive, onClick, playerProgress }) => {
 
   // Calculate completion percentage
   const completionRate = island.lessons 
-    ? (island.lessons.filter(l => playerProgress.completedLessons.includes(l.id)).length / island.lessons.length) * 100
+    ? (island.lessons.filter((l: any) => playerProgress.completedLessons.includes(l.id)).length / island.lessons.length) * 100
     : 0
 
   return (
@@ -153,11 +161,11 @@ const Island = ({ island, isLocked, isActive, onClick, playerProgress }) => {
       )}
 
       {/* Connection Lines to Next Islands */}
-      {island.connections?.map((targetId, idx) => (
+      {island.connections?.map((targetId: string, idx: number) => (
         <ConnectionLine
           key={idx}
           start={island.position}
-          end={islands.find(i => i.id === targetId)?.position}
+          end={islands.find((i: any) => i.id === targetId)?.position}
           isUnlocked={!isLocked}
         />
       ))}
@@ -166,40 +174,47 @@ const Island = ({ island, isLocked, isActive, onClick, playerProgress }) => {
 }
 
 // Connection Line Component
-const ConnectionLine = ({ start, end, isUnlocked }) => {
-  const ref = useRef()
+interface ConnectionLineProps {
+  start: number[]
+  end: number[] | undefined
+  isUnlocked: boolean
+}
+
+const ConnectionLine = ({ start, end, isUnlocked }: ConnectionLineProps) => {
+  const ref = useRef<THREE.Line>(null)
   
   useFrame((state) => {
-    if (ref.current && isUnlocked) {
-      ref.current.material.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 2) * 0.2
+    if (ref.current && isUnlocked && ref.current.material) {
+      const material = ref.current.material as THREE.LineBasicMaterial
+      material.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 2) * 0.2
     }
   })
 
-  if (!end) return null
+  if (!end || end.length < 3) return null
 
   const points = []
-  points.push(new Vector3(...start))
-  points.push(new Vector3(...end))
+  points.push(new Vector3(start[0], start[1], start[2]))
+  points.push(new Vector3(end[0], end[1], end[2]))
   
   const geometry = new THREE.BufferGeometry().setFromPoints(points)
 
   return (
-    <line ref={ref} geometry={geometry}>
-      <lineBasicMaterial 
-        color={isUnlocked ? '#FFD700' : '#444444'}
-        opacity={isUnlocked ? 0.5 : 0.2}
-        transparent
-      />
-    </line>
+    <primitive ref={ref} object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ 
+      color: isUnlocked ? '#FFD700' : '#444444',
+      opacity: isUnlocked ? 0.5 : 0.2,
+      transparent: true
+    }))} />
   )
 }
 
 // Animated Background Elements
 const FloatingClouds = () => {
-  const cloudsRef = useRef()
+  const cloudsRef = useRef<THREE.Group>(null)
 
   useFrame((state) => {
-    cloudsRef.current.position.x = Math.sin(state.clock.elapsedTime * 0.1) * 2
+    if (cloudsRef.current) {
+      cloudsRef.current.position.x = Math.sin(state.clock.elapsedTime * 0.1) * 2
+    }
   })
 
   return (
@@ -223,8 +238,15 @@ const FloatingClouds = () => {
 }
 
 // Main Island Map Component
-export default function IslandMap({ islands, onIslandSelect, playerProgress, currentIsland }) {
-  const [cameraPosition, setCameraPosition] = useState([0, 10, 20])
+interface IslandMapProps {
+  islands: any[]
+  onIslandSelect: (island: any) => void
+  playerProgress: any
+  currentIsland: any
+}
+
+export default function IslandMap({ islands, onIslandSelect, playerProgress, currentIsland }: IslandMapProps) {
+  const [cameraPosition] = useState<[number, number, number]>([0, 10, 20])
 
   return (
     <div className="h-full w-full">
@@ -251,7 +273,7 @@ export default function IslandMap({ islands, onIslandSelect, playerProgress, cur
         </mesh>
 
         {/* Islands */}
-        {islands.map(island => (
+        {islands.map((island: any) => (
           <Island
             key={island.id}
             island={island}
