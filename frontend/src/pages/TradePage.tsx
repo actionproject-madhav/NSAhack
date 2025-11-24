@@ -195,7 +195,7 @@ const TradePage = () => {
                           {quote.symbol}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {quote.companyName || quote.symbol}
+                          {quote.symbol}
                         </p>
                       </div>
                     </div>

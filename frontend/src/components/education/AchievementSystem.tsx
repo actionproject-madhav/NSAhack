@@ -160,21 +160,26 @@ const AchievementSystem = ({ playerStats, onAchievementUnlock }: AchievementSyst
 
     // Streak achievements
     if (playerStats.streak >= 3 && !hasAchievement('streak_3')) {
-      newAchievements.push(getAchievement('streak_3'))
+      const achievement = getAchievement('streak_3')
+      if (achievement) newAchievements.push(achievement)
     }
     if (playerStats.streak >= 7 && !hasAchievement('streak_7')) {
-      newAchievements.push(getAchievement('streak_7'))
+      const achievement = getAchievement('streak_7')
+      if (achievement) newAchievements.push(achievement)
     }
     if (playerStats.streak >= 30 && !hasAchievement('streak_30')) {
-      newAchievements.push(getAchievement('streak_30'))
+      const achievement = getAchievement('streak_30')
+      if (achievement) newAchievements.push(achievement)
     }
 
     // Lesson achievements
     if (playerStats.completedLessons.length >= 1 && !hasAchievement('first_lesson')) {
-      newAchievements.push(getAchievement('first_lesson'))
+      const achievement = getAchievement('first_lesson')
+      if (achievement) newAchievements.push(achievement)
     }
     if (playerStats.completedLessons.length >= 10 && !hasAchievement('lessons_10')) {
-      newAchievements.push(getAchievement('lessons_10'))
+      const achievement = getAchievement('lessons_10')
+      if (achievement) newAchievements.push(achievement)
     }
 
     // Add new achievements to queue
