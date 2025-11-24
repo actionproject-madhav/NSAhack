@@ -96,11 +96,11 @@ const EducationHub = () => {
                   if (island.locked && !stats.unlockedIslands.includes(island.id)) {
                     const req = island.unlockRequirement
                     
-                    if (req?.completeLessons && completedCount >= req.completeLessons) {
+                    if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
                       newUnlockedIslands.push(island.id)
                     }
                     
-                    if (req?.level && stats.level >= req.level) {
+                    if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
                       newUnlockedIslands.push(island.id)
                     }
                     
@@ -153,11 +153,11 @@ const EducationHub = () => {
                 if (island.locked && !stats.unlockedIslands.includes(island.id)) {
                   const req = island.unlockRequirement
                   
-                  if (req?.completeLessons && completedCount >= req.completeLessons) {
+                  if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
                     newUnlockedIslands.push(island.id)
                   }
                   
-                  if (req?.level && stats.level >= req.level) {
+                  if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
                     newUnlockedIslands.push(island.id)
                   }
                   
@@ -272,7 +272,7 @@ const EducationHub = () => {
       bgMusic: 'island-ice.mp3',
       lessons: allUnits[2].lessons,
       locked: true,
-      unlockRequirement: { level: 5 }
+      unlockRequirement: { completeLessons: 5 } // Changed from level 5 to 5 completed lessons
     },
     {
       id: 'unit-4',
@@ -290,7 +290,11 @@ const EducationHub = () => {
 
   // Handle Island Selection
   const selectIsland = async (island: any) => {
-    if (island.locked) {
+    // Check if island is unlocked based on player stats
+    const isUnlocked = playerStats.unlockedIslands.includes(island.id)
+    const isLocked = island.locked && !isUnlocked
+    
+    if (isLocked) {
       playSound('locked')
       // Show unlock requirements
       return
@@ -323,7 +327,8 @@ const EducationHub = () => {
 
   // Handle Lesson Completion
   const completeLesson = (lessonId: string | number, score: number) => {
-    const xpEarned = Math.floor(score * 10)
+    // Ensure minimum XP even for low scores
+    const xpEarned = Math.max(100, Math.floor(score * 20)) // Increased from 10 to 20, minimum 100 XP
     const coinsEarned = Math.floor(score * 2)
     
     // Update player stats
@@ -367,12 +372,12 @@ const EducationHub = () => {
           const req = island.unlockRequirement
           
           // Check lesson completion requirement
-          if (req?.completeLessons && completedCount >= req.completeLessons) {
+          if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
             newUnlockedIslands.push(island.id)
           }
           
           // Check level requirement
-          if (req?.level && stats.level >= req.level) {
+          if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
             newUnlockedIslands.push(island.id)
           }
           
@@ -403,10 +408,19 @@ const EducationHub = () => {
       
       // Play unlock sound and show notification
       newUnlockedIslands.forEach((islandId) => {
-        playSound('unlock')
+        // Play unlock sound - ensure it plays
+        try {
+          playSound('unlock')
+        } catch (e) {
+          console.warn('Failed to play unlock sound:', e)
+        }
+        
         const island = islands.find(i => i.id === islandId)
         if (island) {
-          // Show unlock notification (can be replaced with a toast component)
+          // Show unlock notification with alert
+          setTimeout(() => {
+            alert(`🎉 New Island Unlocked: ${island.name}!`)
+          }, 500)
           if (import.meta.env.DEV) {
             console.log(`New Island Unlocked: ${island.name}!`)
           }
@@ -539,9 +553,9 @@ const EducationHub = () => {
                                 <div className="text-center">
                                   <Lock className="w-8 h-8 mx-auto mb-2 text-white" />
                                   <div className="text-xs text-white font-semibold">
-                                    {island.unlockRequirement?.completeLessons && 
+                                    {island.unlockRequirement && 'completeLessons' in island.unlockRequirement && 
                                       `Complete ${island.unlockRequirement.completeLessons} lessons`}
-                                    {island.unlockRequirement?.level && 
+                                    {island.unlockRequirement && 'level' in island.unlockRequirement && 
                                       `Reach Level ${island.unlockRequirement.level}`}
                                     {island.unlockRequirement?.badges && 
                                       `Earn required badges`}
@@ -610,7 +624,7 @@ const EducationHub = () => {
               {/* HUD Overlay */}
               <div className="absolute top-0 left-0 right-0 p-4">
                 <div className="max-w-6xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {/* Player Stats */}
                     <motion.div 
                       className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
@@ -686,63 +700,9 @@ const EducationHub = () => {
                       </div>
                     </motion.div>
 
-                    {/* Power-ups */}
-                    <motion.div
-                      className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
-                      initial={{ x: 100, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                    >
-                      <div className="text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">Power-ups</div>
-                      <div className="flex gap-2">
-                        {Object.entries(playerStats.powerups).map(([key, count]) => (
-                          <div key={key} className="relative">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                              {key === 'xpBoost' && <span className="text-white text-xs font-bold">⚡</span>}
-                              {key === 'streakFreeze' && <span className="text-white text-xs font-bold">❄</span>}
-                              {key === 'heartRefill' && <span className="text-white text-xs font-bold">❤</span>}
-                            </div>
-                            {count > 0 && (
-                              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                {count}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
                   </div>
                 </div>
               </div>
-
-              {/* Bottom Navigation */}
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 p-4"
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-              >
-                <div className="max-w-6xl mx-auto">
-                  <div className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg">
-                    <div className="grid grid-cols-4 gap-2">
-                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center" />
-                        <span className="text-xs font-medium">Achievements</span>
-                      </button>
-                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center" />
-                        <span className="text-xs font-medium">Leaderboard</span>
-                      </button>
-                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center" />
-                        <span className="text-xs font-medium">Daily Rewards</span>
-                      </button>
-                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center" />
-                        <span className="text-xs font-medium">Shop</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
             </motion.div>
           )}
 
