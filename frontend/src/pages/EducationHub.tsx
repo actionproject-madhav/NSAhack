@@ -20,6 +20,8 @@ import useXPSystem from '../hooks/useXPSystem'
 import { Lock, BookOpen } from 'lucide-react'
 import Spline from '@splinetool/react-spline'
 import IslandModelViewer from '../components/education/IslandModelViewer'
+import { useUser } from '../context/UserContext'
+import educationService from '../services/educationService'
 
 // Import Lottie animations
 import xpBurstAnimation from '../assets/animations/xp-burst.json'
@@ -69,64 +71,130 @@ const EducationHub = () => {
   const { playSound, toggleMusic, startBgMusic, stopBgMusic } = useGameSound()
   const { addXP, calculateLevel } = useXPSystem()
   const controls = useAnimation()
+  const { user } = useUser()
 
-  // Load progress from localStorage on mount and check for unlocks
+  // Load progress from backend (or localStorage as fallback) on mount
   useEffect(() => {
-    const savedProgress = localStorage.getItem('educationProgress')
-    if (savedProgress) {
-      try {
-        const progress = JSON.parse(savedProgress)
-        setPlayerStats(prev => {
-          const loadedStats = { ...prev, ...progress }
-          
-          // Re-check island unlocks with loaded progress
-          const checkUnlocks = (stats: typeof loadedStats) => {
-            const newUnlockedIslands: string[] = []
-            const completedCount = stats.completedLessons.length
-            
-            islands.forEach(island => {
-              if (island.locked && !stats.unlockedIslands.includes(island.id)) {
-                const req = island.unlockRequirement
+    const loadProgress = async () => {
+      // Get user identifier (email preferred, fallback to id)
+      const userId = user?.email || user?.id
+      
+      // Try to load from backend first (non-blocking)
+      if (userId) {
+        try {
+          const backendProgress = await educationService.getProgress(userId)
+          if (backendProgress) {
+            setPlayerStats(prev => {
+              const loadedStats = { ...prev, ...backendProgress }
+              
+              // Re-check island unlocks with loaded progress
+              const checkUnlocks = (stats: typeof loadedStats) => {
+                const newUnlockedIslands: string[] = []
+                const completedCount = stats.completedLessons.length
                 
-                if (req?.completeLessons && completedCount >= req.completeLessons) {
-                  newUnlockedIslands.push(island.id)
-                }
-                
-                if (req?.level && stats.level >= req.level) {
-                  newUnlockedIslands.push(island.id)
-                }
-                
-                if (req?.badges && Array.isArray(req.badges)) {
-                  const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
-                  if (hasAllBadges) {
-                    newUnlockedIslands.push(island.id)
+                islands.forEach(island => {
+                  if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+                    const req = island.unlockRequirement
+                    
+                    if (req?.completeLessons && completedCount >= req.completeLessons) {
+                      newUnlockedIslands.push(island.id)
+                    }
+                    
+                    if (req?.level && stats.level >= req.level) {
+                      newUnlockedIslands.push(island.id)
+                    }
+                    
+                    if (req?.badges && Array.isArray(req.badges)) {
+                      const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+                      if (hasAllBadges) {
+                        newUnlockedIslands.push(island.id)
+                      }
+                    }
                   }
+                })
+                
+                return newUnlockedIslands
+              }
+              
+              const newUnlocks = checkUnlocks(loadedStats)
+              if (newUnlocks.length > 0) {
+                return {
+                  ...loadedStats,
+                  unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
                 }
               }
+              
+              return loadedStats
             })
             
-            return newUnlockedIslands
+            // Also save to localStorage as cache
+            localStorage.setItem('educationProgress', JSON.stringify(backendProgress))
+            return
           }
-          
-          const newUnlocks = checkUnlocks(loadedStats)
-          if (newUnlocks.length > 0) {
-            return {
-              ...loadedStats,
-              unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
+        } catch (error) {
+          console.warn('⚠️ Failed to load progress from backend, trying localStorage:', error)
+        }
+      }
+      
+      // Fallback to localStorage
+      const savedProgress = localStorage.getItem('educationProgress')
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress)
+          setPlayerStats(prev => {
+            const loadedStats = { ...prev, ...progress }
+            
+            // Re-check island unlocks with loaded progress
+            const checkUnlocks = (stats: typeof loadedStats) => {
+              const newUnlockedIslands: string[] = []
+              const completedCount = stats.completedLessons.length
+              
+              islands.forEach(island => {
+                if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+                  const req = island.unlockRequirement
+                  
+                  if (req?.completeLessons && completedCount >= req.completeLessons) {
+                    newUnlockedIslands.push(island.id)
+                  }
+                  
+                  if (req?.level && stats.level >= req.level) {
+                    newUnlockedIslands.push(island.id)
+                  }
+                  
+                  if (req?.badges && Array.isArray(req.badges)) {
+                    const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+                    if (hasAllBadges) {
+                      newUnlockedIslands.push(island.id)
+                    }
+                  }
+                }
+              })
+              
+              return newUnlockedIslands
             }
-          }
-          
-          return loadedStats
-        })
-      } catch (e) {
-        console.warn('Failed to load progress from localStorage:', e)
+            
+            const newUnlocks = checkUnlocks(loadedStats)
+            if (newUnlocks.length > 0) {
+              return {
+                ...loadedStats,
+                unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
+              }
+            }
+            
+            return loadedStats
+          })
+        } catch (e) {
+          console.warn('Failed to load progress from localStorage:', e)
+        }
       }
     }
-  }, [])
+    
+    loadProgress()
+  }, [user?.email, user?.id]) // Reload when user changes
 
-  // Save progress to localStorage whenever it changes
+  // Save progress to localStorage and backend whenever it changes
   useEffect(() => {
-    localStorage.setItem('educationProgress', JSON.stringify({
+    const progressData = {
       level: playerStats.level,
       xp: playerStats.xp,
       streak: playerStats.streak,
@@ -136,8 +204,24 @@ const EducationHub = () => {
       unlockedIslands: playerStats.unlockedIslands,
       completedLessons: playerStats.completedLessons,
       powerups: playerStats.powerups
-    }))
-  }, [playerStats])
+    }
+    
+    // Save to localStorage immediately (fast, local cache)
+    localStorage.setItem('educationProgress', JSON.stringify(progressData))
+    
+    // Save to backend in background (non-blocking, doesn't break flow)
+    const userId = user?.email || user?.id
+    if (userId) {
+      // Use setTimeout to debounce and make it truly non-blocking
+      const timeoutId = setTimeout(() => {
+        educationService.saveProgress(userId, progressData).catch(() => {
+          // Silently fail - already logged in service
+        })
+      }, 500) // Debounce by 500ms to avoid too many requests
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [playerStats, user?.email, user?.id])
 
   // Start theme music on initial load
   useEffect(() => {
@@ -252,19 +336,7 @@ const EducationHub = () => {
       streak: playerStats.streak + 1
     }
     setPlayerStats(newStats)
-
-    // Save progress immediately
-    localStorage.setItem('educationProgress', JSON.stringify({
-      level: newStats.level,
-      xp: newStats.xp,
-      streak: newStats.streak,
-      hearts: newStats.hearts,
-      coins: newStats.coins,
-      badges: newStats.badges,
-      unlockedIslands: newStats.unlockedIslands,
-      completedLessons: newStats.completedLessons,
-      powerups: newStats.powerups
-    }))
+    // Progress will be saved automatically by useEffect
 
     // Play celebration music and sound
     playSound('levelUp')
@@ -327,19 +399,7 @@ const EducationHub = () => {
         unlockedIslands: [...newStats.unlockedIslands, ...newUnlockedIslands]
       }
       setPlayerStats(finalStats)
-      
-      // Save progress with unlocked islands
-      localStorage.setItem('educationProgress', JSON.stringify({
-        level: finalStats.level,
-        xp: finalStats.xp,
-        streak: finalStats.streak,
-        hearts: finalStats.hearts,
-        coins: finalStats.coins,
-        badges: finalStats.badges,
-        unlockedIslands: finalStats.unlockedIslands,
-        completedLessons: finalStats.completedLessons,
-        powerups: finalStats.powerups
-      }))
+      // Progress will be saved automatically by useEffect
       
       // Play unlock sound and show notification
       newUnlockedIslands.forEach((islandId) => {
@@ -381,19 +441,7 @@ const EducationHub = () => {
 
     const updatedStats = { ...playerStats, level: newLevel }
     setPlayerStats(updatedStats)
-    
-    // Save progress after level up
-    localStorage.setItem('educationProgress', JSON.stringify({
-      level: updatedStats.level,
-      xp: updatedStats.xp,
-      streak: updatedStats.streak,
-      hearts: updatedStats.hearts,
-      coins: updatedStats.coins,
-      badges: updatedStats.badges,
-      unlockedIslands: updatedStats.unlockedIslands,
-      completedLessons: updatedStats.completedLessons,
-      powerups: updatedStats.powerups
-    }))
+    // Progress will be saved automatically by useEffect
   }
 
   // Map island themes to animations
@@ -456,7 +504,7 @@ const EducationHub = () => {
                     Choose Your Learning Island
                   </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                     {islands.map((island, index) => {
                       const isUnlocked = playerStats.unlockedIslands.includes(island.id)
                       const isLocked = !isUnlocked
@@ -467,14 +515,14 @@ const EducationHub = () => {
                           initial={{ opacity: 0, y: 50 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="relative"
+                          className="relative flex"
                         >
                           <motion.button
                             onClick={() => !isLocked && selectIsland(island)}
                             disabled={isLocked}
                             whileHover={!isLocked ? { scale: 1.05 } : {}}
                             whileTap={!isLocked ? { scale: 0.95 } : {}}
-                            className={`w-full p-6 rounded-2xl backdrop-blur-lg transition-all relative overflow-hidden ${
+                            className={`w-full h-full flex flex-col p-6 rounded-2xl backdrop-blur-lg transition-all relative overflow-hidden ${
                               isLocked
                                 ? 'bg-gray-400/50 dark:bg-gray-700/50 cursor-not-allowed opacity-60'
                                 : 'bg-white/90 dark:bg-black/90 shadow-xl hover:shadow-2xl border-2 border-transparent hover:border-blue-400'
@@ -538,15 +586,19 @@ const EducationHub = () => {
                             </p>
                             
                             {/* Progress indicator */}
-                            {isUnlocked && (
-                              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                              {isUnlocked ? (
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                   {island.lessons?.filter((l: any) => 
                                     playerStats.completedLessons.includes(l.id)
                                   ).length || 0} / {island.lessons?.length || 0} completed
                                 </div>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  Locked
+                                </div>
+                              )}
+                            </div>
                           </motion.button>
                         </motion.div>
                       )
@@ -557,111 +609,110 @@ const EducationHub = () => {
 
               {/* HUD Overlay */}
               <div className="absolute top-0 left-0 right-0 p-4">
-                <div className="flex justify-between items-start">
-                  {/* Player Stats */}
-                  <motion.div 
-                    className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg"
-                    initial={{ x: -100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Level Badge */}
-                      <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold text-xl">{playerStats.level}</span>
-                        </div>
-                        <div className="absolute -bottom-1 left-0 right-0 bg-black/80 text-white text-xs text-center rounded-full px-2 py-0.5">
-                          Level
-                        </div>
+                <div className="max-w-6xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    {/* Player Stats */}
+                    <motion.div 
+                      className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
+                      initial={{ x: -100, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Level Badge */}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">{playerStats.level}</span>
                           </div>
-
-                      {/* Stats */}
-                      <div className="space-y-1">
-                        {/* XP Bar */}
-                        <div className="flex items-center gap-2">
-                          <div className="w-32 h-3 bg-gray-200 rounded-full overflow-hidden">
-                            <motion.div 
-                              className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${(playerStats.xp % 1000) / 10}%` }}
-                            />
+                          <div className="absolute -bottom-1 left-0 right-0 bg-black/80 text-white text-xs text-center rounded-full px-2 py-0.5">
+                            Level
                           </div>
-                          <span className="text-xs font-medium">{playerStats.xp % 1000}/1000 XP</span>
                         </div>
 
-                        {/* Hearts - TODO: Replace with custom heart icons */}
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              initial={{ scale: 0 }}
-                              animate={{ scale: i < playerStats.hearts ? 1 : 0.5 }}
-                              className={`w-6 h-6 ${i < playerStats.hearts ? 'text-red-500' : 'text-gray-300'}`}
-                            >
-                              {/* TODO: Replace with <img src="/assets/icons/hearts/heart-full.svg" /> or Lottie */}
-                              <div className="w-full h-full rounded-full bg-red-500" />
-                            </motion.div>
-                          ))}
+                        {/* Stats */}
+                        <div className="flex-1 space-y-2 min-w-0">
+                          {/* XP Bar */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <motion.div 
+                                className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(playerStats.xp % 1000) / 10}%` }}
+                              />
                             </div>
-
-                        {/* Coins - TODO: Replace with custom coin icon */}
-                        <div className="flex items-center gap-1">
-                          <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            {/* TODO: Replace with <img src="/assets/icons/ui/coin.svg" /> or Lottie */}
-                            <span className="text-xs font-bold text-yellow-900">$</span>
+                            <span className="text-xs font-medium whitespace-nowrap">{playerStats.xp % 1000}/1000 XP</span>
                           </div>
-                          <span className="font-semibold">{playerStats.coins}</span>
+
+                          {/* Hearts */}
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: i < playerStats.hearts ? 1 : 0.5 }}
+                                className={`w-5 h-5 ${i < playerStats.hearts ? 'text-red-500' : 'text-gray-300'}`}
+                              >
+                                <div className="w-full h-full rounded-full bg-red-500" />
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          {/* Coins */}
+                          <div className="flex items-center gap-1">
+                            <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold text-yellow-900">$</span>
+                            </div>
+                            <span className="font-semibold text-sm">{playerStats.coins}</span>
+                          </div>
                         </div>
                       </div>
-                        </div>
-                      </motion.div>
+                    </motion.div>
 
-                  {/* Streak Counter */}
-                  <motion.div
-                    className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg"
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Lottie 
-                        animationData={streakFireAnimation}
-                        loop={true}
-                        className="w-12 h-12"
-                      />
-                      <div>
-                        <div className="text-2xl font-bold text-orange-500">{playerStats.streak}</div>
-                        <div className="text-xs text-gray-600">Day Streak</div>
+                    {/* Streak Counter */}
+                    <motion.div
+                      className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
+                      initial={{ y: -100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Lottie 
+                          animationData={streakFireAnimation}
+                          loop={true}
+                          className="w-12 h-12 flex-shrink-0"
+                        />
+                        <div>
+                          <div className="text-2xl font-bold text-orange-500">{playerStats.streak}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Day Streak</div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Power-ups */}
+                    <motion.div
+                      className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
+                      initial={{ x: 100, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                    >
+                      <div className="text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">Power-ups</div>
+                      <div className="flex gap-2">
+                        {Object.entries(playerStats.powerups).map(([key, count]) => (
+                          <div key={key} className="relative">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                              {key === 'xpBoost' && <span className="text-white text-xs font-bold">⚡</span>}
+                              {key === 'streakFreeze' && <span className="text-white text-xs font-bold">❄</span>}
+                              {key === 'heartRefill' && <span className="text-white text-xs font-bold">❤</span>}
+                            </div>
+                            {count > 0 && (
+                              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {count}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
-                  </motion.div>
-
-                  {/* Power-ups */}
-                  <motion.div
-                    className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg"
-                    initial={{ x: 100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                  >
-                    <div className="text-xs font-semibold mb-2 text-gray-600">Power-ups</div>
-                    <div className="flex gap-2">
-                      {Object.entries(playerStats.powerups).map(([key, count]) => (
-                        <div key={key} className="relative">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
-                            {/* TODO: Replace with custom power-up icons from /assets/icons/powerups/ */}
-                            {key === 'xpBoost' && <span className="text-white text-xs font-bold">⚡</span>}
-                            {key === 'streakFreeze' && <span className="text-white text-xs font-bold">❄</span>}
-                            {key === 'heartRefill' && <span className="text-white text-xs font-bold">❤</span>}
-                  </div>
-                          {count > 0 && (
-                            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                              {count}
-                            </div>
-                              )}
-                            </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                </div>
-                    </div>
 
               {/* Bottom Navigation */}
               <motion.div
@@ -669,28 +720,26 @@ const EducationHub = () => {
                 initial={{ y: 100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
               >
-                <div className="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg">
-                  <div className="flex justify-around">
-                    <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      {/* TODO: Replace with trophy icon from /assets/icons/achievements/trophy.svg */}
-                      <div className="w-8 h-8 bg-yellow-500 rounded-full" />
-                      <span className="text-xs">Achievements</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      {/* TODO: Replace with users icon from /assets/icons/ui/users.svg */}
-                      <div className="w-8 h-8 bg-blue-500 rounded-full" />
-                      <span className="text-xs">Leaderboard</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      {/* TODO: Replace with gift icon from /assets/icons/ui/gift.svg */}
-                      <div className="w-8 h-8 bg-purple-500 rounded-full" />
-                      <span className="text-xs">Daily Rewards</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      {/* TODO: Replace with shopping bag icon from /assets/icons/ui/shopping-bag.svg */}
-                      <div className="w-8 h-8 bg-purple-500 rounded-full" />
-                      <span className="text-xs">Shop</span>
-                    </button>
+                <div className="max-w-6xl mx-auto">
+                  <div className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg">
+                    <div className="grid grid-cols-4 gap-2">
+                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center" />
+                        <span className="text-xs font-medium">Achievements</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center" />
+                        <span className="text-xs font-medium">Leaderboard</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center" />
+                        <span className="text-xs font-medium">Daily Rewards</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center" />
+                        <span className="text-xs font-medium">Shop</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

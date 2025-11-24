@@ -9,6 +9,7 @@ import os
 from auth import auth_bp
 from ai_hub import ai_hub_bp
 from trading import trading_bp
+from education import education_bp
 
 
 # Optional imports for OCR functionality
@@ -72,6 +73,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Lax for development
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(ai_hub_bp, url_prefix='/api/ai')
 app.register_blueprint(trading_bp, url_prefix='/api/trading')
+app.register_blueprint(education_bp, url_prefix='/api/education')
 
 
 # Initialize database
