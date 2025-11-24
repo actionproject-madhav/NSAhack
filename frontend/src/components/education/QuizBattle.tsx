@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti'
 import Lottie from 'lottie-react'
 import { Clock, Flame, Timer, Lightbulb, Shield, Sword } from 'lucide-react'
 import IslandModelViewer from './IslandModelViewer'
+import useGameSound from '../../hooks/useGameSound'
 
 // Types
 interface Question {
@@ -51,12 +52,12 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
   const [maxCombo, setMaxCombo] = useState<number>(0)
   
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { playSound } = useGameSound()
+  
+  // Keep battle-specific sounds for special effects
   const sounds = useRef({
-    attack: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
-    defend: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
     critical: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
-    victory: new Howl({ src: ['/assets/sounds/effects/level_up.mp3'], volume: 0.8, preload: false }),
-    defeat: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false })
+    victory: new Howl({ src: ['/assets/sounds/effects/level_up.mp3'], volume: 0.8, preload: false })
   })
 
   // Timer countdown
@@ -87,6 +88,9 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
     setShowResult(true)
 
     if (isCorrect) {
+      // Play correct answer sound
+      playSound('correct')
+      
       // Calculate damage based on speed and combo
       const speedBonus = Math.floor(timeRemaining / 3)
       const comboMultiplier = 1 + (combo * 0.2)
@@ -99,13 +103,14 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
       setCombo(newCombo)
       setMaxCombo(prev => Math.max(prev, newCombo))
       
-      try {
-        sounds.current.attack.play()
-        if (newCombo >= 3) {
-          sounds.current.critical.play()
+      // Play combo sound if combo is high
+      if (newCombo >= 3) {
+        try {
+          sounds.current.critical?.play()
+          playSound('combo')
+        } catch (e) {
+          // Silently fail
         }
-      } catch (e) {
-        // Sound failed, ignore
       }
       
       // Add to battle log
@@ -119,12 +124,6 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
       const damage = 15
       setPlayerHealth(prev => Math.max(0, prev - damage))
       setCombo(0)
-      
-      try {
-        sounds.current.defend.play()
-      } catch (e) {
-        // Sound failed, ignore
-      }
       
       // Add to battle log
       setBattleLog(prev => [...prev, {
@@ -172,7 +171,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = { powerups: {} }
   }
 
   const handleDefeat = () => {
-    sounds.current.defeat.play()
+    playSound('incorrect')
     setTimeout(() => {
       onComplete(0)
     }, 2000)
