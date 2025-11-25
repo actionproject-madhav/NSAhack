@@ -67,6 +67,17 @@ interface PlayerProgress {
   }
 }
 
+interface PathNode {
+  id: string
+  islandId: string
+  lesson: Lesson
+  position: { x: number; y: number }
+  isLocked: boolean
+  isCompleted: boolean
+  type: 'checkpoint' | 'lesson'
+  theme: string
+}
+
 interface DuolingoStyleMapProps {
   islands: Island[]
   playerProgress: PlayerProgress
@@ -78,7 +89,7 @@ const DuolingoStyleMap = ({ islands, playerProgress, onIslandSelect }: DuolingoS
   const mapRef = useRef(null)
 
   // Convert islands to Duolingo-style path nodes
-  const pathNodes = islands.flatMap((island, islandIndex) => 
+  const pathNodes: PathNode[] = islands.flatMap((island, islandIndex) => 
     island.lessons.map((lesson, lessonIndex) => ({
       id: `${island.id}-${lesson.id}`,
       islandId: island.id,
@@ -86,12 +97,12 @@ const DuolingoStyleMap = ({ islands, playerProgress, onIslandSelect }: DuolingoS
       position: calculateNodePosition(islandIndex, lessonIndex),
       isLocked: !playerProgress.unlockedIslands.includes(island.id),
       isCompleted: playerProgress.completedLessons.includes(lesson.id),
-      type: lessonIndex === island.lessons.length - 1 ? 'checkpoint' : 'lesson',
+      type: (lessonIndex === island.lessons.length - 1 ? 'checkpoint' : 'lesson') as 'checkpoint' | 'lesson',
       theme: island.theme
     }))
   )
 
-  function calculateNodePosition(islandIndex, lessonIndex) {
+  function calculateNodePosition(islandIndex: number, lessonIndex: number): { x: number; y: number } {
     // Zigzag pattern like Duolingo
     const verticalSpacing = 120
     const horizontalOffset = 150
@@ -176,17 +187,6 @@ const DuolingoStyleMap = ({ islands, playerProgress, onIslandSelect }: DuolingoS
   )
 }
 
-interface PathNode {
-  id: string
-  islandId: string
-  lesson: Lesson
-  position: { x: number; y: number }
-  isLocked: boolean
-  isCompleted: boolean
-  type: 'checkpoint' | 'lesson'
-  theme: string
-}
-
 interface DuolingoNodeProps {
   node: PathNode
   index: number
@@ -254,7 +254,13 @@ const DuolingoNode = ({ node, index, onClick }: DuolingoNodeProps) => {
   )
 }
 
-const IslandMarker = ({ island, position, isUnlocked }) => {
+interface IslandMarkerProps {
+  island: Island
+  position: { x: number; y: number }
+  isUnlocked: boolean
+}
+
+const IslandMarker = ({ island, position, isUnlocked }: IslandMarkerProps) => {
   return (
     <div 
       className="island-marker"
@@ -268,8 +274,8 @@ const IslandMarker = ({ island, position, isUnlocked }) => {
   )
 }
 
-function getIslandIcon(theme) {
-  const icons = {
+function getIslandIcon(theme: string): string {
+  const icons: Record<string, string> = {
     tropical: '🏝️',
     volcanic: '🌋',
     arctic: '❄️',
