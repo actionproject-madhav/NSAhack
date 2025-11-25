@@ -1,0 +1,393 @@
+/* Duolingo Exact Colors and Styles */
+:root {
+    --duo-green: #58CC02;
+    --duo-dark-green: #58A700;
+    --duo-light-green: #89E219;
+    --duo-gold: #FFC800;
+    --duo-blue: #1CB0F6;
+    --duo-purple: #CE82FF;
+    --duo-red: #FF4B4B;
+    --duo-orange: #FF9600;
+    --duo-gray: #E5E5E5;
+    --duo-dark-gray: #777777;
+    --duo-bg-dark: #131F24;
+    --duo-card-dark: #37464F;
+    --duo-text-primary: #F7F7F7;
+    --duo-text-secondary: #AFAFAF;
+  }
+  
+  /* Main Container */
+  .duolingo-map-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #131F24, #1F2937);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  /* Duolingo Background */
+  .duo-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    background: linear-gradient(180deg, #235390 0%, #1e3c72 50%, #131F24 100%);
+  }
+  
+  .duo-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(19, 31, 36, 0.4) 100%);
+  }
+  
+  /* Animated Clouds */
+  .duo-cloud {
+    position: absolute;
+    width: 200px;
+    height: 100px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 100px;
+    animation: floatCloud 20s ease-in-out infinite;
+  }
+  
+  @keyframes floatCloud {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    33% { transform: translateX(30px) translateY(-10px); }
+    66% { transform: translateX(-20px) translateY(5px); }
+  }
+  
+  /* Path Container */
+  .duo-path-container {
+    position: relative;
+    width: 500px;
+    margin: 0 auto;
+    padding: 100px 0;
+    z-index: 1;
+  }
+  
+  .duo-path-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+  
+  /* Duolingo-style Nodes */
+  .duo-node {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .duo-node.locked {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .duo-node.checkpoint {
+    width: 110px;
+    height: 110px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    border: 5px solid #FF8C00 !important;
+  }
+  
+  .lesson-icon {
+    font-size: 40px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+  
+  .checkpoint-flag {
+    font-size: 50px;
+  }
+  
+  /* Tooltip */
+  .duo-tooltip {
+    position: absolute;
+    top: -50px;
+    background: rgba(55, 70, 79, 0.95);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+  }
+  
+  /* Island Markers */
+  .island-marker {
+    position: absolute;
+    z-index: 3;
+  }
+  
+  .island-badge {
+    background: linear-gradient(135deg, #37464F 0%, #2E3C44 100%);
+    padding: 16px 24px;
+    border-radius: 16px;
+    border: 3px solid #58CC02;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .island-badge.locked {
+    opacity: 0.5;
+    border-color: #777777;
+  }
+  
+  .island-badge h3 {
+    color: #F7F7F7;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .island-icon {
+    font-size: 32px;
+  }
+  
+  /* Progress Bar (Duolingo Style) */
+  .duo-progress-bar {
+    height: 16px;
+    background: #2E3C44;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .duo-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #58CC02 0%, #89E219 100%);
+    border-radius: 8px;
+    position: relative;
+    transition: width 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .duo-progress-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%
+    );
+    animation: shine 2s ease-in-out infinite;
+  }
+  
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+
+  /* Leaderboard Styles */
+.duo-leaderboard {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #131F24;
+    border-radius: 16px;
+    padding: 24px;
+  }
+  
+  .duo-leaderboard-header {
+    margin-bottom: 24px;
+  }
+  
+  .league-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .league-icon {
+    font-size: 48px;
+  }
+  
+  .league-info h2 {
+    color: #F7F7F7;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  
+  .time-filter-tabs {
+    display: flex;
+    gap: 8px;
+    background: #2E3C44;
+    padding: 4px;
+    border-radius: 12px;
+  }
+  
+  .time-filter-tabs .tab {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: #AFAFAF;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .time-filter-tabs .tab.active {
+    background: #58CC02;
+    color: white;
+  }
+  
+  /* League Zones */
+  .league-zones {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .promotion-zone,
+  .safe-zone,
+  .demotion-zone {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #F7F7F7;
+  }
+  
+  .promotion-zone {
+    background: linear-gradient(135deg, #58CC02, #89E219);
+  }
+  
+  .safe-zone {
+    background: #37464F;
+  }
+  
+  .demotion-zone {
+    background: linear-gradient(135deg, #FF4B4B, #FF7676);
+  }
+  
+  /* Leaderboard Items */
+  .leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #37464F;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  
+  .leaderboard-item.current-user {
+    background: linear-gradient(135deg, #58CC02, #4CAF00);
+    border-color: #89E219;
+  }
+  
+  .leaderboard-item.promotion {
+    border-left: 4px solid #58CC02;
+  }
+  
+  .leaderboard-item.demotion {
+    border-left: 4px solid #FF4B4B;
+  }
+  
+  .rank-badge {
+    font-size: 24px;
+    font-weight: 700;
+    color: #F7F7F7;
+    min-width: 40px;
+    text-align: center;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    margin-left: 16px;
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2E3C44;
+    font-size: 24px;
+  }
+  
+  .username {
+    color: #F7F7F7;
+    font-weight: 600;
+  }
+  
+  .xp-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .xp-amount {
+    color: #FFC800;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  
+  .xp-label {
+    color: #AFAFAF;
+    font-size: 12px;
+  }
+  
+  /* Footer Stats */
+  .leaderboard-footer {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #37464F;
+  }
+  
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stat-label {
+    color: #AFAFAF;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .stat-value {
+    color: #F7F7F7;
+    font-size: 24px;
+    font-weight: 700;
+  }
