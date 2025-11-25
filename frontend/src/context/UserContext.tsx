@@ -82,6 +82,37 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user?.email, user?.id]) // Only depend on identifiers, not entire user object
 
+  // Listen for storage changes and custom logout events
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        const currentUser = authService.getCurrentUser()
+        if (currentUser) {
+          // User was added/updated - reload profile
+          window.location.reload()
+        } else {
+          // User was removed - clear state immediately
+          setUser(null)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    // Listen for custom logout event (same-tab logout)
+    const handleLogout = () => {
+      setUser(null)
+      setIsLoading(false)
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('user-logout', handleLogout)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('user-logout', handleLogout)
+    }
+  }, [])
+
   useEffect(() => {
     // Check for authenticated user on app start and load full profile from database
     const loadUserProfile = async () => {
@@ -89,6 +120,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const currentUser = authService.getCurrentUser()
       
       if (!currentUser) {
+        setUser(null)
         setIsLoading(false)
         return
       }

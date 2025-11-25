@@ -105,37 +105,37 @@ const OnboardingFlow = () => {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return userName.trim() !== ''
-      case 2: return selectedBrands.length >= 2
-      case 3: return selectedGoal !== ''
-      case 4: return selectedLanguage !== ''
-      case 5: return visaStatus !== ''
-      case 6: return homeCountry !== ''
-      default: return false
+      case 1: return userName.trim() !== '';
+      case 2: return selectedBrands.length >= 2;
+      case 3: return selectedGoal !== '';
+      case 4: return selectedLanguage !== '';
+      case 5: return visaStatus !== '';
+      case 6: return homeCountry !== '';
+      default: return false;
     }
   }
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return "What's your name?"
-      case 2: return 'Choose your brands'
-      case 3: return 'Investment goals'
-      case 4: return 'Select language'
-      case 5: return 'Visa status'
-      case 6: return 'Home country'
-      default: return 'Getting started'
+      case 1: return "What's your name?";
+      case 2: return 'Choose your brands';
+      case 3: return 'Investment goals';
+      case 4: return 'Select language';
+      case 5: return 'Visa status';
+      case 6: return 'Home country';
+      default: return 'Getting started';
     }
   }
 
   const getStepDescription = () => {
     switch (step) {
-      case 1: return "Let's personalize your experience"
-      case 2: return 'Select brands you use regularly'
-      case 3: return 'Choose your primary investment objective'
-      case 4: return 'Select your preferred language'
-      case 5: return 'Help us provide visa-compliant guidance'
-      case 6: return 'We'll calculate your tax treaty benefits'
-      default: return 'Let\'s personalize your investment journey'
+      case 1: return "Let's personalize your experience";
+      case 2: return 'Select brands you use regularly';
+      case 3: return 'Choose your primary investment objective';
+      case 4: return 'Select your preferred language';
+      case 5: return 'Help us provide visa-compliant guidance';
+      case 6: return "We'll calculate your tax treaty benefits";
+      default: return 'Let\'s personalize your investment journey';
     }
   }
 
@@ -259,12 +259,17 @@ const OnboardingFlow = () => {
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && canProceed() && nextStep()}
-                    className="w-full px-6 py-4 text-lg rounded-xl border-2 transition-all focus:outline-none focus:ring-4"
+                    className="w-full px-6 py-4 text-lg rounded-xl border-2 transition-all focus:outline-none"
                     style={{
                       background: DUOLINGO_COLORS.border,
                       borderColor: userName.trim() ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border,
-                      color: DUOLINGO_COLORS.textPrimary,
-                      focusRingColor: `${DUOLINGO_COLORS.green}40`
+                      color: DUOLINGO_COLORS.textPrimary
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.boxShadow = `0 0 0 4px ${DUOLINGO_COLORS.green}40`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                     placeholder="Enter your name"
                     autoFocus

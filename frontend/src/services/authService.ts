@@ -417,26 +417,39 @@ class AuthService {
   // Sign out
   async signOut(): Promise<void> {
     try {
-      // Call backend logout endpoint
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      // Clear localStorage FIRST (before backend call)
+      localStorage.removeItem('user')
+      localStorage.removeItem('google_token')
+      localStorage.removeItem('educationProgress')
+      
+      // Dispatch custom logout event for same-tab listeners (UserContext)
+      window.dispatchEvent(new CustomEvent('user-logout'))
+      
+      // Call backend logout endpoint (non-blocking)
+      fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include'
+      }).catch(() => {
+        // Silently fail - logout should work even if backend is down
       })
-      
-      // Clear localStorage
-      localStorage.removeItem('user')
       
       // Sign out from Google
       if (window.google?.accounts.id) {
         window.google.accounts.id.disableAutoSelect()
       }
       
-      // Redirect to home
+      // Force full page reload to clear all state
       window.location.href = '/#/'
     } catch (error) {
       console.error('Sign out error:', error)
-      // Still clear local data even if backend call fails
+      // Still clear local data even if anything fails
       localStorage.removeItem('user')
+      localStorage.removeItem('google_token')
+      localStorage.removeItem('educationProgress')
+      
+      // Dispatch logout event even on error
+      window.dispatchEvent(new CustomEvent('user-logout'))
+      
       window.location.href = '/#/'
     }
   }

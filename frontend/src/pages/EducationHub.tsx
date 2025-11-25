@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 // import { Canvas } from '@react-three/fiber'
 // import { OrbitControls, Float, Text3D } from '@react-three/drei'
 // Update your EducationHub.tsx to use the new Duolingo-style components
-import DuolingoStyleMap from '../components/education/DuolingoStyleMap'
+import DuolingoStyleMap from '../components/education/DuolingoMapStyle'
 import DuolingoLeaderboard from '../components/education/DuolingoLeaderboard'
 import FinnyMascot from '../components/education/FinnyMascot'
 import '../styles/duolingo-education.css'
@@ -18,7 +18,6 @@ import { Howl } from 'howler'
 import confetti from 'canvas-confetti'
 import Layout from '../components/Layout'
 import { allUnits } from './Curriculumdata'
-import IslandMap from '../components/education/IslandMap'
 import LessonGame from '../components/education/LessonGame'
 import QuizBattle from '../components/education/QuizBattle'
 import ProgressTracker from '../components/education/ProgressTracker'
@@ -517,116 +516,36 @@ const EducationHub = () => {
               exit={{ opacity: 0 }}
               className="h-full"
             >
-              {/* Island Map with 3D Visualization */}
-              <div className="flex items-center justify-center h-full relative p-8">
-                {/* Clean background - no Spline */}
-                
-                <div className="max-w-6xl w-full relative z-10">
-                  <h2 className="text-5xl font-extrabold mb-8 text-center text-black dark:text-white drop-shadow-lg tracking-tight">
-                    Choose Your Learning Island
-                  </h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                    {islands.map((island, index) => {
-                      const isUnlocked = playerStats.unlockedIslands.includes(island.id)
-                      const isLocked = !isUnlocked
-                      
-                      return (
-                        <motion.div
-                          key={island.id}
-                          initial={{ opacity: 0, y: 50 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="relative flex"
-                        >
-                          <motion.button
-                            onClick={() => !isLocked && selectIsland(island)}
-                            disabled={isLocked}
-                            whileHover={!isLocked ? { scale: 1.05 } : {}}
-                            whileTap={!isLocked ? { scale: 0.95 } : {}}
-                            className={`w-full h-full flex flex-col p-6 rounded-2xl backdrop-blur-lg transition-all relative overflow-hidden ${
-                              isLocked
-                                ? 'bg-gray-400/50 dark:bg-gray-700/50 cursor-not-allowed opacity-60'
-                                : 'bg-white/90 dark:bg-black/90 shadow-xl hover:shadow-2xl border-2 border-transparent hover:border-blue-400'
-                            }`}
-                            style={{
-                              background: isLocked 
-                                ? undefined 
-                                : `linear-gradient(135deg, ${island.color}20, ${island.color}10)`
-                            }}
-                          >
-                            {/* Lock overlay */}
-                            {isLocked && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
-                                <div className="text-center">
-                                  <Lock className="w-8 h-8 mx-auto mb-2 text-white" />
-                                  <div className="text-xs text-white font-semibold">
-                                    {island.unlockRequirement && 'completeLessons' in island.unlockRequirement && 
-                                      `Complete ${island.unlockRequirement.completeLessons} lessons`}
-                                    {island.unlockRequirement && 'level' in island.unlockRequirement && 
-                                      `Reach Level ${island.unlockRequirement.level}`}
-                                    {island.unlockRequirement?.badges && 
-                                      `Earn required badges`}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* 3D Island Model Preview */}
-                            <div 
-                              className="w-32 h-32 mx-auto mb-4 rounded-lg overflow-hidden relative"
-                              style={{ 
-                                backgroundColor: island.color + '10',
-                                minHeight: '128px',
-                                minWidth: '128px'
-                              }}
-                            >
-                              <IslandModelViewer
-                                modelPath={island.model}
-                                autoRotate={true}
-                                scale={1}
-                                className="w-full h-full"
-                              />
-                              {/* Subtle color tint overlay */}
-                              <div 
-                                className="absolute inset-0 opacity-10 pointer-events-none rounded-lg"
-                                style={{ 
-                                  backgroundColor: island.color,
-                                  zIndex: 2
-                                }}
-                              />
-                            </div>
-                            
-                            {/* Island Name */}
-                            <h3 className="text-2xl font-extrabold text-black dark:text-white mb-2 tracking-tight">
-                              {island.name}
-                            </h3>
-                            
-                            {/* Lesson Count */}
-                            <p className="text-base font-bold text-gray-700 dark:text-gray-300">
-                              {island.lessons?.length || 0} Lessons
-                            </p>
-                            
-                            {/* Progress indicator */}
-                            <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-                              {isUnlocked ? (
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {island.lessons?.filter((l: any) => 
-                                    playerStats.completedLessons.includes(l.id)
-                                  ).length || 0} / {island.lessons?.length || 0} completed
-                                </div>
-                              ) : (
-                                <div className="text-xs text-gray-400 dark:text-gray-500">
-                                  Locked
-                                </div>
-                              )}
-                            </div>
-                          </motion.button>
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                </div>
+              {/* Duolingo-Style Learning Map */}
+              <div className="h-full w-full relative">
+                <DuolingoStyleMap
+                  islands={islands}
+                  playerProgress={playerStats}
+                  onIslandSelect={(node: any) => {
+                    // Find the island and lesson from the node
+                    const island = islands.find(i => i.id === node.islandId)
+                    if (island) {
+                      const lesson = island.lessons.find((l: any) => l.id === node.lesson.id)
+                      if (lesson) {
+                        setCurrentIsland(island)
+                        setCurrentLesson(lesson)
+                        setGameMode('lesson')
+                        
+                        // Switch to island-specific music if available
+                        if (island.bgMusic) {
+                          try {
+                            startBgMusic(island.bgMusic)
+                          } catch (e) {
+                            console.warn('Failed to play island music:', island.bgMusic, e)
+                            startBgMusic('theme.mp3')
+                          }
+                        } else {
+                          startBgMusic('theme.mp3')
+                        }
+                      }
+                    }
+                  }}
+                />
               </div>
 
               {/* HUD Overlay */}
