@@ -1,12 +1,27 @@
 // components/education/LessonGame.tsx
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Howl } from 'howler'
-import Lottie from 'lottie-react'
 import { useSpring, animated } from '@react-spring/web'
-import { useDrag } from '@use-gesture/react'
-import { Heart, X } from 'lucide-react'
-import IslandModelViewer from './IslandModelViewer'
+import { Heart, X, ChevronRight } from 'lucide-react'
+import Lottie from 'lottie-react'
+import elephantAnimation from '../../assets/animations/elephant.json'
+import useGameSound from '../../hooks/useGameSound'
+
+// Duolingo Colors
+const DUOLINGO_COLORS = {
+  green: '#58CC02',
+  darkGreen: '#58A700',
+  lightGreen: '#89E219',
+  gold: '#FFC800',
+  blue: '#1CB0F6',
+  purple: '#CE82FF',
+  red: '#FF4B4B',
+  orange: '#FF9600',
+  background: '#F7F7F7',
+  cardBg: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280'
+}
 
 interface LessonGameProps {
   lesson: any
@@ -16,25 +31,16 @@ interface LessonGameProps {
   islandModel?: string
 }
 
-const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonGameProps) => {
+const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => {
   const [currentSection, setCurrentSection] = useState(0)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
   const [showFeedback, setShowFeedback] = useState(false)
-  const [feedbackType, setFeedbackType] = useState('correct')
-  
-  // Interactive Elements State
-  const [draggedItems, setDraggedItems] = useState<Record<string, any>>({})
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
+  const [feedbackType, setFeedbackType] = useState<'correct' | 'incorrect'>('correct')
   const [heartsRemaining, setHeartsRemaining] = useState(hearts)
-
-  // Sound Effects - using correct paths
-  const sounds = {
-    correct: new Howl({ src: ['/assets/sounds/effects/correct.mp3'], volume: 0.6, preload: false }),
-    incorrect: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }),
-    combo: new Howl({ src: ['/assets/sounds/effects/combo.mp3'], volume: 0.6, preload: false }),
-    heartLost: new Howl({ src: ['/assets/sounds/effects/wrong.mp3'], volume: 0.6, preload: false }) // Using wrong.mp3 as fallback
-  }
+  const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'proud' | 'encouraging'>('happy')
+  
+  const { playSound } = useGameSound()
 
   // Progress Bar Animation
   const progressSpring = useSpring({
@@ -45,30 +51,23 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
   // Handle Answer Selection
   const handleAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
-      sounds.correct.play()
+      playSound('correct')
       setScore(prev => prev + (100 * (1 + combo * 0.1)))
       setCombo(prev => prev + 1)
       setFeedbackType('correct')
+      setMascotMood('proud')
       
-      // Combo celebration
       if (combo >= 3) {
-        try {
-          sounds.combo.play()
-        } catch (e) {
-          // Sound failed, ignore
-        }
-        // TODO: Add combo animation using Lottie (you have combo.mp3 sound)
+        playSound('combo')
       }
     } else {
-      sounds.incorrect.play()
+      playSound('incorrect')
       setHeartsRemaining(prev => prev - 1)
       setCombo(0)
       setFeedbackType('incorrect')
-      sounds.heartLost.play()
+      setMascotMood('encouraging')
       
-      // Game Over Check
       if (heartsRemaining <= 1) {
-        // Game over - complete lesson with current score
         setTimeout(() => {
           onComplete(score)
         }, 2000)
@@ -79,100 +78,43 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
     setShowFeedback(true)
     setTimeout(() => {
       setShowFeedback(false)
-      // Move to next section or complete lesson
       if (currentSection < lesson.content.sections.length - 1) {
         setCurrentSection(prev => prev + 1)
+        setMascotMood('thinking')
       } else {
-        // Lesson complete
         onComplete(score)
       }
     }, 1500)
   }
 
-  // Interactive Drag and Drop
-  const bind = useDrag(({ active, movement: [x, y], memo = { x: 0, y: 0 } }) => {
-    // Drag logic for interactive elements
-    return memo
-  })
-
-  // Check if current section is interactive (requires answer/feedback)
-  const isInteractiveSection = () => {
-    const section = lesson.content.sections[currentSection]
-    return section.type === 'interactive-drag' || 
-           section.type === 'mini-game' || 
-           section.type === 'question' ||
-           section.hasQuestion === true
-  }
-
-  // Render Different Section Types
+  // Render Bite-Sized Section Content
   const renderSection = () => {
     const section = lesson.content.sections[currentSection]
+    if (!section) return null
     
     switch (section.type) {
-      case 'interactive-drag':
-        return (
-          <div className="relative h-96">
-            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
-            <div className="grid grid-cols-2 gap-8">
-              {/* Draggable Items */}
-              <div className="space-y-4">
-                {section.items?.map((item: any, idx: number) => (
-                  <animated.div
-                    key={idx}
-                    {...bind()}
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-xl cursor-move shadow-lg"
-                  >
-                    <span className="text-white">{item.text}</span>
-                  </animated.div>
-                ))}
-              </div>
-              
-              {/* Drop Zones */}
-              <div className="space-y-4">
-                {section.dropZones?.map((zone: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 rounded-xl min-h-[80px] flex items-center justify-center text-gray-700 dark:text-gray-300"
-                  >
-                    {draggedItems[zone.id] || zone.placeholder}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )
-        
-      case 'mini-game':
-        return <MiniGame config={section.gameConfig} onComplete={handleAnswer} />
-        
-      case 'animation-lesson':
-        return (
-          <div className="text-center">
-            <Lottie 
-              animationData={section.animation}
-              loop={false}
-              className="w-96 h-96 mx-auto"
-            />
-            <p className="text-xl font-semibold mt-4 text-gray-900 dark:text-gray-100 leading-relaxed">{section.content}</p>
-          </div>
-        )
-        
       case 'comparison':
         return (
-          <div className="prose prose-lg max-w-none text-black dark:text-white">
-            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
-            <p className="text-gray-800 dark:text-gray-200 mb-4">{section.content}</p>
+          <div className="space-y-4">
+            {section.title && (
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">{section.title}</h3>
+            )}
+            {section.content && (
+              <p className="text-lg text-gray-700 mb-4">{section.content}</p>
+            )}
             {section.data && (
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                {Object.entries(section.data).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                    <h4 className="font-extrabold text-lg mb-3 capitalize text-gray-900 dark:text-gray-100">{key}</h4>
-                    {typeof value === 'object' && value !== null && (
-                      <ul className="space-y-2 text-base">
-                        {Object.entries(value).map(([k, v]: [string, any]) => (
-                          <li key={k} className="font-semibold text-gray-800 dark:text-gray-200"><span className="font-extrabold">{k}:</span> {String(v)}</li>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(section.data).slice(0, 4).map(([key, value]: [string, any]) => (
+                  <div key={key} className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-200">
+                    <h4 className="font-bold text-lg mb-2 capitalize text-gray-900">{key}</h4>
+                    {typeof value === 'object' && value !== null ? (
+                      <ul className="space-y-1 text-sm">
+                        {Object.entries(value).slice(0, 3).map(([k, v]: [string, any]) => (
+                          <li key={k} className="text-gray-700"><span className="font-semibold">{k}:</span> {String(v)}</li>
                         ))}
                       </ul>
+                    ) : (
+                      <p className="text-gray-700">{String(value)}</p>
                     )}
                   </div>
                 ))}
@@ -187,60 +129,50 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
       case 'calculation':
       default:
         return (
-          <div className="prose prose-lg max-w-none text-black dark:text-white">
-            <h3 className="text-2xl font-bold mb-4 text-black dark:text-white">{section.title}</h3>
-            <p className="text-gray-800 dark:text-gray-200 mb-4">{section.content}</p>
-            {section.details && (
-              <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
-                {section.details.map((detail: string, idx: number) => (
-                  <li key={idx}>{detail}</li>
+          <div className="space-y-4">
+            {section.title && (
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">{section.title}</h3>
+            )}
+            <p className="text-lg text-gray-700 leading-relaxed mb-4">{section.content}</p>
+            {section.details && section.details.length > 0 && (
+              <div className="space-y-2">
+                {section.details.slice(0, 4).map((detail: string, idx: number) => (
+                  <div key={idx} className="flex items-start gap-3 bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
+                    <span className="text-green-500 font-bold text-xl">✓</span>
+                    <span className="text-gray-700 flex-1">{detail}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         )
     }
   }
 
-  return (
-    <div className="h-screen bg-transparent relative overflow-hidden">
-      {/* 3D Island Background - More visible and contextual */}
-      {islandModel && (
-        <motion.div 
-          className="absolute inset-0 pointer-events-none z-0"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.3, scale: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
-          <IslandModelViewer
-            modelPath={islandModel}
-            autoRotate={true}
-            scale={1.5}
-            className="w-full h-full"
-          />
-          {/* Subtle gradient overlay for better text readability - only at bottom */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/20 dark:to-black/20" />
-        </motion.div>
-      )}
+  const isLastSection = currentSection === lesson.content.sections.length - 1
 
-      {/* Top Bar */}
-      <div className="relative z-10 bg-white/90 backdrop-blur shadow-lg p-4">
+  return (
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+      {/* Top Bar - Duolingo Style */}
+      <div className="relative z-20 bg-white dark:bg-gray-800 shadow-md p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          {/* Exit Button *bu
           <button
             onClick={onExit}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
 
           {/* Progress Bar */}
           <div className="flex-1 mx-8">
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <animated.div
-                style={progressSpring}
-                className="h-full bg-gradient-to-r from-green-400 to-blue-500"
+                style={{ ...progressSpring, background: DUOLINGO_COLORS.green }}
+                className="h-full rounded-full"
               />
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+              {currentSection + 1} / {lesson.content.sections.length}
             </div>
           </div>
 
@@ -259,111 +191,98 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit, islandModel }: LessonG
               </motion.div>
             ))}
           </div>
-
-          {/* Score & Combo */}
-          <div className="ml-4 text-right">
-            <div className="text-2xl font-bold">{Math.floor(score)}</div>
-            {combo > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="text-sm text-orange-500 font-semibold"
-              >
-                {combo}x Combo!
-              </motion.div>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 max-w-4xl mx-auto p-8 mt-8 pb-32">
-        <AnimatePresence mode="wait">
+      {/* Main Content Area */}
+      <div className="relative z-10 h-full flex items-center justify-center p-4">
+        <div className="max-w-3xl w-full flex gap-6 items-center">
+          {/* Elephant Mascot */}
           <motion.div
-            key={currentSection}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ type: "spring", stiffness: 100 }}
-            className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-black dark:text-white mb-8 max-h-[60vh] overflow-y-auto border border-gray-200/50 dark:border-gray-700/50"
-          >
-            {renderSection()}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Action Buttons - Aligned with content container */}
-        <div className="max-w-4xl mx-auto px-8">
-          <div className="flex justify-between gap-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg py-4 px-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            onClick={() => currentSection > 0 && setCurrentSection(prev => prev - 1)}
-            disabled={currentSection === 0}
-          >
-            Previous
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl"
-            onClick={() => {
-              const section = lesson.content.sections[currentSection]
-              const isInteractive = isInteractiveSection()
-              
-              // Only show feedback for interactive sections
-              if (isInteractive) {
-                // For interactive sections, handle answer (this will show feedback)
-                handleAnswer(true)
-              } else {
-                // For regular content sections, just move to next without feedback
-                if (currentSection < lesson.content.sections.length - 1) {
-                  setCurrentSection(prev => prev + 1)
-                } else {
-                  // All sections done - complete lesson
-                  onComplete(score)
-                }
-              }
+            className="flex-shrink-0 hidden md:block"
+            animate={{ 
+              y: [0, -10, 0],
+              scale: showFeedback && feedbackType === 'correct' ? [1, 1.2, 1] : 1
+            }}
+            transition={{ 
+              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              scale: { duration: 0.5 }
             }}
           >
-            {currentSection < lesson.content.sections.length - 1 
-              ? (isInteractiveSection() ? 'Check Answer' : 'Next') 
-              : 'Complete Lesson'}
-          </motion.button>
-          </div>
+            <div className="w-32 h-32">
+              <Lottie 
+                animationData={elephantAnimation}
+                loop={true}
+                className="w-full h-full"
+              />
+            </div>
+          </motion.div>
+
+          {/* Content Card - Bite-Sized */}
+          <motion.div
+            key={currentSection}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4"
+            style={{ borderColor: DUOLINGO_COLORS.green }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSection}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {renderSection()}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Continue Button - Duolingo Style */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (isLastSection) {
+                  onComplete(score)
+                } else {
+                  setCurrentSection(prev => prev + 1)
+                  setMascotMood('thinking')
+                }
+              }}
+              className="w-full mt-6 py-4 rounded-2xl font-bold text-lg text-white shadow-lg flex items-center justify-center gap-2"
+              style={{ background: DUOLINGO_COLORS.green }}
+            >
+              {isLastSection ? 'Complete Lesson' : 'Continue'}
+              {!isLastSection && <ChevronRight className="w-5 h-5" />}
+            </motion.button>
+          </motion.div>
         </div>
       </div>
 
-      {/* Feedback Overlay - Only show for interactive sections */}
+      {/* Feedback Overlay */}
       <AnimatePresence>
-        {showFeedback && isInteractiveSection() && (
+        {showFeedback && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
           >
-            <div className={`text-6xl font-bold ${
-              feedbackType === 'correct' ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {feedbackType === 'correct' ? 'Correct!' : 'Try Again'}
+            <div 
+              className={`text-7xl font-bold ${
+                feedbackType === 'correct' ? 'text-green-500' : 'text-red-500'
+              }`}
+              style={{
+                textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                color: feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red
+              }}
+            >
+              {feedbackType === 'correct' ? '✓ Correct!' : '✗ Try Again'}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-// Mini-Game Component
-const MiniGame = ({ config, onComplete }: { config: any; onComplete: (isCorrect: boolean) => void }) => {
-  // Implement various mini-games based on config
-  // Examples: Stock Trading Simulator, Portfolio Balancer, Risk Calculator
-  return (
-    <div className="p-8 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl">
-      <h3 className="text-2xl font-bold mb-4">Interactive Challenge</h3>
-      {/* Mini-game implementation */}
     </div>
   )
 }
