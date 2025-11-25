@@ -163,13 +163,34 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
 
       {/* Main Content Area - Centered like Duolingo */}
       <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full">
+        <div className="max-w-2xl w-full flex gap-6 items-center">
+          {/* Elephant Mascot */}
+          <motion.div
+            className="flex-shrink-0 hidden md:block"
+            animate={{ 
+              y: [0, -10, 0],
+              scale: showResult && selectedAnswer === question.correctAnswer ? [1, 1.2, 1] : 1
+            }}
+            transition={{ 
+              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              scale: { duration: 0.5 }
+            }}
+          >
+            <div className="w-32 h-32">
+              <Lottie 
+                animationData={elephantAnimation}
+                loop={true}
+                className="w-full h-full"
+              />
+            </div>
+          </motion.div>
+
           {/* Question Card - Bite-Sized, Duolingo Style */}
           <motion.div
             key={currentQuestion}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
+            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             {/* Question */}
@@ -192,7 +213,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     whileTap={!showResult ? { scale: 0.98 } : {}}
                     onClick={() => !showResult && handleAnswer(index)}
                     disabled={showResult}
-                    className={`w-full p-5 rounded-xl text-left font-semibold text-xl transition-all border-4 ${
+                    className={`w-full p-5 rounded-xl text-left font-semibold text-xl transition-all border-4 flex items-center gap-3 ${
                       showCorrect
                         ? 'bg-green-100 dark:bg-green-900 border-green-500 text-green-900 dark:text-green-100'
                         : showIncorrect
@@ -205,8 +226,20 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                       borderColor: '#E5E5E5'
                     } : {}}
                   >
+                    {/* Correct/Wrong Indicator */}
+                    {showResult && (
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-2xl font-bold ${
+                        showCorrect 
+                          ? 'bg-green-500 text-white' 
+                          : showIncorrect 
+                          ? 'bg-red-500 text-white' 
+                          : ''
+                      }`}>
+                        {showCorrect ? '✓' : showIncorrect ? '✗' : ''}
+                      </div>
+                    )}
                     <span className="font-bold mr-4 text-2xl">{String.fromCharCode(65 + index)}.</span>
-                    <span className="text-lg">{option}</span>
+                    <span className="text-lg flex-1">{option}</span>
                   </motion.button>
                 )
               })}

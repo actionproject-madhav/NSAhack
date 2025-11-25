@@ -199,14 +199,35 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
 
       {/* Main Content Area - Centered like Duolingo */}
       <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full">
+        <div className="max-w-2xl w-full flex gap-6 items-center">
+          {/* Elephant Mascot */}
+          <motion.div
+            className="flex-shrink-0 hidden md:block"
+            animate={{ 
+              y: [0, -10, 0],
+              scale: showFeedback && feedbackType === 'correct' ? [1, 1.2, 1] : 1
+            }}
+            transition={{ 
+              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              scale: { duration: 0.5 }
+            }}
+          >
+            <div className="w-32 h-32">
+              <Lottie 
+                animationData={elephantAnimation}
+                loop={true}
+                className="w-full h-full"
+              />
+            </div>
+          </motion.div>
+
           {/* Content Card - Bite-Sized, Duolingo Style */}
           <motion.div
             key={currentSection}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
+            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             <AnimatePresence mode="wait">
@@ -280,17 +301,22 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
 
       {/* Completion Screen with Mascot */}
       <AnimatePresence>
-        {isLastSection && currentSection === lesson.content.sections.length - 1 && (
+        {showCompletion && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-            onClick={() => onComplete(score)}
+            onClick={() => {
+              setShowCompletion(false)
+              onComplete(score)
+            }}
           >
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
               className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md text-center shadow-2xl border-4"
               style={{ borderColor: DUOLINGO_COLORS.green }}
             >
@@ -319,7 +345,10 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => onComplete(score)}
+                onClick={() => {
+                  setShowCompletion(false)
+                  onComplete(score)
+                }}
                 className="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
                 style={{ background: DUOLINGO_COLORS.green }}
               >
