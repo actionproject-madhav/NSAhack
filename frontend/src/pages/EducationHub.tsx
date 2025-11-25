@@ -392,24 +392,6 @@ const EducationHub = () => {
 
   return (
     <Layout>
-      {/* 3D Island Model Background - Show when in lesson/quiz mode */}
-      {currentIsland && (gameMode === 'lesson' || gameMode === 'quiz') && (
-        <motion.div 
-          className="fixed inset-0 z-0 pointer-events-none"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 0.2, scale: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-        >
-          <IslandModelViewer
-            modelPath={currentIsland.model}
-            autoRotate={true}
-            scale={1.5}
-            className="w-full h-full"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-black/30" />
-        </motion.div>
-      )}
-
       <div className="h-screen overflow-hidden relative z-10">
         {/* Unlock Animation Modal */}
         <AnimatePresence>
@@ -794,23 +776,66 @@ const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMa
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
       className="h-full overflow-y-auto relative"
-      style={{
-        background: `linear-gradient(135deg, ${island.color}15 0%, ${island.color}25 100%)`
-      }}
     >
-      {/* 3D Island Background - Low opacity for contrast */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-10 dark:opacity-5">
-        <IslandModelViewer
-          modelPath={island.model}
-          autoRotate={true}
-          scale={2}
-          className="w-full h-full"
+      {/* Duolingo-style Sky Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Sky Gradient - Duolingo blue to light blue */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 30%, #E0F6FF 60%, #F0F8FF 100%)'
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/50 dark:to-black/50" />
+        
+        {/* Animated Clouds */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={`cloud-${i}`}
+              className="absolute rounded-full bg-white/40 dark:bg-white/20"
+              style={{
+                width: `${100 + Math.random() * 150}px`,
+                height: `${60 + Math.random() * 80}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${10 + Math.random() * 40}%`,
+                filter: 'blur(20px)',
+              }}
+              animate={{
+                x: [0, 50, -50, 0],
+                y: [0, 20, -20, 0],
+                opacity: [0.3, 0.5, 0.4, 0.3],
+              }}
+              transition={{
+                duration: 10 + Math.random() * 10,
+                repeat: Infinity,
+                delay: Math.random() * 5,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </div>
+
+        {/* 3D Island Model - Subtle in background */}
+        <div className="absolute inset-0 opacity-5 dark:opacity-3 pointer-events-none">
+          <IslandModelViewer
+            modelPath={island.model}
+            autoRotate={true}
+            scale={2}
+            className="w-full h-full"
+          />
+        </div>
+
+        {/* Additional gradient overlay for depth */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to bottom, transparent 0%, ${island.color}08 50%, transparent 100%)`
+          }}
+        />
       </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-300/50 dark:border-gray-700/50 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={onBack}
