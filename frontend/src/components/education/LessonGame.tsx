@@ -39,6 +39,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
   const [feedbackType, setFeedbackType] = useState<'correct' | 'incorrect'>('correct')
   const [heartsRemaining, setHeartsRemaining] = useState(hearts)
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'proud' | 'encouraging'>('happy')
+  const [showCompletion, setShowCompletion] = useState(false)
   
   const { playSound } = useGameSound()
 
@@ -225,10 +226,20 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               whileTap={{ scale: 0.98 }}
               onClick={() => {
                 if (isLastSection) {
-                  onComplete(score)
+                  // Show completion screen
+                  playSound('levelUp')
+                  setShowCompletion(true)
                 } else {
-                  setCurrentSection(prev => prev + 1)
-                  setMascotMood('thinking')
+                  // Show positive feedback for continuing
+                  playSound('correct')
+                  setFeedbackType('correct')
+                  setShowFeedback(true)
+                  setMascotMood('proud')
+                  setTimeout(() => {
+                    setShowFeedback(false)
+                    setCurrentSection(prev => prev + 1)
+                    setMascotMood('thinking')
+                  }, 1000)
                 }
               }}
               className="w-full mt-8 py-5 rounded-2xl font-bold text-xl text-white shadow-lg flex items-center justify-center gap-2"
