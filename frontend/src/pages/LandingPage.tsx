@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { useTheme } from '../context/ThemeContext'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import { Moon, Sun } from 'lucide-react'
 import Lottie from 'lottie-react'
 
 // Import your animations (from src/assets/animations folder)
@@ -12,7 +14,7 @@ import stocksAnimation from '../assets/animations/stocks.json'
 const LandingPage = () => {
   const navigate = useNavigate()
   const { user, isLoading } = useUser()
-  const [isDark, setIsDark] = useState(false)
+  const { toggleTheme, isDark } = useTheme()
   const { scrollYProgress } = useScroll()
 
   // Parallax effects
@@ -26,12 +28,8 @@ const LandingPage = () => {
     }
   }, [user, isLoading, navigate])
 
-  const toggleDarkMode = () => {
-    setIsDark(!isDark)
-  }
-
   return (
-    <div className={`${isDark ? 'dark' : ''}`}>
+    <div>
       <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-950 dark:via-black dark:to-gray-900 transition-colors duration-700 relative overflow-hidden">
         
         {/* Animated Background Orbs */}
@@ -82,10 +80,10 @@ const LandingPage = () => {
             {/* Right Actions */}
             <div className="flex items-center space-x-3">
               <button
-                onClick={toggleDarkMode}
+                onClick={toggleTheme}
                 className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-900 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
               >
-                {isDark ? '☀️' : '🌙'}
+                {isDark ? <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" /> : <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />}
               </button>
 
               <button

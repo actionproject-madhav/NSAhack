@@ -1,7 +1,8 @@
-import { useState, useEffect, ReactNode } from 'react'
+import { useState, ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Menu, Moon, Sun, Home, Briefcase, Wallet, BarChart3, BookOpen, Brain, LogOut, Settings, X } from 'lucide-react'
 import { useUser } from '../context/UserContext'
+import { useTheme } from '../context/ThemeContext'
 import authService from '../services/authService'
 
 interface LayoutProps {
@@ -14,7 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
+  const { toggleTheme, isDark } = useTheme()
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
@@ -25,14 +26,6 @@ const Layout = ({ children }: LayoutProps) => {
     { icon: Brain, label: 'AI Hub', path: '/ai-hub' },
   ]
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('darkMode', darkMode.toString())
-  }, [darkMode])
 
   return (
     <div className="h-screen bg-transparent flex relative z-10 overflow-hidden">
@@ -142,10 +135,10 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Dark Mode & Profile */}
             <div className="flex items-center gap-3 ml-auto">
               <button 
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={toggleTheme}
                 className="p-2 hover:bg-white/30 dark:hover:bg-black/30 rounded-lg transition-colors"
               >
-                {darkMode ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
+                {isDark ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
               </button>
               
               {user && (

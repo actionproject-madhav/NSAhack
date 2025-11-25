@@ -1,30 +1,11 @@
 import { useState, useEffect, memo } from 'react'
 import Spline from '@splinetool/react-spline'
+import { useTheme } from '../context/ThemeContext'
 
 const SplineBackground = memo(() => {
   const [splineError, setSplineError] = useState(false)
   const [splineLoaded, setSplineLoaded] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark')
-    }
-    return false
-  })
-
-  // Watch for dark mode changes
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains('dark')
-      setDarkMode(isDark)
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  const { isDark } = useTheme()
 
   if (splineError) {
     return null
@@ -41,7 +22,7 @@ const SplineBackground = memo(() => {
           width: '250vw',
           height: '250vh',
           transform: 'translate(-50%, -50%) scale(0.35)',
-          opacity: darkMode ? 0.4 : 0.5,
+          opacity: isDark ? 0.4 : 0.5,
           pointerEvents: 'none',
           zIndex: 0,
           willChange: 'transform',
@@ -70,7 +51,7 @@ const SplineBackground = memo(() => {
         style={{
           width: '220px',
           height: '90px',
-          background: darkMode 
+          background: isDark 
             ? 'radial-gradient(ellipse 200px 90px at bottom right, #000000 0%, #000000 50%, rgba(0,0,0,0.8) 70%, transparent 100%)'
             : 'radial-gradient(ellipse 200px 90px at bottom right, #ffffff 0%, #ffffff 50%, rgba(255,255,255,0.8) 70%, transparent 100%)',
         }}

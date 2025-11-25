@@ -4,6 +4,7 @@ import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
 import TradingViewWidget from '../components/TradingViewWidget'
 import apiService from '../services/apiService'
 import { useUser } from '../context/UserContext'
+import { useTheme } from '../context/ThemeContext'
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -23,12 +24,12 @@ export default function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const navigate = useNavigate();
   const { user, setUser, refreshUserData } = useUser();
+  const { isDark } = useTheme();
   const [stock, setStock] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tradeQuantity, setTradeQuantity] = useState(1)
   const [isBuying, setIsBuying] = useState(false)
-  const [darkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
 
   useEffect(() => {
     const fetchStockDetails = async () => {
@@ -207,7 +208,7 @@ export default function StockDetailPage() {
             <TradingViewWidget 
               symbol={stock.symbol} 
               height="100%"
-              theme={darkMode ? 'dark' : 'light'}
+              theme={isDark ? 'dark' : 'light'}
             />
           </div>
                 </div>

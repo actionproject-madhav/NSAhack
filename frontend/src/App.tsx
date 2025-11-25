@@ -13,6 +13,7 @@ import WalletPage from './pages/WalletPage'
 import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
 import { UserProvider } from './context/UserContext'
+import { ThemeProvider } from './context/ThemeContext'
 
 // Backend warm-up: Ping health endpoint on app load to wake up Render free tier
 const warmUpBackend = () => {
@@ -40,8 +41,9 @@ function App() {
   }, [])
 
   return (
-    <UserProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <ThemeProvider>
+      <UserProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-transparent transition-colors relative overflow-hidden">
           <div className="relative z-10">
             <AnimatePresence mode="wait" initial={false}>
@@ -62,7 +64,8 @@ function App() {
           </div>
         </div>
       </Router>
-    </UserProvider>
+      </UserProvider>
+    </ThemeProvider>
   )
 }
 

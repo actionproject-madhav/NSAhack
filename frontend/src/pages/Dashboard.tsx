@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, BarChart3, MessageCircle, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { useTheme } from '../context/ThemeContext'
 import { useEffect, useState, useMemo } from 'react'
 import Layout from '../components/Layout'
 import { useRealTimeQuotes } from '../hooks/useRealTimeQuotes'
@@ -11,7 +12,7 @@ import tradingService from '../services/tradingService'
 const Dashboard = () => {
   const { user, isLoading } = useUser()
   const navigate = useNavigate()
-  const [darkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
+  const { isDark } = useTheme()
   const [showAIChat, setShowAIChat] = useState(false)
   const [cashBalance, setCashBalance] = useState<number | null>(null)
   const [totalAccountValue, setTotalAccountValue] = useState<number | null>(null)

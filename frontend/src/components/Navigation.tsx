@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Menu, X, Home, Briefcase, Wallet, BarChart3, BookOpen, Brain, Moon, Sun, LogOut, Settings, User } from 'lucide-react'
 import { useUser } from '../context/UserContext'
+import { useTheme } from '../context/ThemeContext'
 import authService from '../services/authService'
 
 const Navigation = () => {
@@ -10,7 +11,7 @@ const Navigation = () => {
   const { user } = useUser()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
+  const { theme, toggleTheme, isDark } = useTheme()
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -23,16 +24,6 @@ const Navigation = () => {
 
   const isActive = (path: string) => location.pathname === path
 
-  const toggleDarkMode = () => {
-    const newMode = !darkMode
-    setDarkMode(newMode)
-    localStorage.setItem('darkMode', newMode.toString())
-    if (newMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }
 
   return (
     <>
@@ -71,10 +62,10 @@ const Navigation = () => {
             <div className="flex items-center gap-3">
               {/* Dark Mode Toggle */}
               <button
-                onClick={toggleDarkMode}
+                onClick={toggleTheme}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-colors"
               >
-                {darkMode ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
+                {isDark ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-black" />}
               </button>
 
               {/* Profile Button */}

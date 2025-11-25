@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 
-// Set dark mode as default
+// Initialize theme from localStorage or default to dark
+// This runs before React, so we set the initial class
 const savedTheme = localStorage.getItem('theme')
 if (savedTheme === 'light') {
   document.documentElement.classList.remove('dark')
