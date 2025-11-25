@@ -131,6 +131,25 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
     )
   }
 
+  // Safety check - ensure question exists
+  if (!questions || questions.length === 0 || !questions[currentQuestion]) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border-4 shadow-2xl text-center max-w-md" style={{ borderColor: DUOLINGO_COLORS.green }}>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No Question Available</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">This question is not available.</p>
+          <button
+            onClick={() => onComplete(0)}
+            className="px-6 py-3 rounded-xl font-bold text-white"
+            style={{ background: DUOLINGO_COLORS.green }}
+          >
+            Return to Map
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const question = questions[currentQuestion]
   const isLastQuestion = currentQuestion === questions.length - 1
 
@@ -195,12 +214,12 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
           >
             {/* Question */}
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 leading-relaxed text-center">
-              {question.question}
+              {question?.question || 'No question available'}
             </h2>
 
-            {/* Answer Options - Duolingo Style */}
-            <div className="space-y-4 mb-6">
-              {question.options.map((option: string, index: number) => {
+            {/* Answer Options - Horizontal Layout */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {(question?.options || []).map((option: string, index: number) => {
                 const isSelected = selectedAnswer === index
                 const isCorrect = index === question.correctAnswer
                 const showCorrect = showResult && isCorrect
@@ -213,7 +232,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     whileTap={!showResult ? { scale: 0.98 } : {}}
                     onClick={() => !showResult && handleAnswer(index)}
                     disabled={showResult}
-                    className={`w-full p-5 rounded-xl text-left font-semibold text-xl transition-all border-4 flex items-center gap-3 ${
+                    className={`p-5 rounded-xl text-center font-semibold text-lg transition-all border-4 flex flex-col items-center justify-center gap-2 min-h-[120px] ${
                       showCorrect
                         ? 'bg-green-100 dark:bg-green-900 border-green-500 text-green-900 dark:text-green-100'
                         : showIncorrect
@@ -228,7 +247,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                   >
                     {/* Correct/Wrong Indicator */}
                     {showResult && (
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-2xl font-bold ${
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold ${
                         showCorrect 
                           ? 'bg-green-500 text-white' 
                           : showIncorrect 
@@ -238,8 +257,8 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                         {showCorrect ? '✓' : showIncorrect ? '✗' : ''}
                       </div>
                     )}
-                    <span className="font-bold mr-4 text-2xl">{String.fromCharCode(65 + index)}.</span>
-                    <span className="text-lg flex-1">{option}</span>
+                    <span className="font-bold text-2xl">{String.fromCharCode(65 + index)}</span>
+                    <span className="text-base leading-tight">{option}</span>
                   </motion.button>
                 )
               })}
