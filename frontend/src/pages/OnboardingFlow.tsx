@@ -1,11 +1,29 @@
-import { useState, Suspense } from 'react'
-import { ArrowRight, Wallet, TrendingUp, GraduationCap, Zap, Globe, Microscope, Briefcase, Flag } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRight, Wallet, TrendingUp, GraduationCap, Zap, Globe, Microscope, Briefcase, Flag, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES, generatePortfolioReason } from '../utils/mockData'
-import Logo from '../components/Logo'
+import { LIFESTYLE_BRANDS, INVESTMENT_GOALS, LANGUAGES } from '../utils/mockData'
+import { motion, AnimatePresence } from 'framer-motion'
+import Lottie from 'lottie-react'
+import elephantAnimation from '../assets/animations/elephant.json'
 import apiService from '../services/apiService'
-import SplineBackground from '../components/SplineBackground'
+
+// Duolingo & Brilliant.org Color Scheme
+const DUOLINGO_COLORS = {
+  green: '#58CC02',
+  darkGreen: '#58A700',
+  lightGreen: '#89E219',
+  gold: '#FFC800',
+  blue: '#1CB0F6',
+  purple: '#CE82FF',
+  red: '#FF4B4B',
+  orange: '#FF9600',
+  background: '#131F24',
+  cardBg: '#37464F',
+  textPrimary: '#F7F7F7',
+  textSecondary: '#AFAFAF',
+  border: '#2E3C44'
+}
 
 const OnboardingFlow = () => {
   const [step, setStep] = useState(1)
@@ -27,9 +45,8 @@ const OnboardingFlow = () => {
   }
 
   const completeOnboarding = async () => {
-    console.log('🔄 Saving onboarding data (NO portfolio - users start with empty portfolio)...')
+    console.log('🔄 Saving onboarding data...')
     
-    // Get user data from localStorage (set during Google auth)
     const storedUser = localStorage.getItem('user')
     const googleUser = storedUser ? JSON.parse(storedUser) : null
 
@@ -43,23 +60,18 @@ const OnboardingFlow = () => {
       lifestyle: selectedBrands,
       visaStatus,
       homeCountry,
-      portfolio: [], // EMPTY - users must buy stocks through trading
-      totalValue: 0, // EMPTY - users start with virtual cash only
-      onboarding_completed: true // Always mark as completed (frontend-first approach)
+      portfolio: [],
+      totalValue: 0,
+      onboarding_completed: true
     }
 
-    // Mark onboarding as completed in localStorage FIRST (before API call)
-    // This ensures user can proceed even if backend is down
     localStorage.removeItem('user')
     localStorage.setItem('user', JSON.stringify(user))
     setUser(user)
 
-    // Try to save onboarding data to backend (with timeout)
-    // This is best-effort - if it fails, user can still proceed
     const userId = user.email || user.id
     if (userId) {
       try {
-        // Increased timeout to 30s for Render cold starts (free tier can take 30-60s)
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Request timeout')), 30000)
         )
@@ -72,29 +84,13 @@ const OnboardingFlow = () => {
           home_country: homeCountry,
         })
         
-        const success = await Promise.race([savePromise, timeoutPromise]) as boolean
-        
-        if (success) {
-          console.log('✅ Onboarding data saved to database')
-        } else {
-          console.warn('⚠️ Backend returned false, but onboarding marked complete in localStorage')
-        }
+        await Promise.race([savePromise, timeoutPromise])
+        console.log('✅ Onboarding data saved to database')
       } catch (error: any) {
-        // Silently handle timeout - user can proceed anyway
-        if (error.message === 'Request timeout') {
-          console.warn('⚠️ Backend save timed out (Render cold start may be slow) - user can proceed')
-        } else {
-          console.warn('⚠️ Backend save failed (non-critical):', error.message || error)
-        }
-        console.log('✅ Onboarding marked complete in localStorage - user can proceed')
-        // Don't block navigation - user can proceed even if backend fails
+        console.warn('⚠️ Backend save failed (non-critical):', error.message || error)
       }
-    } else {
-      console.warn('⚠️ No user ID available, skipping backend save')
     }
 
-    // Always navigate to dashboard (frontend-first approach)
-    console.log('✅ Navigating to dashboard...')
     navigate('/dashboard')
   }
 
@@ -121,349 +117,487 @@ const OnboardingFlow = () => {
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return 'What\'s Your Name?'
-      case 2: return 'Choose Your Brands'
-      case 3: return 'Investment Goals'
-      case 4: return 'Select Language'
-      case 5: return 'Visa Status'
-      case 6: return 'Home Country'
-      default: return 'Getting Started'
+      case 1: return "What's your name?"
+      case 2: return 'Choose your brands'
+      case 3: return 'Investment goals'
+      case 4: return 'Select language'
+      case 5: return 'Visa status'
+      case 6: return 'Home country'
+      default: return 'Getting started'
     }
   }
 
   const getStepDescription = () => {
     switch (step) {
-      case 1: return 'Let\'s start by getting to know you better.'
-      case 2: return 'Select brands you use regularly. We\'ll help you invest in companies you know.'
-      case 3: return 'Choose your primary investment objective to personalize your experience.'
-      case 4: return 'Select your preferred language for the platform interface.'
-      case 5: return 'Help us provide visa-compliant trading guidance and alerts.'
-      case 6: return 'We\'ll calculate your tax treaty benefits and provide country-specific guidance.'
-      default: return 'Let\'s personalize your investment journey.'
+      case 1: return "Let's personalize your experience"
+      case 2: return 'Select brands you use regularly'
+      case 3: return 'Choose your primary investment objective'
+      case 4: return 'Select your preferred language'
+      case 5: return 'Help us provide visa-compliant guidance'
+      case 6: return 'We'll calculate your tax treaty benefits'
+      default: return 'Let\'s personalize your investment journey'
     }
   }
 
+  const totalSteps = 6
+
   return (
-    <div className="min-h-screen flex relative">
-      {/* Spline Background */}
-      <Suspense fallback={null}>
-        <SplineBackground />
-      </Suspense>
-      {/* Left Side - Background Image with Content */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: 'url(/onboarding.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        />
-        <div className="absolute inset-0 bg-gray-900/40" />
-
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">F</span>
-            </div>
-            <span className="text-white font-semibold text-xl">FinLit</span>
-          </div>
-
-          {/* Main Content */}
-          <div className="space-y-6">
-            <div className="text-sm text-white/80 uppercase tracking-wide">
-              GET STARTED
-            </div>
-            <h1 className="text-4xl font-bold leading-tight">
-              Welcome!
-            </h1>
-            <p className="text-lg text-white/90 leading-relaxed">
-              Your gateway to smarter, faster, and more profitable investment decisions.
-            </p>
-          </div>
-
-          {/* Testimonial */}
-          <div className="space-y-4">
-            <blockquote className="text-white/90 italic leading-relaxed">
-              "Investing in what you know and use daily is the foundation of smart wealth building. FinLit makes it simple to turn your lifestyle choices into investment opportunities."
-            </blockquote>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">W</span>
-              </div>
-              <div>
-                <div className="font-semibold text-white">Warren Buffett</div>
-                <div className="text-sm text-white/70">Investment Philosophy</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Links */}
-          <div className="flex space-x-6 text-sm text-white/60">
-            <a href="#" className="hover:text-white/80 transition-colors">Terms</a>
-            <a href="#" className="hover:text-white/80 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white/80 transition-colors">Support</a>
-          </div>
-        </div>
+    <div className="min-h-screen" style={{ background: DUOLINGO_COLORS.background }}>
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(88, 204, 2, 0.15) 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }} />
       </div>
 
-      {/* Right Side - Form Content */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white/90 backdrop-blur relative z-10">
-        <div className="w-full max-w-lg">
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-blue-600' : i < step ? 'bg-blue-300' : 'bg-gray-200'
-                    }`}
-                />
-              ))}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-6">
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl"
+              style={{ background: DUOLINGO_COLORS.green, color: '#131F24' }}
+            >
+              F
+            </div>
+            <span className="text-2xl font-bold" style={{ color: DUOLINGO_COLORS.textPrimary }}>
+              FinLit
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Main Content Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-2xl"
+          style={{
+            background: DUOLINGO_COLORS.cardBg,
+            borderRadius: '24px',
+            padding: '48px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            border: `2px solid ${DUOLINGO_COLORS.border}`
+          }}
+        >
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold" style={{ color: DUOLINGO_COLORS.textSecondary }}>
+                Step {step} of {totalSteps}
+              </span>
+              <span className="text-sm font-semibold" style={{ color: DUOLINGO_COLORS.textSecondary }}>
+                {Math.round((step / totalSteps) * 100)}%
+              </span>
+            </div>
+            <div 
+              className="h-3 rounded-full overflow-hidden"
+              style={{ background: DUOLINGO_COLORS.border }}
+            >
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(step / totalSteps) * 100}%` }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  background: `linear-gradient(90deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.lightGreen} 100%)`,
+                  height: '100%',
+                  borderRadius: '12px'
+                }}
+              />
             </div>
           </div>
 
           {/* Step Content */}
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{getStepTitle()}</h2>
-            <p className="text-gray-600 text-sm">{getStepDescription()}</p>
-          </div>
-
-          {/* Step 1: Name Input */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your full name"
-                  autoFocus
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Lifestyle Brands */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-3">
-                {LIFESTYLE_BRANDS.slice(0, 9).map((brand) => (
-                  <button
-                    key={brand.name}
-                    onClick={() => handleBrandToggle(brand.name)}
-                    className={`h-20 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center ${selectedBrands.includes(brand.name)
-                      ? 'border-blue-500 bg-blue-500 text-white'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                      }`}
-                  >
-                    <div className="mb-1">
-                      <Logo
-                        company={brand.ticker}
-                        fallback={brand.name.charAt(0)}
-                        size={24}
-                      />
-                    </div>
-                    <div className={`font-medium text-xs ${selectedBrands.includes(brand.name) ? 'text-white' : 'text-gray-900'
-                      }`}>
-                      {brand.name}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <p className="text-center text-sm text-gray-500">
-                Select at least 2 brands to continue
-              </p>
-            </div>
-          )}
-
-          {/* Step 3: Investment Goal */}
-          {step === 3 && (
-            <div className="space-y-3">
-              {INVESTMENT_GOALS.map((goal) => (
-                <button
-                  key={goal.id}
-                  onClick={() => setSelectedGoal(goal.id)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${selectedGoal === goal.id
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                    }`}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Title & Description */}
+              <div className="text-center mb-8">
+                <h2 
+                  className="text-3xl font-bold mb-3"
+                  style={{ color: DUOLINGO_COLORS.textPrimary }}
                 >
-                  <div className="flex items-center gap-3">
-                    {goal.id === 'save' && <Wallet className="w-6 h-6" />}
-                    {goal.id === 'grow' && <TrendingUp className="w-6 h-6" />}
-                    {goal.id === 'learn' && <GraduationCap className="w-6 h-6" />}
-                    {goal.id === 'options' && <Zap className="w-6 h-6" />}
-                    <div className="flex-1">
-                      <h3 className={`font-semibold mb-1 ${selectedGoal === goal.id ? 'text-white' : 'text-gray-900'
-                        }`}>
-                        {goal.title}
-                      </h3>
-                      <p className={`text-sm ${selectedGoal === goal.id ? 'text-blue-100' : 'text-gray-600'
-                        }`}>
-                        {goal.description}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Step 4: Language */}
-          {step === 4 && (
-            <div className="grid grid-cols-2 gap-3">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => setSelectedLanguage(lang.code)}
-                  className={`h-20 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center ${selectedLanguage === lang.code
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                    }`}
+                  {getStepTitle()}
+                </h2>
+                <p 
+                  className="text-lg"
+                  style={{ color: DUOLINGO_COLORS.textSecondary }}
                 >
-                  <Globe className="w-6 h-6 mb-1" />
-                  <div className={`font-medium text-sm ${selectedLanguage === lang.code ? 'text-white' : 'text-gray-900'
-                    }`}>
-                    {lang.name}
+                  {getStepDescription()}
+                </p>
+              </div>
+
+              {/* Elephant Mascot */}
+              <div className="flex justify-center mb-8">
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-32 h-32"
+                >
+                  <Lottie 
+                    animationData={elephantAnimation}
+                    loop={true}
+                    className="w-full h-full"
+                  />
+                </motion.div>
+              </div>
+
+              {/* Step 1: Name Input */}
+              {step === 1 && (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && canProceed() && nextStep()}
+                    className="w-full px-6 py-4 text-lg rounded-xl border-2 transition-all focus:outline-none focus:ring-4"
+                    style={{
+                      background: DUOLINGO_COLORS.border,
+                      borderColor: userName.trim() ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border,
+                      color: DUOLINGO_COLORS.textPrimary,
+                      focusRingColor: `${DUOLINGO_COLORS.green}40`
+                    }}
+                    placeholder="Enter your name"
+                    autoFocus
+                  />
+                </div>
+              )}
+
+              {/* Step 2: Lifestyle Brands */}
+              {step === 2 && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    {LIFESTYLE_BRANDS.slice(0, 9).map((brand) => {
+                      const isSelected = selectedBrands.includes(brand.name)
+                      return (
+                        <motion.button
+                          key={brand.name}
+                          onClick={() => handleBrandToggle(brand.name)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="h-24 rounded-xl border-2 transition-all flex flex-col items-center justify-center relative overflow-hidden"
+                          style={{
+                            background: isSelected 
+                              ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                              : DUOLINGO_COLORS.border,
+                            borderColor: isSelected ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border,
+                            color: isSelected ? '#131F24' : DUOLINGO_COLORS.textPrimary
+                          }}
+                        >
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-2 right-2"
+                            >
+                              <Check className="w-5 h-5" style={{ color: '#131F24' }} />
+                            </motion.div>
+                          )}
+                          <div className="text-2xl mb-1">{brand.name.charAt(0)}</div>
+                          <div className="text-xs font-semibold text-center px-2">{brand.name}</div>
+                        </motion.button>
+                      )
+                    })}
                   </div>
-                </button>
-              ))}
-            </div>
-          )}
+                  <p className="text-center text-sm" style={{ color: DUOLINGO_COLORS.textSecondary }}>
+                    Select at least 2 brands to continue
+                  </p>
+                </div>
+              )}
 
-          {/* Step 5: Visa Status */}
-          {step === 5 && (
-            <div className="space-y-3">
-              {[
-                { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', icon: GraduationCap },
-                { id: 'J-1', title: 'J-1 Exchange Visitor', description: 'Exchange programs and research', icon: Microscope },
-                { id: 'H-1B', title: 'H-1B Work Visa', description: 'Specialty occupation worker', icon: Briefcase },
-                { id: 'Other', title: 'Other/US Citizen', description: 'Other visa status or US citizen', icon: Flag }
-              ].map((visa) => {
-                const IconComponent = visa.icon
-                return (
-                  <button
-                    key={visa.id}
-                    onClick={() => setVisaStatus(visa.id)}
-                    className={`w-full p-4 rounded-lg border text-left transition-all duration-200 ${visaStatus === visa.id
-                      ? 'border-blue-500 bg-blue-500 text-white'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <IconComponent className="w-6 h-6" />
-                      <div className="flex-1">
-                        <h3 className={`font-semibold mb-1 ${visaStatus === visa.id ? 'text-white' : 'text-gray-900'
-                          }`}>
-                          {visa.title}
-                        </h3>
-                        <p className={`text-sm ${visaStatus === visa.id ? 'text-blue-100' : 'text-gray-600'
-                          }`}>
-                          {visa.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Step 6: Home Country */}
-          {step === 6 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { code: 'IN', name: 'India', treaty: '15% tax rate' },
-                  { code: 'CN', name: 'China', treaty: '10% tax rate' },
-                  { code: 'KR', name: 'South Korea', treaty: '15% tax rate' },
-                  { code: 'CA', name: 'Canada', treaty: '0% tax rate' },
-                  { code: 'DE', name: 'Germany', treaty: '5% tax rate' },
-                  { code: 'JP', name: 'Japan', treaty: '15% tax rate' },
-                  { code: 'BR', name: 'Brazil', treaty: '15% tax rate' },
-                  { code: 'MX', name: 'Mexico', treaty: '10% tax rate' },
-                  { code: 'NP', name: 'Nepal', treaty: '30% tax rate' }
-                ].map((country) => (
-                  <button
-                    key={country.code}
-                    onClick={() => setHomeCountry(country.code)}
-                    className={`p-3 rounded-lg border transition-all duration-200 ${homeCountry === country.code
-                      ? 'border-blue-500 bg-blue-500 text-white'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                      }`}
-                  >
-                    <div className="text-center">
-                      <img 
-                        src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`}
-                        alt={country.name}
-                        className="w-10 h-7 mx-auto mb-1 object-cover rounded border border-gray-200"
-                        onError={(e) => {
-                          // Fallback to Globe icon if flag fails to load
-                          const target = e.currentTarget
-                          target.style.display = 'none'
-                          const parent = target.parentElement
-                          if (parent) {
-                            const existingFallback = parent.querySelector('.flag-fallback')
-                            if (!existingFallback) {
-                              const fallback = document.createElement('div')
-                              fallback.className = 'flag-fallback'
-                              fallback.innerHTML = '<svg class="w-8 h-8 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
-                              parent.insertBefore(fallback, target)
-                            }
-                          }
+              {/* Step 3: Investment Goal */}
+              {step === 3 && (
+                <div className="space-y-3">
+                  {INVESTMENT_GOALS.map((goal) => {
+                    const isSelected = selectedGoal === goal.id
+                    const IconComponent = 
+                      goal.id === 'save' ? Wallet :
+                      goal.id === 'grow' ? TrendingUp :
+                      goal.id === 'learn' ? GraduationCap : Zap
+                    
+                    return (
+                      <motion.button
+                        key={goal.id}
+                        onClick={() => setSelectedGoal(goal.id)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full p-5 rounded-xl border-2 text-left transition-all relative overflow-hidden"
+                        style={{
+                          background: isSelected
+                            ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                            : DUOLINGO_COLORS.border,
+                          borderColor: isSelected ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border
                         }}
-                      />
-                      <div className={`font-medium text-sm mb-1 ${homeCountry === country.code ? 'text-white' : 'text-gray-900'
-                        }`}>
-                        {country.name}
-                      </div>
-                      <div className={`text-xs ${homeCountry === country.code ? 'text-blue-100' : 'text-green-600'
-                        }`}>
-                        {country.treaty}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <p className="text-center text-sm text-gray-500">
-                Don't see your country? We'll help you find the right tax information.
-              </p>
-            </div>
-          )}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div 
+                            className="p-3 rounded-lg"
+                            style={{
+                              background: isSelected ? 'rgba(19, 31, 36, 0.2)' : DUOLINGO_COLORS.background
+                            }}
+                          >
+                            <IconComponent 
+                              className="w-6 h-6"
+                              style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.green }}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h3 
+                              className="font-bold text-lg mb-1"
+                              style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.textPrimary }}
+                            >
+                              {goal.title}
+                            </h3>
+                            <p 
+                              className="text-sm"
+                              style={{ color: isSelected ? 'rgba(19, 31, 36, 0.8)' : DUOLINGO_COLORS.textSecondary }}
+                            >
+                              {goal.description}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                            >
+                              <Check className="w-6 h-6" style={{ color: '#131F24' }} />
+                            </motion.div>
+                          )}
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              )}
 
-          {/* Navigation */}
-          <div className="flex justify-between items-center mt-6">
-            <button
+              {/* Step 4: Language */}
+              {step === 4 && (
+                <div className="grid grid-cols-2 gap-4">
+                  {LANGUAGES.map((lang) => {
+                    const isSelected = selectedLanguage === lang.code
+                    return (
+                      <motion.button
+                        key={lang.code}
+                        onClick={() => setSelectedLanguage(lang.code)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="h-24 rounded-xl border-2 transition-all flex flex-col items-center justify-center relative"
+                        style={{
+                          background: isSelected
+                            ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                            : DUOLINGO_COLORS.border,
+                          borderColor: isSelected ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border
+                        }}
+                      >
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute top-2 right-2"
+                          >
+                            <Check className="w-5 h-5" style={{ color: '#131F24' }} />
+                          </motion.div>
+                        )}
+                        <Globe 
+                          className="w-6 h-6 mb-2"
+                          style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.green }}
+                        />
+                        <div 
+                          className="font-semibold text-sm"
+                          style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.textPrimary }}
+                        >
+                          {lang.name}
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Step 5: Visa Status */}
+              {step === 5 && (
+                <div className="space-y-3">
+                  {[
+                    { id: 'F-1', title: 'F-1 Student Visa', description: 'Academic studies in the US', icon: GraduationCap },
+                    { id: 'J-1', title: 'J-1 Exchange Visitor', description: 'Exchange programs and research', icon: Microscope },
+                    { id: 'H-1B', title: 'H-1B Work Visa', description: 'Specialty occupation worker', icon: Briefcase },
+                    { id: 'Other', title: 'Other/US Citizen', description: 'Other visa status or US citizen', icon: Flag }
+                  ].map((visa) => {
+                    const isSelected = visaStatus === visa.id
+                    const IconComponent = visa.icon
+                    return (
+                      <motion.button
+                        key={visa.id}
+                        onClick={() => setVisaStatus(visa.id)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full p-5 rounded-xl border-2 text-left transition-all relative"
+                        style={{
+                          background: isSelected
+                            ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                            : DUOLINGO_COLORS.border,
+                          borderColor: isSelected ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border
+                        }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div 
+                            className="p-3 rounded-lg"
+                            style={{
+                              background: isSelected ? 'rgba(19, 31, 36, 0.2)' : DUOLINGO_COLORS.background
+                            }}
+                          >
+                            <IconComponent 
+                              className="w-6 h-6"
+                              style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.green }}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h3 
+                              className="font-bold text-lg mb-1"
+                              style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.textPrimary }}
+                            >
+                              {visa.title}
+                            </h3>
+                            <p 
+                              className="text-sm"
+                              style={{ color: isSelected ? 'rgba(19, 31, 36, 0.8)' : DUOLINGO_COLORS.textSecondary }}
+                            >
+                              {visa.description}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                            >
+                              <Check className="w-6 h-6" style={{ color: '#131F24' }} />
+                            </motion.div>
+                          )}
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Step 6: Home Country */}
+              {step === 6 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { code: 'IN', name: 'India', treaty: '15% tax rate' },
+                      { code: 'CN', name: 'China', treaty: '10% tax rate' },
+                      { code: 'KR', name: 'South Korea', treaty: '15% tax rate' },
+                      { code: 'CA', name: 'Canada', treaty: '0% tax rate' },
+                      { code: 'DE', name: 'Germany', treaty: '5% tax rate' },
+                      { code: 'JP', name: 'Japan', treaty: '15% tax rate' },
+                      { code: 'BR', name: 'Brazil', treaty: '15% tax rate' },
+                      { code: 'MX', name: 'Mexico', treaty: '10% tax rate' },
+                      { code: 'NP', name: 'Nepal', treaty: '30% tax rate' }
+                    ].map((country) => {
+                      const isSelected = homeCountry === country.code
+                      return (
+                        <motion.button
+                          key={country.code}
+                          onClick={() => setHomeCountry(country.code)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="p-4 rounded-xl border-2 transition-all relative"
+                          style={{
+                            background: isSelected
+                              ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                              : DUOLINGO_COLORS.border,
+                            borderColor: isSelected ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.border
+                          }}
+                        >
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-2 right-2"
+                            >
+                              <Check className="w-5 h-5" style={{ color: '#131F24' }} />
+                            </motion.div>
+                          )}
+                          <div className="text-center">
+                            <img 
+                              src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`}
+                              alt={country.name}
+                              className="w-10 h-7 mx-auto mb-2 object-cover rounded border"
+                              style={{ borderColor: DUOLINGO_COLORS.border }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                            <div 
+                              className="font-semibold text-sm mb-1"
+                              style={{ color: isSelected ? '#131F24' : DUOLINGO_COLORS.textPrimary }}
+                            >
+                              {country.name}
+                            </div>
+                            <div 
+                              className="text-xs"
+                              style={{ color: isSelected ? 'rgba(19, 31, 36, 0.8)' : DUOLINGO_COLORS.textSecondary }}
+                            >
+                              {country.treaty}
+                            </div>
+                          </div>
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+                  <p className="text-center text-sm" style={{ color: DUOLINGO_COLORS.textSecondary }}>
+                    Don't see your country? We'll help you find the right tax information.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center mt-8 pt-6" style={{ borderTop: `1px solid ${DUOLINGO_COLORS.border}` }}>
+            <motion.button
               onClick={prevStep}
               disabled={step === 1}
-              className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${step === 1
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
+              whileHover={step > 1 ? { scale: 1.05 } : {}}
+              whileTap={step > 1 ? { scale: 0.95 } : {}}
+              className="px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                color: step === 1 ? DUOLINGO_COLORS.textSecondary : DUOLINGO_COLORS.textPrimary,
+                background: step === 1 ? 'transparent' : DUOLINGO_COLORS.border
+              }}
             >
               Back
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               onClick={nextStep}
               disabled={!canProceed()}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${canProceed()
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
+              whileHover={canProceed() ? { scale: 1.05 } : {}}
+              whileTap={canProceed() ? { scale: 0.95 } : {}}
+              className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: canProceed()
+                  ? `linear-gradient(135deg, ${DUOLINGO_COLORS.green} 0%, ${DUOLINGO_COLORS.darkGreen} 100%)`
+                  : DUOLINGO_COLORS.border,
+                color: canProceed() ? '#131F24' : DUOLINGO_COLORS.textSecondary,
+                boxShadow: canProceed() ? `0 4px 12px ${DUOLINGO_COLORS.green}40` : 'none'
+              }}
             >
-              {step === 6 ? 'Create Portfolio' : 'Continue'}
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              {step === 6 ? 'Get Started' : 'Continue'}
+              {step < 6 && <ArrowRight className="w-5 h-5" />}
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )
