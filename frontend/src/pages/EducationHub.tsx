@@ -1,49 +1,49 @@
 // pages/EducationHub.tsx
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
-// Temporarily commented out - requires React 19
-// import { Canvas } from '@react-three/fiber'
-// import { OrbitControls, Float, Text3D } from '@react-three/drei'
-// Update your EducationHub.tsx to use the new Duolingo-style components
-import DuolingoStyleMap from '../components/education/DuolingoMapStyle'
-import DuolingoLeaderboard from '../components/education/DuolingoLeaderboard'
-import FinnyMascot from '../components/education/FinnyMascot'
-import '../styles/duolingo-education.css'
-
-// ... rest of your education hub implementation
-
-
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Lottie from 'lottie-react'
-import { Howl } from 'howler'
 import confetti from 'canvas-confetti'
 import Layout from '../components/Layout'
-import { allUnits } from './Curriculumdata'
+import { allUnits, Unit, Lesson } from './Curriculumdata'
 import LessonGame from '../components/education/LessonGame'
 import QuizBattle from '../components/education/QuizBattle'
-import ProgressTracker from '../components/education/ProgressTracker'
-import { AchievementPopup } from '../components/education/AchievementSystem'
 import useGameSound from '../hooks/useGameSound'
 import useXPSystem from '../hooks/useXPSystem'
-import { Lock, BookOpen } from 'lucide-react'
-import Spline from '@splinetool/react-spline'
+import { Lock, BookOpen, ChevronLeft, Star, Trophy, Map, Target, TrendingUp, Coins, Snowflake, Cloud } from 'lucide-react'
 import IslandModelViewer from '../components/education/IslandModelViewer'
 import { useUser } from '../context/UserContext'
 import educationService from '../services/educationService'
 
 // Import Lottie animations
-import xpBurstAnimation from '../assets/animations/xp-burst.json'
 import streakFireAnimation from '../assets/animations/streak-fire.json'
 import moneyAnimation from '../assets/animations/Money.json'
 import financeAnimation from '../assets/animations/Finance.json'
 import investingAnimation from '../assets/animations/investing.json'
 import stocksAnimation from '../assets/animations/stocks.json'
 
+interface Island {
+  id: string
+  name: string
+  color: string
+  model: string
+  theme: 'tropical' | 'volcanic' | 'arctic' | 'sky'
+  bgMusic: string
+  unit: Unit
+  locked: boolean
+  unlockRequirement?: {
+    completeLessons?: number
+    level?: number
+    badges?: string[]
+    fromIsland?: string
+  }
+}
 
 const EducationHub = () => {
-  // Game State
-  const [currentIsland, setCurrentIsland] = useState<any>(null)
-  const [currentLesson, setCurrentLesson] = useState<any>(null)
-  const [gameMode, setGameMode] = useState('map') // 'map', 'lesson', 'quiz', 'battle'
+  // Game State - simplified to: 'islands', 'island-map', 'lesson', 'quiz'
+  const [currentIsland, setCurrentIsland] = useState<Island | null>(null)
+  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
+  const [gameMode, setGameMode] = useState<'islands' | 'island-map' | 'lesson' | 'quiz'>('islands')
+  
   const [playerStats, setPlayerStats] = useState<{
     level: number
     xp: number
@@ -75,66 +75,77 @@ const EducationHub = () => {
   })
 
   // Hooks
-  const { playSound, toggleMusic, startBgMusic, stopBgMusic } = useGameSound()
-  const { addXP, calculateLevel } = useXPSystem()
-  const controls = useAnimation()
+  const { playSound, startBgMusic, stopBgMusic } = useGameSound()
+  const { calculateLevel } = useXPSystem()
   const { user } = useUser()
+
+  // Island Configuration - map curriculum units to islands
+  const islands: Island[] = [
+    {
+      id: 'unit-1',
+      name: 'Fundamentals Island',
+      color: '#4ECDC4',
+      model: '/3d-models/island-tropical.glb',
+      theme: 'tropical',
+      bgMusic: 'island-tropical.mp3',
+      unit: allUnits[0],
+      locked: false
+    },
+    {
+      id: 'unit-2',
+      name: 'Stock Market Volcano',
+      color: '#FF6B6B',
+      model: '/3d-models/island-volcano.glb',
+      theme: 'volcanic',
+      bgMusic: 'island-volcano.mp3',
+      unit: allUnits[1],
+      locked: true,
+      unlockRequirement: { completeLessons: 3, fromIsland: 'unit-1' }
+    },
+    {
+      id: 'unit-3',
+      name: 'Bond Glacier',
+      color: '#A8E6CF',
+      model: '/3d-models/island-ice.glb',
+      theme: 'arctic',
+      bgMusic: 'island-ice.mp3',
+      unit: allUnits[2],
+      locked: true,
+      unlockRequirement: { completeLessons: 5 }
+    },
+    {
+      id: 'unit-4',
+      name: 'ETF Sky Kingdom',
+      color: '#FFD93D',
+      model: '/3d-models/island-sky.glb',
+      theme: 'sky',
+      bgMusic: 'island-sky.mp3',
+      unit: allUnits[3],
+      locked: true,
+      unlockRequirement: { badges: ['fundamentals-master', 'stocks-master'] }
+    }
+  ]
 
   // Load progress from backend (or localStorage as fallback) on mount
   useEffect(() => {
     const loadProgress = async () => {
-      // Get user identifier (email preferred, fallback to id)
       const userId = user?.email || user?.id
       
-      // Try to load from backend first (non-blocking)
       if (userId) {
         try {
           const backendProgress = await educationService.getProgress(userId)
           if (backendProgress) {
             setPlayerStats(prev => {
               const loadedStats = { ...prev, ...backendProgress }
-              
-              // Re-check island unlocks with loaded progress
-              const checkUnlocks = (stats: typeof loadedStats) => {
-                const newUnlockedIslands: string[] = []
-                const completedCount = stats.completedLessons.length
-                
-                islands.forEach(island => {
-                  if (island.locked && !stats.unlockedIslands.includes(island.id)) {
-                    const req = island.unlockRequirement
-                    
-                    if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
-                      newUnlockedIslands.push(island.id)
-                    }
-                    
-                    if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
-                      newUnlockedIslands.push(island.id)
-                    }
-                    
-                    if (req?.badges && Array.isArray(req.badges)) {
-                      const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
-                      if (hasAllBadges) {
-                        newUnlockedIslands.push(island.id)
-                      }
-                    }
-                  }
-                })
-                
-                return newUnlockedIslands
-              }
-              
-              const newUnlocks = checkUnlocks(loadedStats)
+              const newUnlocks = checkIslandUnlocks(loadedStats)
               if (newUnlocks.length > 0) {
                 return {
                   ...loadedStats,
                   unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
                 }
               }
-              
               return loadedStats
             })
-            
-            // Also save to localStorage as cache
             localStorage.setItem('educationProgress', JSON.stringify(backendProgress))
             return
           }
@@ -150,44 +161,13 @@ const EducationHub = () => {
           const progress = JSON.parse(savedProgress)
           setPlayerStats(prev => {
             const loadedStats = { ...prev, ...progress }
-            
-            // Re-check island unlocks with loaded progress
-            const checkUnlocks = (stats: typeof loadedStats) => {
-              const newUnlockedIslands: string[] = []
-              const completedCount = stats.completedLessons.length
-              
-              islands.forEach(island => {
-                if (island.locked && !stats.unlockedIslands.includes(island.id)) {
-                  const req = island.unlockRequirement
-                  
-                  if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
-                    newUnlockedIslands.push(island.id)
-                  }
-                  
-                  if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
-                    newUnlockedIslands.push(island.id)
-                  }
-                  
-                  if (req?.badges && Array.isArray(req.badges)) {
-                    const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
-                    if (hasAllBadges) {
-                      newUnlockedIslands.push(island.id)
-                    }
-                  }
-                }
-              })
-              
-              return newUnlockedIslands
-            }
-            
-            const newUnlocks = checkUnlocks(loadedStats)
+            const newUnlocks = checkIslandUnlocks(loadedStats)
             if (newUnlocks.length > 0) {
               return {
                 ...loadedStats,
                 unlockedIslands: [...loadedStats.unlockedIslands, ...newUnlocks]
               }
             }
-            
             return loadedStats
           })
         } catch (e) {
@@ -197,7 +177,36 @@ const EducationHub = () => {
     }
     
     loadProgress()
-  }, [user?.email, user?.id]) // Reload when user changes
+  }, [user?.email, user?.id])
+
+  // Helper function to check island unlocks
+  const checkIslandUnlocks = (stats: typeof playerStats): string[] => {
+    const newUnlockedIslands: string[] = []
+    const completedCount = stats.completedLessons.length
+    
+    islands.forEach(island => {
+      if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+        const req = island.unlockRequirement
+        
+        if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
+          newUnlockedIslands.push(island.id)
+        }
+        
+        if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
+          newUnlockedIslands.push(island.id)
+        }
+        
+        if (req?.badges && Array.isArray(req.badges)) {
+          const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+          if (hasAllBadges) {
+            newUnlockedIslands.push(island.id)
+          }
+        }
+      }
+    })
+    
+    return newUnlockedIslands
+  }
 
   // Save progress to localStorage and backend whenever it changes
   useEffect(() => {
@@ -213,18 +222,13 @@ const EducationHub = () => {
       powerups: playerStats.powerups
     }
     
-    // Save to localStorage immediately (fast, local cache)
     localStorage.setItem('educationProgress', JSON.stringify(progressData))
     
-    // Save to backend in background (non-blocking, doesn't break flow)
     const userId = user?.email || user?.id
     if (userId) {
-      // Use setTimeout to debounce and make it truly non-blocking
       const timeoutId = setTimeout(() => {
-        educationService.saveProgress(userId, progressData).catch(() => {
-          // Silently fail - already logged in service
-        })
-      }, 500) // Debounce by 500ms to avoid too many requests
+        educationService.saveProgress(userId, progressData).catch(() => {})
+      }, 500)
       
       return () => clearTimeout(timeoutId)
     }
@@ -233,98 +237,30 @@ const EducationHub = () => {
   // Start theme music on initial load
   useEffect(() => {
     startBgMusic('theme.mp3')
-    
-    // Cleanup: stop music when component unmounts
     return () => {
       stopBgMusic()
     }
   }, [startBgMusic, stopBgMusic])
 
-  // Island Configuration
-  const islands = [
-    {
-      id: 'unit-1',
-      name: 'Fundamentals Island',
-      position: [0, 0, 0],
-      color: '#4ECDC4',
-      model: '/3d-models/island-tropical.glb',
-      theme: 'tropical',
-      bgMusic: 'island-tropical.mp3',
-      lessons: allUnits[0].lessons,
-      boss: {
-        name: 'The Market Bear',
-        health: 100,
-        rewards: { xp: 500, coins: 200, badge: 'fundamentals-master' }
-      }
-    },
-    {
-      id: 'unit-2',
-      name: 'Stock Market Volcano',
-      position: [5, 0, -3],
-      color: '#FF6B6B',
-      model: '/3d-models/island-volcano.glb',
-      theme: 'volcanic',
-      bgMusic: 'island-volcano.mp3',
-      lessons: allUnits[1].lessons,
-      locked: true,
-      unlockRequirement: { completeLessons: 3, fromIsland: 'unit-1' }
-    },
-    {
-      id: 'unit-3',
-      name: 'Bond Glacier',
-      position: [-4, 0, -2],
-      color: '#A8E6CF',
-      model: '/3d-models/island-ice.glb',
-      theme: 'arctic',
-      bgMusic: 'island-ice.mp3',
-      lessons: allUnits[2].lessons,
-      locked: true,
-      unlockRequirement: { completeLessons: 5 } // Changed from level 5 to 5 completed lessons
-    },
-    {
-      id: 'unit-4',
-      name: 'ETF Sky Kingdom',
-      position: [2, 3, -5],
-      color: '#FFD93D',
-      model: '/3d-models/island-sky.glb',
-      theme: 'sky',
-      bgMusic: 'island-sky.mp3',
-      lessons: allUnits[3].lessons,
-      locked: true,
-      unlockRequirement: { badges: ['fundamentals-master', 'stocks-master'] }
-    }
-  ]
-
   // Handle Island Selection
-  const selectIsland = async (island: any) => {
-    // Check if island is unlocked based on player stats
+  const selectIsland = (island: Island) => {
     const isUnlocked = playerStats.unlockedIslands.includes(island.id)
     const isLocked = island.locked && !isUnlocked
     
     if (isLocked) {
       playSound('locked')
-      // Show unlock requirements
       return
     }
 
     playSound('islandSelect')
-    
-    // Animate camera zoom
-    await controls.start({
-      scale: 1.2,
-      transition: { duration: 0.5 }
-    })
-
     setCurrentIsland(island)
-    setGameMode('lessons')
+    setGameMode('island-map')
     
-    // Switch to island-specific music if available
     if (island.bgMusic) {
       try {
         startBgMusic(island.bgMusic)
       } catch (e) {
         console.warn('Failed to play island music:', island.bgMusic, e)
-        // Fallback to theme music
         startBgMusic('theme.mp3')
       }
     } else {
@@ -332,13 +268,30 @@ const EducationHub = () => {
     }
   }
 
+  // Handle Lesson Selection from Island Map
+  const selectLesson = (lesson: Lesson) => {
+    if (!currentIsland) return
+    
+    // Check if lesson is locked (based on prerequisites)
+    const isLocked = lesson.locked || 
+      (lesson.prerequisites.length > 0 && 
+       !lesson.prerequisites.every(prereq => playerStats.completedLessons.includes(prereq)))
+    
+    if (isLocked) {
+      playSound('locked')
+      return
+    }
+
+    playSound('lessonStart')
+    setCurrentLesson(lesson)
+    setGameMode('lesson')
+  }
+
   // Handle Lesson Completion
   const completeLesson = (lessonId: string | number, score: number) => {
-    // Ensure minimum XP even for low scores
-    const xpEarned = Math.max(100, Math.floor(score * 20)) // Increased from 10 to 20, minimum 100 XP
+    const xpEarned = Math.max(100, Math.floor(score * 20))
     const coinsEarned = Math.floor(score * 2)
     
-    // Update player stats
     const newXP = playerStats.xp + xpEarned
     const newStats = {
       ...playerStats,
@@ -348,12 +301,9 @@ const EducationHub = () => {
       streak: playerStats.streak + 1
     }
     setPlayerStats(newStats)
-    // Progress will be saved automatically by useEffect
 
-    // Play celebration music and sound
     playSound('levelUp')
-    // Play celebration music (use level_up sound as celebration)
-    startBgMusic('theme.mp3') // Resume theme music after lesson
+    startBgMusic('theme.mp3')
     
     confetti({
       particleCount: 100,
@@ -361,61 +311,20 @@ const EducationHub = () => {
       origin: { y: 0.6 }
     })
 
-    // Check for level up
     const newLevel = calculateLevel(newXP)
     if (newLevel > playerStats.level) {
       levelUp(newLevel)
     }
 
-    // Check for island unlock AFTER stats are updated
-    // Use newStats instead of playerStats for accurate checking
-    const checkIslandUnlocks = (stats: typeof newStats) => {
-      const newUnlockedIslands: string[] = []
-      const completedCount = stats.completedLessons.length
-      
-      // Check each island's unlock requirements
-      islands.forEach(island => {
-        if (island.locked && !stats.unlockedIslands.includes(island.id)) {
-          const req = island.unlockRequirement
-          
-          // Check lesson completion requirement
-          if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
-            newUnlockedIslands.push(island.id)
-          }
-          
-          // Check level requirement
-          if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
-            newUnlockedIslands.push(island.id)
-          }
-          
-          // Check badge requirements
-          if (req?.badges && Array.isArray(req.badges)) {
-            const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
-            if (hasAllBadges) {
-              newUnlockedIslands.push(island.id)
-            }
-          }
-        }
-      })
-      
-      return newUnlockedIslands
-    }
-    
-    // Check for unlocks with updated stats
     const newUnlockedIslands = checkIslandUnlocks(newStats)
-    
-    // Update unlocked islands if any new ones were unlocked
     if (newUnlockedIslands.length > 0) {
       const finalStats = {
         ...newStats,
         unlockedIslands: [...newStats.unlockedIslands, ...newUnlockedIslands]
       }
       setPlayerStats(finalStats)
-      // Progress will be saved automatically by useEffect
       
-      // Play unlock sound and show notification
       newUnlockedIslands.forEach((islandId) => {
-        // Play unlock sound - ensure it plays
         try {
           playSound('unlock')
         } catch (e) {
@@ -424,13 +333,9 @@ const EducationHub = () => {
         
         const island = islands.find(i => i.id === islandId)
         if (island) {
-          // Show unlock notification with alert
           setTimeout(() => {
             alert(`🎉 New Island Unlocked: ${island.name}!`)
           }, 500)
-          if (import.meta.env.DEV) {
-            console.log(`New Island Unlocked: ${island.name}!`)
-          }
         }
       })
     }
@@ -440,10 +345,6 @@ const EducationHub = () => {
   const levelUp = (newLevel: number) => {
     playSound('levelUp')
     
-    // Play celebration music (level up sound)
-    playSound('levelUp')
-    
-    // Epic celebration
     const duration = 3000
     const animationEnd = Date.now() + duration
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
@@ -460,35 +361,32 @@ const EducationHub = () => {
       })
     }, 250)
 
-    const updatedStats = { ...playerStats, level: newLevel }
-    setPlayerStats(updatedStats)
-    // Progress will be saved automatically by useEffect
+    setPlayerStats(prev => ({ ...prev, level: newLevel }))
   }
 
-  // Map island themes to animations
-  const getIslandAnimation = (theme: string) => {
-    const themeMap: Record<string, any> = {
-      'tropical': moneyAnimation,      // Fundamentals - Money flow
-      'volcanic': stocksAnimation,    // Stock Market - Stock charts
-      'arctic': financeAnimation,     // Bonds - Financial stability
-      'sky': investingAnimation       // ETFs - Investment growth
+  // Get island icon based on theme
+  const getIslandIcon = (theme: string) => {
+    switch(theme) {
+      case 'tropical': return <Map className="w-16 h-16 text-green-500" />
+      case 'volcanic': return <Target className="w-16 h-16 text-red-500" />
+      case 'arctic': return <Snowflake className="w-16 h-16 text-blue-400" />
+      case 'sky': return <Cloud className="w-16 h-16 text-purple-400" />
+      default: return <Map className="w-16 h-16" />
     }
-    const animation = themeMap[theme] || moneyAnimation
-    if (import.meta.env.DEV) {
-      console.log(`🎬 Island animation for theme "${theme}":`, animation ? 'Loaded' : 'Missing')
-    }
-    return animation
   }
 
-  // Get current island background based on theme
-  const getIslandBackground = () => {
-    if (!currentIsland) return moneyAnimation
-    return getIslandAnimation(currentIsland.theme)
+  // Calculate lesson progress for an island
+  const getIslandProgress = (island: Island) => {
+    const totalLessons = island.unit.lessons.length
+    const completedLessons = island.unit.lessons.filter(
+      lesson => playerStats.completedLessons.includes(lesson.id)
+    ).length
+    return { completed: completedLessons, total: totalLessons }
   }
 
   return (
     <Layout>
-      {/* 3D Island Model Background - Show when island is selected (lesson/quiz mode) */}
+      {/* 3D Island Model Background - Show when in lesson/quiz mode */}
       {currentIsland && (gameMode === 'lesson' || gameMode === 'quiz') && (
         <motion.div 
           className="fixed inset-0 z-0 pointer-events-none"
@@ -502,54 +400,23 @@ const EducationHub = () => {
             scale={1.5}
             className="w-full h-full"
           />
-          {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-black/30" />
         </motion.div>
       )}
+
       <div className="h-screen overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
-          {gameMode === 'map' && (
+          {/* ISLANDS VIEW - Show island selection cards */}
+          {gameMode === 'islands' && (
             <motion.div
-              key="map"
+              key="islands"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-full"
+              className="h-full overflow-y-auto bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
             >
-              {/* Duolingo-Style Learning Map */}
-              <div className="h-full w-full relative">
-                <DuolingoStyleMap
-                  islands={islands}
-                  playerProgress={playerStats}
-                  onIslandSelect={(node: any) => {
-                    // Find the island and lesson from the node
-                    const island = islands.find(i => i.id === node.islandId)
-                    if (island) {
-                      const lesson = island.lessons.find((l: any) => l.id === node.lesson.id)
-                      if (lesson) {
-                        setCurrentIsland(island)
-                        setCurrentLesson(lesson)
-                        setGameMode('lesson')
-                        
-                        // Switch to island-specific music if available
-                        if (island.bgMusic) {
-                          try {
-                            startBgMusic(island.bgMusic)
-                          } catch (e) {
-                            console.warn('Failed to play island music:', island.bgMusic, e)
-                            startBgMusic('theme.mp3')
-                          }
-                        } else {
-                          startBgMusic('theme.mp3')
-                        }
-                      }
-                    }
-                  }}
-                />
-              </div>
-
               {/* HUD Overlay */}
-              <div className="absolute top-0 left-0 right-0 p-4">
+              <div className="absolute top-0 left-0 right-0 p-4 z-20">
                 <div className="max-w-6xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {/* Player Stats */}
@@ -559,7 +426,6 @@ const EducationHub = () => {
                       animate={{ x: 0, opacity: 1 }}
                     >
                       <div className="flex items-center gap-4">
-                        {/* Level Badge */}
                         <div className="relative flex-shrink-0">
                           <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-xl">{playerStats.level}</span>
@@ -568,10 +434,7 @@ const EducationHub = () => {
                             Level
                           </div>
                         </div>
-
-                        {/* Stats */}
                         <div className="flex-1 space-y-2 min-w-0">
-                          {/* XP Bar */}
                           <div className="flex items-center gap-2">
                             <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                               <motion.div 
@@ -582,8 +445,6 @@ const EducationHub = () => {
                             </div>
                             <span className="text-xs font-medium whitespace-nowrap">{playerStats.xp % 1000}/1000 XP</span>
                           </div>
-
-                          {/* Hearts */}
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
                               <motion.div
@@ -596,8 +457,6 @@ const EducationHub = () => {
                               </motion.div>
                             ))}
                           </div>
-
-                          {/* Coins */}
                           <div className="flex items-center gap-1">
                             <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-yellow-900">$</span>
@@ -626,139 +485,345 @@ const EducationHub = () => {
                         </div>
                       </div>
                     </motion.div>
+                  </div>
+                </div>
+              </div>
 
+              {/* Islands Grid */}
+              <div className="pt-32 pb-16 px-4">
+                <div className="max-w-6xl mx-auto">
+                  <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+                    Choose Your Learning Island
+                  </h1>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {islands.map((island, index) => {
+                      const isUnlocked = playerStats.unlockedIslands.includes(island.id)
+                      const isLocked = island.locked && !isUnlocked
+                      const progress = getIslandProgress(island)
+                      
+                      return (
+                        <motion.div
+                          key={island.id}
+                          className={`island-card bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-2xl p-6 shadow-xl border-2 ${
+                            isLocked ? 'border-gray-300 dark:border-gray-600 opacity-60' : 'border-transparent hover:border-blue-400'
+                          } transition-all cursor-pointer`}
+                          whileHover={!isLocked ? { scale: 1.02, y: -5 } : {}}
+                          whileTap={!isLocked ? { scale: 0.98 } : {}}
+                          onClick={() => selectIsland(island)}
+                          style={{
+                            background: isLocked 
+                              ? undefined 
+                              : `linear-gradient(135deg, ${island.color}22 0%, ${island.color}44 100%)`
+                          }}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0">
+                              {isLocked ? (
+                                <Lock className="w-16 h-16 text-gray-400" />
+                              ) : (
+                                getIslandIcon(island.theme)
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                {island.name}
+                              </h2>
+                              {!isLocked && (
+                                <div className="space-y-2">
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {progress.total} Lessons
+                                  </div>
+                                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    {progress.completed} / {progress.total} completed
+                                  </div>
+                                  <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <motion.div
+                                      className="h-full rounded-full"
+                                      style={{ background: island.color }}
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${(progress.completed / progress.total) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              {isLocked && island.unlockRequirement && (
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                  {island.unlockRequirement.completeLessons && (
+                                    <div>Complete {island.unlockRequirement.completeLessons} lessons</div>
+                                  )}
+                                  {island.unlockRequirement.level && (
+                                    <div>Reach Level {island.unlockRequirement.level}</div>
+                                  )}
+                                  {island.unlockRequirement.badges && (
+                                    <div>Earn required badges</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {gameMode === 'lessons' && currentIsland && (
-            <motion.div
-              key="lessons"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              className="h-full flex flex-col items-center justify-center p-8"
-            >
-              <div className="max-w-4xl w-full">
-                <button
-                  onClick={() => setGameMode('map')}
-                  className="mb-6 flex items-center gap-2 text-black dark:text-white hover:underline"
-                >
-                  {/* TODO: Replace with arrow icon from /assets/icons/ui/arrow-left.svg */}
-                  <span>←</span>
-                  Back to Islands
-                </button>
-                <h2 className="text-3xl font-bold text-black dark:text-white mb-2">{currentIsland.name}</h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-8">
-                  Select a lesson to begin learning
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(currentIsland.lessons || []).map((lesson: any, index: number) => (
-                    <motion.button
-                      key={lesson.id || index}
-                      onClick={() => {
-                        setCurrentLesson(lesson)
-                        setGameMode('lesson')
-                      }}
-                      className="p-6 bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl shadow-lg text-left hover:shadow-xl transition-all border border-black/10 dark:border-white/10"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <h3 className="text-2xl font-extrabold text-black dark:text-white mb-2 tracking-tight">
-                        Lesson {index + 1}: {lesson.title || lesson.name || `Lesson ${index + 1}`}
-                      </h3>
-                      <p className="text-gray-700 dark:text-gray-300 text-base font-semibold mb-4 leading-relaxed">
-                        {lesson.description || lesson.content?.sections?.[0]?.title || 'Start learning'}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        {/* TODO: Replace with book icon from /assets/icons/ui/book.svg */}
-                        <BookOpen className="w-4 h-4" />
-                        <span>{lesson.duration || '10 min'}</span>
-                        {playerStats.completedLessons && playerStats.completedLessons.includes(lesson.id || index) && (
-                          <span className="text-green-500 flex items-center gap-1">
-                            <span>✓</span> Completed
-                          </span>
-                        )}
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+          {/* ISLAND MAP VIEW - Show Duolingo-style lesson path for selected island */}
+          {gameMode === 'island-map' && currentIsland && (
+            <IslandMapView
+              island={currentIsland}
+              playerStats={playerStats}
+              onBack={() => {
+                setGameMode('islands')
+                setCurrentIsland(null)
+                startBgMusic('theme.mp3')
+              }}
+              onLessonSelect={selectLesson}
+            />
           )}
 
+          {/* LESSON VIEW */}
           {gameMode === 'lesson' && currentLesson && (
             <LessonGame
               lesson={currentLesson}
               hearts={playerStats.hearts}
               onComplete={(score: number) => {
                 completeLesson(currentLesson.id, score)
-                // After completing lesson, offer quiz if practice questions exist
                 if (currentLesson.content?.practiceQuestions && currentLesson.content.practiceQuestions.length > 0) {
-                  // Small delay to show completion, then offer quiz
                   setTimeout(() => {
                     if (window.confirm('Great job! Would you like to take a quiz to test your knowledge?')) {
                       setGameMode('quiz')
                     } else {
-                      setGameMode('lessons')
+                      setGameMode('island-map')
                     }
                   }, 1000)
                 } else {
-                  setGameMode('lessons')
+                  setGameMode('island-map')
                 }
               }}
-              onExit={() => setGameMode('lessons')}
+              onExit={() => setGameMode('island-map')}
             />
           )}
 
+          {/* QUIZ VIEW */}
           {gameMode === 'quiz' && currentLesson && (
             <QuizBattle
-              questions={(() => {
-                // Get questions from the current lesson
-                const questions = currentLesson?.content?.practiceQuestions || []
-                if (import.meta.env.DEV) {
-                  console.log('Quiz questions:', questions, 'from lesson:', currentLesson?.title)
-                }
-                return questions
-              })()}
+              questions={currentLesson?.content?.practiceQuestions || []}
               onComplete={(score: number) => {
                 completeLesson(`quiz-${currentLesson.id}`, score)
-                setGameMode('lessons')
+                setGameMode('island-map')
               }}
               playerStats={playerStats}
               islandModel={currentIsland?.model}
             />
           )}
         </AnimatePresence>
-
-        {/* Achievement Popups */}
-        {/* AchievementPopup will be shown when achievement is unlocked */}
       </div>
     </Layout>
   )
 }
 
-// 3D Island Component
-// IslandModel component temporarily disabled (requires @react-three/fiber)
-// TODO: Re-enable when React 19 is available or use compatible version
-const IslandModel = ({ island, isLocked, onClick }: any) => {
+// Island Map View Component - Duolingo-style lesson path
+interface PlayerStats {
+  level: number
+  xp: number
+  streak: number
+  hearts: number
+  coins: number
+  badges: string[]
+  unlockedIslands: string[]
+  completedLessons: (string | number)[]
+  powerups: {
+    xpBoost: number
+    streakFreeze: number
+    heartRefill: number
+  }
+}
+
+interface IslandMapViewProps {
+  island: Island
+  playerStats: PlayerStats
+  onBack: () => void
+  onLessonSelect: (lesson: Lesson) => void
+}
+
+const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMapViewProps) => {
+  const calculatePosition = (lessonIndex: number) => {
+    const verticalSpacing = 120
+    const horizontalOffset = 150
+    const zigzag = lessonIndex % 2 === 0 ? -1 : 1
+    
+    return {
+      x: 200 + (zigzag * horizontalOffset * (lessonIndex % 3)),
+      y: 100 + lessonIndex * verticalSpacing
+    }
+  }
+
+  const isLessonUnlocked = (lesson: Lesson, index: number): boolean => {
+    if (index === 0) return true // First lesson always unlocked
+    if (lesson.locked) return false
+    if (lesson.prerequisites.length === 0) return true
+    return lesson.prerequisites.every(prereq => playerStats.completedLessons.includes(prereq))
+  }
+
+  const getLessonStars = (lesson: Lesson): number => {
+    // Return 3 stars if completed, 0 if not
+    return playerStats.completedLessons.includes(lesson.id) ? 3 : 0
+  }
+
+  const getNodeColor = (lesson: Lesson, isUnlocked: boolean): string => {
+    if (!isUnlocked) return '#777777'
+    const stars = getLessonStars(lesson)
+    if (stars === 0) return '#58CC02' // Green for available
+    if (stars < 3) return '#FFC800' // Gold for in-progress
+    return '#FFD700' // Full gold for completed
+  }
+
   return (
-    <div className="p-4">
-      {/* Placeholder - will be replaced with 3D model */}
-      <button
-        onClick={onClick}
-        disabled={isLocked}
-        className={`p-4 rounded-lg ${
-          isLocked ? 'bg-gray-300 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'
-        }`}
-      >
-        {island.name}
-        {/* TODO: Replace with lock icon from /assets/icons/ui/lock.svg */}
-        {isLocked && <Lock className="w-4 h-4 inline ml-1" />}
-      </button>
-    </div>
+    <motion.div
+      key="island-map"
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="h-full overflow-y-auto relative"
+      style={{
+        background: `linear-gradient(135deg, ${island.color}15 0%, ${island.color}25 100%)`
+      }}
+    >
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back to Islands
+          </button>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{island.name}</h1>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {island.unit.lessons.length} Lessons
+            </div>
+          </div>
+          <div className="w-24" /> {/* Spacer for centering */}
+        </div>
+      </div>
+
+      {/* Lesson Path */}
+      <div className="relative py-8 px-4 min-h-full">
+        <div className="max-w-4xl mx-auto relative">
+          {/* Connecting Lines */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+            {island.unit.lessons.slice(0, -1).map((_, index) => {
+              const current = calculatePosition(index)
+              const next = calculatePosition(index + 1)
+              return (
+                <motion.path
+                  key={`line-${index}`}
+                  d={`M ${current.x} ${current.y} Q ${
+                    (current.x + next.x) / 2
+                  } ${
+                    (current.y + next.y) / 2 + 30
+                  } ${next.x} ${next.y}`}
+                  stroke={playerStats.completedLessons.includes(island.unit.lessons[index].id) ? '#FFC800' : '#E5E5E5'}
+                  strokeWidth="6"
+                  fill="none"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                />
+              )
+            })}
+          </svg>
+
+          {/* Lesson Nodes */}
+          <div className="relative" style={{ zIndex: 1 }}>
+            {island.unit.lessons.map((lesson, index) => {
+              const isUnlocked = isLessonUnlocked(lesson, index)
+              const stars = getLessonStars(lesson)
+              const position = calculatePosition(index)
+              const nodeColor = getNodeColor(lesson, isUnlocked)
+
+              return (
+                <motion.div
+                  key={lesson.id}
+                  className="absolute"
+                  style={{
+                    left: position.x - 40,
+                    top: position.y - 40
+                  }}
+                  whileHover={isUnlocked ? { scale: 1.1 } : {}}
+                  whileTap={isUnlocked ? { scale: 0.95 } : {}}
+                >
+                  <button
+                    onClick={() => isUnlocked && onLessonSelect(lesson)}
+                    disabled={!isUnlocked}
+                    className="relative group"
+                  >
+                    {/* Progress Ring */}
+                    <svg className="absolute inset-0 w-20 h-20 -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        stroke={nodeColor}
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={`${(stars / 3) * 283} 283`}
+                        opacity={isUnlocked ? 1 : 0.3}
+                      />
+                    </svg>
+
+                    {/* Lesson Button */}
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all"
+                      style={{
+                        background: isUnlocked
+                          ? `linear-gradient(135deg, ${nodeColor} 0%, ${nodeColor}dd 100%)`
+                          : '#777777',
+                        border: `4px solid ${nodeColor}`
+                      }}
+                    >
+                      {!isUnlocked ? (
+                        <Lock className="w-8 h-8" />
+                      ) : (
+                        <BookOpen className="w-8 h-8" />
+                      )}
+                    </div>
+
+                    {/* Stars Display */}
+                    {isUnlocked && (
+                      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex gap-1">
+                        {[...Array(3)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < stars ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-300 text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Tooltip */}
+                    <div className="absolute left-1/2 transform -translate-x-1/2 -top-16 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                        {lesson.title}
+                        <div className="text-yellow-400 mt-1">+{lesson.estimatedMinutes * 10} XP</div>
+                      </div>
+                    </div>
+                  </button>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 

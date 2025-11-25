@@ -14,6 +14,8 @@ import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
 import { UserProvider } from './context/UserContext'
 import { ThemeProvider } from './context/ThemeContext'
+import './styles/duolingo-education.css'
+
 
 // Backend warm-up: Ping health endpoint on app load to wake up Render free tier
 const warmUpBackend = () => {
