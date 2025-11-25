@@ -20,6 +20,7 @@ import moneyAnimation from '../assets/animations/Money.json'
 import financeAnimation from '../assets/animations/Finance.json'
 import investingAnimation from '../assets/animations/investing.json'
 import stocksAnimation from '../assets/animations/stocks.json'
+import elephantAnimation from '../assets/animations/elephant.json'
 
 interface Island {
   id: string
@@ -43,6 +44,8 @@ const EducationHub = () => {
   const [currentIsland, setCurrentIsland] = useState<Island | null>(null)
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
   const [gameMode, setGameMode] = useState<'islands' | 'island-map' | 'lesson' | 'quiz'>('islands')
+  const [showUnlockAnimation, setShowUnlockAnimation] = useState<{island: Island, type: 'island' | 'lesson'} | null>(null)
+  const [showIslandIntro, setShowIslandIntro] = useState<Island | null>(null)
   
   const [playerStats, setPlayerStats] = useState<{
     level: number
@@ -253,8 +256,14 @@ const EducationHub = () => {
     }
 
     playSound('islandSelect')
-    setCurrentIsland(island)
-    setGameMode('island-map')
+    
+    // Show island intro transition
+    setShowIslandIntro(island)
+    setTimeout(() => {
+      setShowIslandIntro(null)
+      setCurrentIsland(island)
+      setGameMode('island-map')
+    }, 1500) // 1.5s intro animation
     
     if (island.bgMusic) {
       try {
@@ -324,20 +333,17 @@ const EducationHub = () => {
       }
       setPlayerStats(finalStats)
       
-      newUnlockedIslands.forEach((islandId) => {
+      // Show unlock animation for the first unlocked island
+      const firstUnlockedId = newUnlockedIslands[0]
+      const unlockedIsland = islands.find(i => i.id === firstUnlockedId)
+      if (unlockedIsland) {
         try {
           playSound('unlock')
         } catch (e) {
           console.warn('Failed to play unlock sound:', e)
         }
-        
-        const island = islands.find(i => i.id === islandId)
-        if (island) {
-          setTimeout(() => {
-            alert(`🎉 New Island Unlocked: ${island.name}!`)
-          }, 500)
-        }
-      })
+        setShowUnlockAnimation({ island: unlockedIsland, type: 'island' })
+      }
     }
   }
 
@@ -405,6 +411,94 @@ const EducationHub = () => {
       )}
 
       <div className="h-screen overflow-hidden relative z-10">
+        {/* Unlock Animation Modal */}
+        <AnimatePresence>
+          {showUnlockAnimation && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+              onClick={() => setShowUnlockAnimation(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl"
+              >
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{ duration: 0.6, repeat: 2 }}
+                  className="mb-6"
+                >
+                  <Lottie 
+                    animationData={elephantAnimation}
+                    loop={false}
+                    className="w-32 h-32 mx-auto"
+                  />
+                </motion.div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  🎉 {showUnlockAnimation.type === 'island' ? 'New Island Unlocked!' : 'New Feature Unlocked!'}
+                </h2>
+                <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
+                  {showUnlockAnimation.island.name}
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowUnlockAnimation(null)}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg"
+                >
+                  Continue
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Island Intro Transition */}
+        <AnimatePresence>
+          {showIslandIntro && currentIsland && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              className="fixed inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-md"
+            >
+              <div className="text-center">
+                <motion.div
+                  initial={{ y: -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-8"
+                >
+                  {getIslandIcon(currentIsland.theme)}
+                </motion.div>
+                <motion.h1
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-5xl font-bold text-white mb-4"
+                >
+                  {currentIsland.name}
+                </motion.h1>
+                <motion.p
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="text-xl text-white/80"
+                >
+                  Welcome to your learning journey!
+                </motion.p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {/* ISLANDS VIEW - Show island selection cards */}
           {gameMode === 'islands' && (
@@ -650,13 +744,25 @@ interface IslandMapViewProps {
 }
 
 const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMapViewProps) => {
+  const getIslandIcon = (theme: string) => {
+    switch(theme) {
+      case 'tropical': return <Map className="w-8 h-8 text-green-500" />
+      case 'volcanic': return <Target className="w-8 h-8 text-red-500" />
+      case 'arctic': return <Snowflake className="w-8 h-8 text-blue-400" />
+      case 'sky': return <Cloud className="w-8 h-8 text-purple-400" />
+      default: return <Map className="w-8 h-8" />
+    }
+  }
+
   const calculatePosition = (lessonIndex: number) => {
     const verticalSpacing = 120
     const horizontalOffset = 150
     const zigzag = lessonIndex % 2 === 0 ? -1 : 1
     
+    // Center the map better - start from center and zigzag
+    const centerX = 400 // More centered
     return {
-      x: 200 + (zigzag * horizontalOffset * (lessonIndex % 3)),
+      x: centerX + (zigzag * horizontalOffset * (lessonIndex % 3)),
       y: 100 + lessonIndex * verticalSpacing
     }
   }
@@ -692,8 +798,19 @@ const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMa
         background: `linear-gradient(135deg, ${island.color}15 0%, ${island.color}25 100%)`
       }}
     >
+      {/* 3D Island Background - Low opacity for contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-10 dark:opacity-5">
+        <IslandModelViewer
+          modelPath={island.model}
+          autoRotate={true}
+          scale={2}
+          className="w-full h-full"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/50 dark:to-black/50" />
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={onBack}
@@ -703,20 +820,26 @@ const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMa
             Back to Islands
           </button>
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{island.name}</h1>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {island.unit.lessons.length} Lessons
+            {/* Island Icon/Logo */}
+            <div className="flex items-center gap-3">
+              {getIslandIcon(island.theme)}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{island.name}</h1>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {island.unit.lessons.length} Lessons
+                </div>
+              </div>
             </div>
           </div>
           <div className="w-24" /> {/* Spacer for centering */}
         </div>
       </div>
 
-      {/* Lesson Path */}
+      {/* Lesson Path - Centered */}
       <div className="relative py-8 px-4 min-h-full">
-        <div className="max-w-4xl mx-auto relative">
-          {/* Connecting Lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+        <div className="max-w-5xl mx-auto relative" style={{ minHeight: '600px' }}>
+          {/* Connecting Lines - Centered */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0, overflow: 'visible' }}>
             {island.unit.lessons.slice(0, -1).map((_, index) => {
               const current = calculatePosition(index)
               const next = calculatePosition(index + 1)
