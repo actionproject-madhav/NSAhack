@@ -276,13 +276,13 @@ const IslandMarker = ({ island, position, isUnlocked }: IslandMarkerProps) => {
 
 function getIslandIcon(theme: string): string {
   const icons: Record<string, string> = {
-    tropical: '🏝️',
-    volcanic: '🌋',
-    arctic: '❄️',
-    sky: '☁️',
-    desert: '🏜️',
-    forest: '🌲',
-    ocean: '🌊'
+    tropical: '',
+    volcanic: '',
+    arctic: '',
+    sky: '',
+    desert: '',
+    forest: '',
+    ocean: ''
   }
   return icons[theme] || '📚'
 }

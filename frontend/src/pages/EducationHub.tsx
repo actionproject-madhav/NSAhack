@@ -4,6 +4,15 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 // Temporarily commented out - requires React 19
 // import { Canvas } from '@react-three/fiber'
 // import { OrbitControls, Float, Text3D } from '@react-three/drei'
+// Update your EducationHub.tsx to use the new Duolingo-style components
+import DuolingoStyleMap from '../components/education/DuolingoStyleMap'
+import DuolingoLeaderboard from '../components/education/DuolingoLeaderboard'
+import FinnyMascot from '../components/education/FinnyMascot'
+import '../styles/duolingo-education.css'
+
+// ... rest of your education hub implementation
+
+
 import Lottie from 'lottie-react'
 import { Howl } from 'howler'
 import confetti from 'canvas-confetti'

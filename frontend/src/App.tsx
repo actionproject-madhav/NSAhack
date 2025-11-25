@@ -29,7 +29,7 @@ const warmUpBackend = () => {
       // Silently ignore errors - this is just a warm-up
     })
     
-    console.log('🔥 Backend warm-up ping sent (Render free tier cold start)')
+    console.log(' Backend warm-up ping sent (Render free tier cold start)')
   }
 }
 
