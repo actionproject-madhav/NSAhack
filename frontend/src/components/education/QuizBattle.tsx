@@ -161,45 +161,24 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Centered like Duolingo */}
       <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-3xl w-full flex gap-6 items-center">
-          {/* Elephant Mascot */}
-          <motion.div
-            className="flex-shrink-0 hidden md:block"
-            animate={{ 
-              y: [0, -10, 0],
-              scale: showResult && selectedAnswer === question.correctAnswer ? [1, 1.2, 1] : 1
-            }}
-            transition={{ 
-              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-              scale: { duration: 0.5 }
-            }}
-          >
-            <div className="w-32 h-32">
-              <Lottie 
-                animationData={elephantAnimation}
-                loop={true}
-                className="w-full h-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Question Card - Bite-Sized */}
+        <div className="max-w-2xl w-full">
+          {/* Question Card - Bite-Sized, Duolingo Style */}
           <motion.div
             key={currentQuestion}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             {/* Question */}
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 leading-relaxed">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 leading-relaxed text-center">
               {question.question}
             </h2>
 
             {/* Answer Options - Duolingo Style */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-6">
               {question.options.map((option: string, index: number) => {
                 const isSelected = selectedAnswer === index
                 const isCorrect = index === question.correctAnswer
@@ -213,7 +192,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     whileTap={!showResult ? { scale: 0.98 } : {}}
                     onClick={() => !showResult && handleAnswer(index)}
                     disabled={showResult}
-                    className={`w-full p-4 rounded-xl text-left font-semibold text-lg transition-all border-4 ${
+                    className={`w-full p-5 rounded-xl text-left font-semibold text-xl transition-all border-4 ${
                       showCorrect
                         ? 'bg-green-100 dark:bg-green-900 border-green-500 text-green-900 dark:text-green-100'
                         : showIncorrect
@@ -226,8 +205,8 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                       borderColor: '#E5E5E5'
                     } : {}}
                   >
-                    <span className="font-bold mr-3">{String.fromCharCode(65 + index)}.</span>
-                    {option}
+                    <span className="font-bold mr-4 text-2xl">{String.fromCharCode(65 + index)}.</span>
+                    <span className="text-lg">{option}</span>
                   </motion.button>
                 )
               })}
@@ -241,7 +220,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700"
                 >
-                  <p className="text-gray-700 dark:text-gray-300 font-medium">
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">
                     {question.explanation}
                   </p>
                 </motion.div>
@@ -265,7 +244,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     setMascotMood('thinking')
                   }
                 }}
-                className="w-full mt-4 py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
+                className="w-full mt-6 py-5 rounded-2xl font-bold text-xl text-white shadow-lg"
                 style={{ background: DUOLINGO_COLORS.green }}
               >
                 {isLastQuestion ? 'Complete Quiz' : 'Next Question'}
@@ -275,22 +254,24 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
         </div>
       </div>
 
-      {/* Feedback Overlay */}
+      {/* Feedback Overlay - Top Center, No Text Overlap */}
       <AnimatePresence>
         {showResult && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.8 }}
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"
+            style={{ marginTop: '80px' }}
           >
             <div 
-              className={`text-7xl font-bold ${
-                selectedAnswer === question.correctAnswer ? 'text-green-500' : 'text-red-500'
+              className={`text-6xl font-bold px-8 py-4 rounded-2xl ${
+                selectedAnswer === question.correctAnswer ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'
               }`}
               style={{
                 textShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                color: selectedAnswer === question.correctAnswer ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red
+                color: selectedAnswer === question.correctAnswer ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red,
+                border: `4px solid ${selectedAnswer === question.correctAnswer ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red}`
               }}
             >
               {selectedAnswer === question.correctAnswer ? '✓ Correct!' : '✗ Try Again'}

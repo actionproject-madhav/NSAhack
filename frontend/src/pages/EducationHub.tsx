@@ -46,6 +46,7 @@ const EducationHub = () => {
   const [gameMode, setGameMode] = useState<'islands' | 'island-map' | 'lesson' | 'quiz'>('islands')
   const [showUnlockAnimation, setShowUnlockAnimation] = useState<{island: Island, type: 'island' | 'lesson'} | null>(null)
   const [showIslandIntro, setShowIslandIntro] = useState<Island | null>(null)
+  const [showQuizPrompt, setShowQuizPrompt] = useState(false)
   
   const [playerStats, setPlayerStats] = useState<{
     level: number
@@ -481,6 +482,60 @@ const EducationHub = () => {
           )}
         </AnimatePresence>
 
+        {/* Quiz Prompt Modal */}
+        <AnimatePresence>
+          {showQuizPrompt && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowQuizPrompt(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md mx-4 text-center shadow-2xl border-4"
+                style={{ borderColor: '#58CC02' }}
+              >
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                  🎉 Great job!
+                </h2>
+                <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+                  Would you like to take a quiz to test your knowledge?
+                </p>
+                <div className="flex gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setShowQuizPrompt(false)
+                      setGameMode('island-map')
+                    }}
+                    className="flex-1 py-3 rounded-xl font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
+                  >
+                    Skip
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setShowQuizPrompt(false)
+                      setGameMode('quiz')
+                    }}
+                    className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg"
+                    style={{ background: '#58CC02' }}
+                  >
+                    Take Quiz
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {/* ISLANDS VIEW - Show island selection cards */}
           {gameMode === 'islands' && (
@@ -669,11 +724,7 @@ const EducationHub = () => {
                 completeLesson(currentLesson.id, score)
                 if (currentLesson.content?.practiceQuestions && currentLesson.content.practiceQuestions.length > 0) {
                   setTimeout(() => {
-                    if (window.confirm('Great job! Would you like to take a quiz to test your knowledge?')) {
-                      setGameMode('quiz')
-                    } else {
-                      setGameMode('island-map')
-                    }
+                    setShowQuizPrompt(true)
                   }, 1000)
                 } else {
                   setGameMode('island-map')
@@ -834,29 +885,29 @@ const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMa
         />
       </div>
 
-      {/* Header */}
+      {/* Header - Fixed Alignment */}
       <div className="sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-300/50 dark:border-gray-700/50 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            Back to Islands
-          </button>
-          <div className="flex items-center gap-4">
-            {/* Island Icon/Logo */}
-            <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex-shrink-0"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              Back to Islands
+            </button>
+            <div className="flex items-center gap-3 flex-1 justify-center">
+              {/* Island Icon/Logo */}
               {getIslandIcon(island.theme)}
-              <div>
+              <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{island.name}</h1>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {island.unit.lessons.length} Lessons
                 </div>
               </div>
             </div>
+            <div className="w-32 flex-shrink-0" /> {/* Spacer for balance */}
           </div>
-          <div className="w-24" /> {/* Spacer for centering */}
         </div>
       </div>
 

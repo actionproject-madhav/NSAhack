@@ -95,26 +95,26 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
     switch (section.type) {
       case 'comparison':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {section.title && (
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">{section.title}</h3>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">{section.title}</h3>
             )}
             {section.content && (
-              <p className="text-lg text-gray-700 mb-4">{section.content}</p>
+              <p className="text-xl text-gray-900 dark:text-white mb-6 text-center font-medium">{section.content}</p>
             )}
             {section.data && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {Object.entries(section.data).slice(0, 4).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-200">
-                    <h4 className="font-bold text-lg mb-2 capitalize text-gray-900">{key}</h4>
+                  <div key={key} className="bg-white dark:bg-gray-700 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-600 shadow-sm">
+                    <h4 className="font-bold text-lg mb-3 capitalize text-gray-900 dark:text-white">{key}</h4>
                     {typeof value === 'object' && value !== null ? (
-                      <ul className="space-y-1 text-sm">
+                      <ul className="space-y-2">
                         {Object.entries(value).slice(0, 3).map(([k, v]: [string, any]) => (
-                          <li key={k} className="text-gray-700"><span className="font-semibold">{k}:</span> {String(v)}</li>
+                          <li key={k} className="text-gray-900 dark:text-white text-base"><span className="font-semibold">{k}:</span> {String(v)}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-gray-700">{String(value)}</p>
+                      <p className="text-gray-900 dark:text-white text-base">{String(value)}</p>
                     )}
                   </div>
                 ))}
@@ -129,17 +129,19 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       case 'calculation':
       default:
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {section.title && (
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">{section.title}</h3>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">{section.title}</h3>
             )}
-            <p className="text-lg text-gray-700 leading-relaxed mb-4">{section.content}</p>
+            <p className="text-xl text-gray-900 dark:text-white leading-relaxed mb-6 text-center font-medium">{section.content}</p>
             {section.details && section.details.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {section.details.slice(0, 4).map((detail: string, idx: number) => (
-                  <div key={idx} className="flex items-start gap-3 bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
-                    <span className="text-green-500 font-bold text-xl">✓</span>
-                    <span className="text-gray-700 flex-1">{detail}</span>
+                  <div key={idx} className="flex items-center gap-4 bg-white dark:bg-gray-700 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 shadow-sm">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: DUOLINGO_COLORS.green }}>
+                      <span className="text-white font-bold text-lg">✓</span>
+                    </div>
+                    <span className="text-gray-900 dark:text-white flex-1 text-lg">{detail}</span>
                   </div>
                 ))}
               </div>
@@ -194,37 +196,16 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Centered like Duolingo */}
       <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-3xl w-full flex gap-6 items-center">
-          {/* Elephant Mascot */}
-          <motion.div
-            className="flex-shrink-0 hidden md:block"
-            animate={{ 
-              y: [0, -10, 0],
-              scale: showFeedback && feedbackType === 'correct' ? [1, 1.2, 1] : 1
-            }}
-            transition={{ 
-              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-              scale: { duration: 0.5 }
-            }}
-          >
-            <div className="w-32 h-32">
-              <Lottie 
-                animationData={elephantAnimation}
-                loop={true}
-                className="w-full h-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Content Card - Bite-Sized */}
+        <div className="max-w-2xl w-full">
+          {/* Content Card - Bite-Sized, Duolingo Style */}
           <motion.div
             key={currentSection}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             <AnimatePresence mode="wait">
@@ -250,36 +231,90 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
                   setMascotMood('thinking')
                 }
               }}
-              className="w-full mt-6 py-4 rounded-2xl font-bold text-lg text-white shadow-lg flex items-center justify-center gap-2"
+              className="w-full mt-8 py-5 rounded-2xl font-bold text-xl text-white shadow-lg flex items-center justify-center gap-2"
               style={{ background: DUOLINGO_COLORS.green }}
             >
               {isLastSection ? 'Complete Lesson' : 'Continue'}
-              {!isLastSection && <ChevronRight className="w-5 h-5" />}
+              {!isLastSection && <ChevronRight className="w-6 h-6" />}
             </motion.button>
           </motion.div>
         </div>
       </div>
 
-      {/* Feedback Overlay */}
+      {/* Feedback Overlay - Top Center, No Text Overlap */}
       <AnimatePresence>
         {showFeedback && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.8 }}
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"
+            style={{ marginTop: '80px' }}
           >
             <div 
-              className={`text-7xl font-bold ${
-                feedbackType === 'correct' ? 'text-green-500' : 'text-red-500'
+              className={`text-6xl font-bold px-8 py-4 rounded-2xl ${
+                feedbackType === 'correct' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'
               }`}
               style={{
                 textShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                color: feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red
+                color: feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red,
+                border: `4px solid ${feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red}`
               }}
             >
               {feedbackType === 'correct' ? '✓ Correct!' : '✗ Try Again'}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Completion Screen with Mascot */}
+      <AnimatePresence>
+        {isLastSection && currentSection === lesson.content.sections.length - 1 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={() => onComplete(score)}
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md text-center shadow-2xl border-4"
+              style={{ borderColor: DUOLINGO_COLORS.green }}
+            >
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0]
+                }}
+                transition={{ duration: 0.6, repeat: 2 }}
+                className="mb-6 flex justify-center"
+              >
+                <div className="w-32 h-32">
+                  <Lottie 
+                    animationData={elephantAnimation}
+                    loop={false}
+                    className="w-full h-full"
+                  />
+                </div>
+              </motion.div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                🎉 Lesson Complete!
+              </h2>
+              <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+                Great job! You earned {Math.floor(score)} points!
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onComplete(score)}
+                className="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg"
+                style={{ background: DUOLINGO_COLORS.green }}
+              >
+                Continue
+              </motion.button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
