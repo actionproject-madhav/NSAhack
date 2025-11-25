@@ -35,7 +35,7 @@ export const useRealTimeQuotes = ({
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quotes';
       setError(errorMessage);
       if (import.meta.env.DEV) {
-        console.error('Real-time quotes error:', err);
+      console.error('Real-time quotes error:', err);
       }
     } finally {
       setIsLoading(false);
@@ -47,7 +47,7 @@ export const useRealTimeQuotes = ({
 
     // Initial fetch with slight delay to avoid blocking render
     const timeoutId = setTimeout(() => {
-      fetchQuotes();
+    fetchQuotes();
     }, 100);
 
     // Set up interval for periodic updates

@@ -1,5 +1,5 @@
 // pages/EducationHub.tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Lottie from 'lottie-react'
 import confetti from 'canvas-confetti'
@@ -130,6 +130,64 @@ const EducationHub = () => {
     }
   ]
 
+  // Helper function to check island unlocks - Fixed logic
+  const checkIslandUnlocks = useCallback((stats: typeof playerStats): string[] => {
+    const newUnlockedIslands: string[] = []
+    const completedCount = stats.completedLessons.length
+    
+    islands.forEach(island => {
+      // Only check locked islands that aren't already unlocked
+      if (island.locked && !stats.unlockedIslands.includes(island.id)) {
+        const req = island.unlockRequirement
+        if (!req) return // No requirement means it stays locked
+        
+        let shouldUnlock = false
+        
+        // Check lesson completion requirement
+        if ('completeLessons' in req && req.completeLessons !== undefined) {
+          if (completedCount >= req.completeLessons) {
+            // If fromIsland is specified, check lessons from that island
+            if (req.fromIsland) {
+              const fromIslandLessons = islands.find(i => i.id === req.fromIsland)?.unit.lessons || []
+              const completedFromIsland = fromIslandLessons.filter(lesson => 
+                stats.completedLessons.includes(lesson.id)
+              ).length
+              if (completedFromIsland >= req.completeLessons) {
+                shouldUnlock = true
+              }
+            } else {
+              // Total completed lessons
+              if (completedCount >= req.completeLessons) {
+                shouldUnlock = true
+              }
+            }
+          }
+        }
+        
+        // Check level requirement
+        if ('level' in req && typeof req.level === 'number') {
+          if (stats.level >= req.level) {
+            shouldUnlock = true
+          }
+        }
+        
+        // Check badge requirements (all must be present)
+        if (req.badges && Array.isArray(req.badges) && req.badges.length > 0) {
+          const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
+          if (hasAllBadges) {
+            shouldUnlock = true
+          }
+        }
+        
+        if (shouldUnlock) {
+          newUnlockedIslands.push(island.id)
+        }
+      }
+    })
+    
+    return newUnlockedIslands
+  }, [])
+  
   // Load progress from backend (or localStorage as fallback) on mount
   useEffect(() => {
     const loadProgress = async () => {
@@ -181,36 +239,7 @@ const EducationHub = () => {
     }
     
     loadProgress()
-  }, [user?.email, user?.id])
-
-  // Helper function to check island unlocks
-  const checkIslandUnlocks = (stats: typeof playerStats): string[] => {
-    const newUnlockedIslands: string[] = []
-    const completedCount = stats.completedLessons.length
-    
-    islands.forEach(island => {
-      if (island.locked && !stats.unlockedIslands.includes(island.id)) {
-        const req = island.unlockRequirement
-        
-        if (req && 'completeLessons' in req && req.completeLessons && completedCount >= req.completeLessons) {
-          newUnlockedIslands.push(island.id)
-        }
-        
-        if (req && 'level' in req && typeof req.level === 'number' && stats.level >= req.level) {
-          newUnlockedIslands.push(island.id)
-        }
-        
-        if (req?.badges && Array.isArray(req.badges)) {
-          const hasAllBadges = req.badges.every((badge: string) => stats.badges.includes(badge))
-          if (hasAllBadges) {
-            newUnlockedIslands.push(island.id)
-          }
-        }
-      }
-    })
-    
-    return newUnlockedIslands
-  }
+  }, [user?.email, user?.id, checkIslandUnlocks])
 
   // Save progress to localStorage and backend whenever it changes
   useEffect(() => {
@@ -248,11 +277,31 @@ const EducationHub = () => {
 
   // Handle Island Selection
   const selectIsland = (island: Island) => {
-    const isUnlocked = playerStats.unlockedIslands.includes(island.id)
+    // Re-check unlocks before selection
+    const currentUnlocks = checkIslandUnlocks(playerStats)
+    if (currentUnlocks.length > 0) {
+      setPlayerStats(prev => ({
+        ...prev,
+        unlockedIslands: [...prev.unlockedIslands, ...currentUnlocks]
+      }))
+    }
+    
+    const isUnlocked = playerStats.unlockedIslands.includes(island.id) || currentUnlocks.includes(island.id)
     const isLocked = island.locked && !isUnlocked
     
     if (isLocked) {
       playSound('locked')
+      // Show unlock requirements
+      const req = island.unlockRequirement
+      let message = 'This island is locked. '
+      if (req?.completeLessons) {
+        message += `Complete ${req.completeLessons} lesson${req.completeLessons > 1 ? 's' : ''} to unlock.`
+      } else if (req?.level) {
+        message += `Reach level ${req.level} to unlock.`
+      } else if (req?.badges) {
+        message += `Earn required badges to unlock.`
+      }
+      alert(message)
       return
     }
 

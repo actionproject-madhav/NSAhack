@@ -96,26 +96,26 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
     switch (section.type) {
       case 'comparison':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {section.title && (
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">{section.title}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 text-center">{section.title}</h3>
             )}
             {section.content && (
-              <p className="text-xl text-gray-900 dark:text-white mb-6 text-center font-medium">{section.content}</p>
+              <p className="text-lg text-gray-900 dark:text-white mb-4 text-center">{section.content}</p>
             )}
             {section.data && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {Object.entries(section.data).slice(0, 4).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-white dark:bg-gray-700 p-5 rounded-xl border-2 border-gray-200 dark:border-gray-600 shadow-sm">
-                    <h4 className="font-bold text-lg mb-3 capitalize text-gray-900 dark:text-white">{key}</h4>
+                  <div key={key} className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600">
+                    <h4 className="font-bold text-base mb-2 capitalize text-gray-900 dark:text-white">{key}</h4>
                     {typeof value === 'object' && value !== null ? (
-                      <ul className="space-y-2">
+                      <ul className="space-y-1">
                         {Object.entries(value).slice(0, 3).map(([k, v]: [string, any]) => (
-                          <li key={k} className="text-gray-900 dark:text-white text-base"><span className="font-semibold">{k}:</span> {String(v)}</li>
+                          <li key={k} className="text-gray-900 dark:text-white text-sm"><span className="font-semibold">{k}:</span> {String(v)}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-gray-900 dark:text-white text-base">{String(value)}</p>
+                      <p className="text-gray-900 dark:text-white text-sm">{String(value)}</p>
                     )}
                   </div>
                 ))}
@@ -130,19 +130,19 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       case 'calculation':
       default:
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {section.title && (
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">{section.title}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 text-center">{section.title}</h3>
             )}
-            <p className="text-xl text-gray-900 dark:text-white leading-relaxed mb-6 text-center font-medium">{section.content}</p>
+            <p className="text-lg text-gray-900 dark:text-white leading-relaxed mb-4 text-center">{section.content}</p>
             {section.details && section.details.length > 0 && (
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 {section.details.slice(0, 4).map((detail: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-4 bg-white dark:bg-gray-700 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 shadow-sm">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: DUOLINGO_COLORS.green }}>
-                      <span className="text-white font-bold text-lg">✓</span>
+                  <div key={idx} className="flex items-start gap-2 bg-white dark:bg-gray-700 p-3 rounded-lg border-2 border-gray-200 dark:border-gray-600">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5" style={{ background: DUOLINGO_COLORS.green }}>
+                      <span className="text-white font-bold text-sm">✓</span>
                     </div>
-                    <span className="text-gray-900 dark:text-white flex-1 text-lg">{detail}</span>
+                    <span className="text-gray-900 dark:text-white flex-1 text-sm leading-tight">{detail}</span>
                   </div>
                 ))}
               </div>
@@ -197,12 +197,12 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
         </div>
       </div>
 
-      {/* Main Content Area - Centered like Duolingo */}
-      <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full flex gap-6 items-center">
+      {/* Main Content Area - Full Page */}
+      <div className="relative z-10 h-full flex items-center justify-center p-6">
+        <div className="w-full h-full max-w-6xl mx-auto flex gap-6 items-center">
           {/* Elephant Mascot */}
           <motion.div
-            className="flex-shrink-0 hidden md:block"
+            className="flex-shrink-0 hidden lg:block"
             animate={{ 
               y: [0, -10, 0],
               scale: showFeedback && feedbackType === 'correct' ? [1, 1.2, 1] : 1
@@ -212,7 +212,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
               scale: { duration: 0.5 }
             }}
           >
-            <div className="w-32 h-32">
+            <div className="w-40 h-40">
               <Lottie 
                 animationData={elephantAnimation}
                 loop={true}
@@ -221,25 +221,27 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
             </div>
           </motion.div>
 
-          {/* Content Card - Bite-Sized, Duolingo Style */}
+          {/* Content Card - Full Page Coverage */}
           <motion.div
             key={currentSection}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
+            className="flex-1 h-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSection}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {renderSection()}
-              </motion.div>
-            </AnimatePresence>
+            <div className="flex-1 overflow-y-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSection}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {renderSection()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
             {/* Continue Button - Duolingo Style */}
             <motion.button
@@ -263,7 +265,7 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
                   }, 1000)
                 }
               }}
-              className="w-full mt-8 py-5 rounded-2xl font-bold text-xl text-white shadow-lg flex items-center justify-center gap-2"
+              className="w-full mt-6 py-5 rounded-xl font-bold text-xl text-white shadow-lg flex items-center justify-center gap-2 flex-shrink-0"
               style={{ background: DUOLINGO_COLORS.green }}
             >
               {isLastSection ? 'Complete Lesson' : 'Continue'}

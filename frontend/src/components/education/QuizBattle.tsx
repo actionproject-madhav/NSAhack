@@ -52,7 +52,20 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'proud' | 'encouraging'>('happy')
   
   const { playSound } = useGameSound()
-
+  
+  // Preload sounds on mount to ensure they're ready
+  useEffect(() => {
+    // Touch sounds to preload them (they're already preloaded in useGameSound, but this ensures they're ready)
+    const preloadSounds = () => {
+      try {
+        // Sounds are already preloaded in useGameSound hook
+      } catch (e) {
+        // Ignore
+      }
+    }
+    preloadSounds()
+  }, [])
+  
   const calculateScore = (includeCurrent: boolean = false) => {
     if (questions.length === 0) return 0
     const currentCorrect = includeCurrent && selectedAnswer !== null && selectedAnswer === questions[currentQuestion]?.correctAnswer ? 1 : 0
@@ -69,9 +82,11 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
     const question = questions[currentQuestion]
     const isCorrect = answerIndex === question.correctAnswer
     
+    // Immediately show result and play sound
     setSelectedAnswer(answerIndex)
     setShowResult(true)
 
+    // Play sound immediately - ensure it plays
     if (isCorrect) {
       playSound('correct')
       setCorrectAnswers(prev => prev + 1)
@@ -180,12 +195,12 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
         </div>
       </div>
 
-      {/* Main Content Area - Centered like Duolingo */}
-      <div className="relative z-10 h-full flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full flex gap-6 items-center">
+      {/* Main Content Area - Full Page */}
+      <div className="relative z-10 h-full flex items-center justify-center p-6">
+        <div className="w-full h-full max-w-6xl mx-auto flex gap-6 items-center">
           {/* Elephant Mascot */}
           <motion.div
-            className="flex-shrink-0 hidden md:block"
+            className="flex-shrink-0 hidden lg:block"
             animate={{ 
               y: [0, -10, 0],
               scale: showResult && selectedAnswer === question.correctAnswer ? [1, 1.2, 1] : 1
@@ -195,7 +210,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
               scale: { duration: 0.5 }
             }}
           >
-            <div className="w-32 h-32">
+            <div className="w-40 h-40">
               <Lottie 
                 animationData={elephantAnimation}
                 loop={true}
@@ -204,21 +219,23 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
             </div>
           </motion.div>
 
-          {/* Question Card - Bite-Sized, Duolingo Style */}
+          {/* Question Card - Full Page Coverage */}
           <motion.div
             key={currentQuestion}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex-1 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 border-4"
+            className="flex-1 h-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             {/* Question */}
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 leading-relaxed text-center">
-              {question?.question || 'No question available'}
-            </h2>
+            <div className="flex-shrink-0 mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-relaxed text-center">
+                {question?.question || 'No question available'}
+              </h2>
+            </div>
 
             {/* Answer Options - Horizontal Layout */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="flex-1 grid grid-cols-2 gap-4 mb-6 overflow-y-auto">
               {(question?.options || []).map((option: string, index: number) => {
                 const isSelected = selectedAnswer === index
                 const isCorrect = index === question?.correctAnswer
@@ -232,7 +249,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     whileTap={!showResult ? { scale: 0.98 } : {}}
                     onClick={() => !showResult && handleAnswer(index)}
                     disabled={showResult}
-                    className={`p-5 rounded-xl text-center font-semibold text-lg transition-all border-4 flex flex-col items-center justify-center gap-2 min-h-[120px] ${
+                    className={`p-5 rounded-xl text-center font-semibold text-lg transition-all border-4 flex flex-col items-center justify-center gap-2 min-h-[120px] relative ${
                       showCorrect
                         ? 'bg-green-100 dark:bg-green-900 border-green-500 text-green-900 dark:text-green-100'
                         : showIncorrect
@@ -245,17 +262,20 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                       borderColor: '#E5E5E5'
                     } : {}}
                   >
-                    {/* Correct/Wrong Indicator */}
-                    {showResult && (
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold ${
-                        showCorrect 
-                          ? 'bg-green-500 text-white' 
-                          : showIncorrect 
-                          ? 'bg-red-500 text-white' 
-                          : ''
-                      }`}>
-                        {showCorrect ? '✓' : showIncorrect ? '✗' : ''}
-                      </div>
+                    {/* Correct/Wrong Indicator - Large and Prominent */}
+                    {showResult && (showCorrect || showIncorrect) && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1.2, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                        className={`absolute -top-4 -right-4 w-16 h-16 rounded-full flex items-center justify-center text-4xl font-bold shadow-2xl z-10 border-4 border-white dark:border-gray-800 ${
+                          showCorrect 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-red-500 text-white'
+                        }`}
+                      >
+                        {showCorrect ? '✓' : '✗'}
+                      </motion.div>
                     )}
                     <span className="font-bold text-2xl">{String.fromCharCode(65 + index)}</span>
                     <span className="text-base leading-tight">{option}</span>
@@ -296,7 +316,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
                     setMascotMood('thinking')
                   }
                 }}
-                className="w-full mt-6 py-5 rounded-2xl font-bold text-xl text-white shadow-lg"
+                className="w-full mt-6 py-5 rounded-2xl font-bold text-xl text-white shadow-lg flex-shrink-0"
                 style={{ background: DUOLINGO_COLORS.green }}
               >
                 {isLastQuestion ? 'Complete Quiz' : 'Next Question'}
