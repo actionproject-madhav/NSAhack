@@ -221,7 +221,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
             <div className="grid grid-cols-2 gap-4 mb-6">
               {(question?.options || []).map((option: string, index: number) => {
                 const isSelected = selectedAnswer === index
-                const isCorrect = index === question.correctAnswer
+                const isCorrect = index === question?.correctAnswer
                 const showCorrect = showResult && isCorrect
                 const showIncorrect = showResult && isSelected && !isCorrect
 
@@ -266,7 +266,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
 
             {/* Explanation */}
             <AnimatePresence>
-              {showResult && question.explanation && (
+              {showResult && question?.explanation && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -308,7 +308,7 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
 
       {/* Feedback Overlay - Top Center, No Text Overlap */}
       <AnimatePresence>
-        {showResult && (
+        {showResult && question && (
           <motion.div
             initial={{ opacity: 0, y: -50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
