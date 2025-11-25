@@ -12,6 +12,7 @@ import useXPSystem from '../hooks/useXPSystem'
 import { Lock, BookOpen, ChevronLeft, Star, Trophy, Map, Target, TrendingUp, Coins, Snowflake, Cloud } from 'lucide-react'
 import IslandModelViewer from '../components/education/IslandModelViewer'
 import { useUser } from '../context/UserContext'
+import { useNavbar } from '../context/NavbarContext'
 import educationService from '../services/educationService'
 
 // Import Lottie animations
@@ -47,6 +48,7 @@ const EducationHub = () => {
   const [showUnlockAnimation, setShowUnlockAnimation] = useState<{island: Island, type: 'island' | 'lesson'} | null>(null)
   const [showIslandIntro, setShowIslandIntro] = useState<Island | null>(null)
   const [showQuizPrompt, setShowQuizPrompt] = useState(false)
+  const { setHideNavbar } = useNavbar()
   
   const [playerStats, setPlayerStats] = useState<{
     level: number
@@ -337,17 +339,19 @@ const EducationHub = () => {
        !lesson.prerequisites.every(prereq => playerStats.completedLessons.includes(prereq)))
     
     if (isLocked) {
-      playSound('locked')
+      // Lesson is locked - no sound needed
       return
     }
 
-    playSound('lessonStart')
+    // Lesson started - play click sound
+    playSound('click')
     setCurrentLesson(lesson)
     setGameMode('lesson')
+    setHideNavbar(true) // Hide navbar during lesson
   }
 
   // Handle Lesson Completion
-  const completeLesson = (lessonId: string | number, score: number) => {
+  const completeLesson = async (lessonId: string | number, score: number) => {
     const xpEarned = Math.max(100, Math.floor(score * 20))
     const coinsEarned = Math.floor(score * 2)
     
@@ -359,7 +363,46 @@ const EducationHub = () => {
       completedLessons: [...playerStats.completedLessons, lessonId],
       streak: playerStats.streak + 1
     }
+    
+    const newLevel = calculateLevel(newXP)
+    if (newLevel > playerStats.level) {
+      newStats.level = newLevel
+    }
+
+    const newUnlockedIslands = checkIslandUnlocks(newStats)
+    if (newUnlockedIslands.length > 0) {
+      newStats.unlockedIslands = [...newStats.unlockedIslands, ...newUnlockedIslands]
+    }
+    
+    // Update state immediately
     setPlayerStats(newStats)
+    
+    // Save to backend immediately (don't wait for debounce)
+    const userId = user?.email || user?.id
+    if (userId) {
+      const progressData = {
+        level: newStats.level,
+        xp: newStats.xp,
+        streak: newStats.streak,
+        hearts: newStats.hearts,
+        coins: newStats.coins,
+        badges: newStats.badges,
+        unlockedIslands: newStats.unlockedIslands,
+        completedLessons: newStats.completedLessons,
+        powerups: newStats.powerups
+      }
+      
+      // Save immediately to backend
+      try {
+        await educationService.saveProgress(userId, progressData)
+        console.log('✅ Progress saved immediately after lesson completion')
+      } catch (error) {
+        console.warn('⚠️ Failed to save progress immediately:', error)
+      }
+      
+      // Also save to localStorage
+      localStorage.setItem('educationProgress', JSON.stringify(progressData))
+    }
 
     playSound('levelUp')
     startBgMusic('theme.mp3')
@@ -370,19 +413,11 @@ const EducationHub = () => {
       origin: { y: 0.6 }
     })
 
-    const newLevel = calculateLevel(newXP)
     if (newLevel > playerStats.level) {
       levelUp(newLevel)
     }
 
-    const newUnlockedIslands = checkIslandUnlocks(newStats)
     if (newUnlockedIslands.length > 0) {
-      const finalStats = {
-        ...newStats,
-        unlockedIslands: [...newStats.unlockedIslands, ...newUnlockedIslands]
-      }
-      setPlayerStats(finalStats)
-      
       // Show unlock animation for the first unlocked island
       const firstUnlockedId = newUnlockedIslands[0]
       const unlockedIsland = islands.find(i => i.id === firstUnlockedId)
@@ -526,7 +561,7 @@ const EducationHub = () => {
                 >
                   Welcome to your learning journey!
                 </motion.p>
-              </div>
+          </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -573,13 +608,14 @@ const EducationHub = () => {
                     onClick={() => {
                       setShowQuizPrompt(false)
                       setGameMode('quiz')
+                      setHideNavbar(true) // Hide navbar during quiz
                     }}
                     className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg"
                     style={{ background: '#58CC02' }}
                   >
                     Take Quiz
                   </motion.button>
-                </div>
+          </div>
               </motion.div>
             </motion.div>
           )}
@@ -600,7 +636,7 @@ const EducationHub = () => {
                 <div className="max-w-6xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {/* Player Stats */}
-                    <motion.div 
+                      <motion.div
                       className="bg-white/90 dark:bg-black/90 backdrop-blur rounded-2xl p-4 shadow-lg"
                       initial={{ x: -100, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
@@ -609,11 +645,11 @@ const EducationHub = () => {
                         <div className="relative flex-shrink-0">
                           <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-xl">{playerStats.level}</span>
-                          </div>
+                        </div>
                           <div className="absolute -bottom-1 left-0 right-0 bg-black/80 text-white text-xs text-center rounded-full px-2 py-0.5">
                             Level
-                          </div>
                         </div>
+                          </div>
                         <div className="flex-1 space-y-2 min-w-0">
                           <div className="flex items-center gap-2">
                             <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -621,10 +657,10 @@ const EducationHub = () => {
                                 className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${(playerStats.xp % 1000) / 10}%` }}
-                              />
-                            </div>
-                            <span className="text-xs font-medium whitespace-nowrap">{playerStats.xp % 1000}/1000 XP</span>
+                            />
                           </div>
+                            <span className="text-xs font-medium whitespace-nowrap">{playerStats.xp % 1000}/1000 XP</span>
+                        </div>
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
                               <motion.div
@@ -636,15 +672,15 @@ const EducationHub = () => {
                                 <div className="w-full h-full rounded-full bg-red-500" />
                               </motion.div>
                             ))}
-                          </div>
+                            </div>
                           <div className="flex items-center gap-1">
                             <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-yellow-900">$</span>
-                            </div>
-                            <span className="font-semibold text-sm">{playerStats.coins}</span>
                           </div>
+                            <span className="font-semibold text-sm">{playerStats.coins}</span>
                         </div>
-                      </div>
+                </div>
+              </div>
                     </motion.div>
 
                     {/* Streak Counter */}
@@ -653,7 +689,7 @@ const EducationHub = () => {
                       initial={{ y: -100, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                     >
-                      <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3">
                         <Lottie 
                           animationData={streakFireAnimation}
                           loop={true}
@@ -662,12 +698,12 @@ const EducationHub = () => {
                         <div>
                           <div className="text-2xl font-bold text-orange-500">{playerStats.streak}</div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">Day Streak</div>
-                        </div>
-                      </div>
+                              </div>
+                            </div>
                     </motion.div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
               {/* Islands Grid */}
               <div className="pt-32 pb-16 px-4">
@@ -682,7 +718,7 @@ const EducationHub = () => {
                       const progress = getIslandProgress(island)
                       
                       return (
-                        <motion.div
+            <motion.div
                           key={island.id}
                           className={`island-card bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-2xl p-6 shadow-xl border-2 ${
                             isLocked ? 'border-gray-300 dark:border-gray-600 opacity-60' : 'border-transparent hover:border-blue-400'
@@ -703,7 +739,7 @@ const EducationHub = () => {
                               ) : (
                                 getIslandIcon(island.theme)
                               )}
-                            </div>
+                      </div>
                             <div className="flex-1 min-w-0">
                               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                 {island.name}
@@ -712,10 +748,10 @@ const EducationHub = () => {
                                 <div className="space-y-2">
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
                                     {progress.total} Lessons
-                                  </div>
+                      </div>
                                   <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                     {progress.completed} / {progress.total} completed
-                                  </div>
+                      </div>
                                   <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                     <motion.div
                                       className="h-full rounded-full"
@@ -723,8 +759,8 @@ const EducationHub = () => {
                                       initial={{ width: 0 }}
                                       animate={{ width: `${(progress.completed / progress.total) * 100}%` }}
                                     />
-                                  </div>
-                                </div>
+                    </div>
+                  </div>
                               )}
                               {isLocked && island.unlockRequirement && (
                                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -737,11 +773,11 @@ const EducationHub = () => {
                                   {island.unlockRequirement.badges && (
                                     <div>Earn required badges</div>
                                   )}
-                                </div>
+                </div>
                               )}
-                            </div>
-                          </div>
-                        </motion.div>
+                      </div>
+                      </div>
+                    </motion.div>
                       )
                     })}
                   </div>
@@ -777,9 +813,13 @@ const EducationHub = () => {
                   }, 1000)
                 } else {
                   setGameMode('island-map')
+                  setHideNavbar(false) // Show navbar when returning to map
                 }
               }}
-              onExit={() => setGameMode('island-map')}
+              onExit={() => {
+                setGameMode('island-map')
+                setHideNavbar(false) // Show navbar when exiting
+              }}
             />
           )}
 
@@ -787,16 +827,17 @@ const EducationHub = () => {
           {gameMode === 'quiz' && currentLesson && (
             <QuizBattle
               questions={currentLesson?.content?.practiceQuestions || []}
-              onComplete={(score: number) => {
-                completeLesson(`quiz-${currentLesson.id}`, score)
+              onComplete={async (score: number) => {
+                await completeLesson(`quiz-${currentLesson.id}`, score)
                 setGameMode('island-map')
+                setHideNavbar(false) // Show navbar when returning to map
               }}
               playerStats={playerStats}
               islandModel={currentIsland?.model}
             />
           )}
         </AnimatePresence>
-      </div>
+    </div>
     </Layout>
   )
 }
@@ -1076,3 +1117,7 @@ const IslandMapView = ({ island, playerStats, onLessonSelect, onBack }: IslandMa
 }
 
 export default EducationHub
+
+
+
+

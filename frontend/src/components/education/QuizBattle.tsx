@@ -195,36 +195,15 @@ const QuizBattle = ({ questions = [], onComplete, playerStats = {}, opponent = '
         </div>
       </div>
 
-      {/* Main Content Area - Full Page */}
-      <div className="relative z-10 h-full flex items-center justify-center p-6">
-        <div className="w-full h-full max-w-6xl mx-auto flex gap-6 items-center">
-          {/* Elephant Mascot */}
-          <motion.div
-            className="flex-shrink-0 hidden lg:block"
-            animate={{ 
-              y: [0, -10, 0],
-              scale: showResult && selectedAnswer === question.correctAnswer ? [1, 1.2, 1] : 1
-            }}
-            transition={{ 
-              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-              scale: { duration: 0.5 }
-            }}
-          >
-            <div className="w-40 h-40">
-              <Lottie 
-                animationData={elephantAnimation}
-                loop={true}
-                className="w-full h-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Question Card - Full Page Coverage */}
+      {/* Main Content Area - Compact Duolingo Style */}
+      <div className="relative z-10 flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl mx-auto">
+          {/* Question Card - Compact, Centered */}
           <motion.div
             key={currentQuestion}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex-1 h-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
             {/* Question */}

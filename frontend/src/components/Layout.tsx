@@ -1,8 +1,9 @@
-import { useState, ReactNode } from 'react'
+import { useState, ReactNode, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Menu, Moon, Sun, Home, Briefcase, Wallet, BarChart3, BookOpen, Brain, LogOut, Settings, X } from 'lucide-react'
+import { Menu, Moon, Sun, Home, Briefcase, Wallet, BarChart3, BookOpen, Brain, LogOut, Settings, X, ChevronRight } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useTheme } from '../context/ThemeContext'
+import { useNavbar } from '../context/NavbarContext'
 import authService from '../services/authService'
 
 interface LayoutProps {
@@ -16,6 +17,16 @@ const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const { toggleTheme, isDark } = useTheme()
+  const { hideNavbar, navbarVisible, setNavbarVisible } = useNavbar()
+  
+  // Auto-hide navbar when hideNavbar is true
+  useEffect(() => {
+    if (hideNavbar) {
+      setNavbarVisible(false)
+    } else {
+      setNavbarVisible(true)
+    }
+  }, [hideNavbar, setNavbarVisible])
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
@@ -29,6 +40,16 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="h-screen bg-transparent flex relative z-10 overflow-hidden">
+      {/* Toggle Button - Left Edge (when navbar is hidden) */}
+      {!navbarVisible && (
+        <button
+          onClick={() => setNavbarVisible(true)}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-lg border-r border-y border-black/10 dark:border-white/10 rounded-r-lg p-2 shadow-lg hover:bg-white dark:hover:bg-black transition-all"
+        >
+          <ChevronRight className="w-5 h-5 text-black dark:text-white" />
+        </button>
+      )}
+
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
@@ -38,7 +59,7 @@ const Layout = ({ children }: LayoutProps) => {
       )}
       
       {/* Left Sidebar - Fixed, doesn't scroll */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:fixed inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-r border-black/10 dark:border-white/10 flex flex-col flex-shrink-0`}>
+      <div className={`${!navbarVisible ? '-translate-x-full' : sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300 ease-in-out fixed lg:fixed inset-y-0 left-0 z-50 lg:z-auto w-64 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-r border-black/10 dark:border-white/10 flex flex-col flex-shrink-0`}>
         {/* Logo */}
         <div className="p-6 border-b border-black/10 dark:border-white/10">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -118,9 +139,9 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
 
       {/* Main Content Area - Scrollable */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden ml-0 lg:ml-64">
+      <div className={`flex-1 flex flex-col min-w-0 overflow-x-hidden transition-all duration-300 ${navbarVisible ? 'ml-0 lg:ml-64' : 'ml-0'}`}>
         {/* Top Header - Fixed */}
-        <header className="border-b border-black/10 dark:border-white/10 fixed top-0 right-0 left-0 lg:left-64 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-lg flex-shrink-0 h-16">
+        <header className={`border-b border-black/10 dark:border-white/10 fixed top-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-lg flex-shrink-0 h-16 transition-all duration-300 ${navbarVisible ? 'left-0 lg:left-64' : 'left-0'}`}>
           <div className="px-4 h-full flex items-center justify-between max-w-full">
             {/* Mobile Menu Button */}
             <button

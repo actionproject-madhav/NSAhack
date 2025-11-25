@@ -14,6 +14,7 @@ import ScreenerPage from './pages/ScreenerPage'
 import StockDetailPage from './pages/StockDetailPage'
 import { UserProvider } from './context/UserContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { NavbarProvider } from './context/NavbarContext'
 import './styles/duolingo-education.css'
 
 
@@ -45,7 +46,8 @@ function App() {
   return (
     <ThemeProvider>
       <UserProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <NavbarProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-transparent transition-colors relative overflow-hidden">
           <div className="relative z-10">
             <AnimatePresence mode="wait" initial={false}>
@@ -66,6 +68,7 @@ function App() {
           </div>
         </div>
       </Router>
+        </NavbarProvider>
       </UserProvider>
     </ThemeProvider>
   )

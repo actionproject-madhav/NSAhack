@@ -35,8 +35,6 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
   const [currentSection, setCurrentSection] = useState(0)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
-  const [showFeedback, setShowFeedback] = useState(false)
-  const [feedbackType, setFeedbackType] = useState<'correct' | 'incorrect'>('correct')
   const [heartsRemaining, setHeartsRemaining] = useState(hearts)
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'proud' | 'encouraging'>('happy')
   const [showCompletion, setShowCompletion] = useState(false)
@@ -49,13 +47,12 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
     config: { tension: 200, friction: 20 }
   })
 
-  // Handle Answer Selection
+  // Handle Answer Selection (for MCQ only - not used in lesson content)
   const handleAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
       playSound('correct')
       setScore(prev => prev + (100 * (1 + combo * 0.1)))
       setCombo(prev => prev + 1)
-      setFeedbackType('correct')
       setMascotMood('proud')
       
       if (combo >= 3) {
@@ -65,7 +62,6 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
       playSound('incorrect')
       setHeartsRemaining(prev => prev - 1)
       setCombo(0)
-      setFeedbackType('incorrect')
       setMascotMood('encouraging')
       
       if (heartsRemaining <= 1) {
@@ -75,17 +71,6 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
         return
       }
     }
-    
-    setShowFeedback(true)
-    setTimeout(() => {
-      setShowFeedback(false)
-      if (currentSection < lesson.content.sections.length - 1) {
-        setCurrentSection(prev => prev + 1)
-        setMascotMood('thinking')
-      } else {
-        onComplete(score)
-      }
-    }, 1500)
   }
 
   // Render Bite-Sized Section Content
@@ -197,109 +182,79 @@ const LessonGame = ({ lesson, hearts, onComplete, onExit }: LessonGameProps) => 
         </div>
       </div>
 
-      {/* Main Content Area - Full Page */}
-      <div className="relative z-10 h-full flex items-center justify-center p-6">
-        <div className="w-full h-full max-w-6xl mx-auto flex gap-6 items-center">
-          {/* Elephant Mascot */}
-          <motion.div
-            className="flex-shrink-0 hidden lg:block"
-            animate={{ 
-              y: [0, -10, 0],
-              scale: showFeedback && feedbackType === 'correct' ? [1, 1.2, 1] : 1
-            }}
-            transition={{ 
-              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-              scale: { duration: 0.5 }
-            }}
-          >
-            <div className="w-40 h-40">
-              <Lottie 
-                animationData={elephantAnimation}
-                loop={true}
-                className="w-full h-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Content Card - Full Page Coverage */}
+      {/* Main Content Area - Compact Duolingo Style */}
+      <div className="relative z-10 flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl mx-auto">
+          {/* Content Card - Compact, Centered */}
           <motion.div
             key={currentSection}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 h-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border-4 flex flex-col"
             style={{ borderColor: DUOLINGO_COLORS.green }}
           >
-            <div className="flex-1 overflow-y-auto">
+            <div className="min-h-[300px] flex flex-col">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentSection}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  className="flex-1"
                 >
                   {renderSection()}
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Continue Button - Duolingo Style */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                if (isLastSection) {
-                  // Show completion screen
-                  playSound('levelUp')
-                  setShowCompletion(true)
-                } else {
-                  // Show positive feedback for continuing
-                  playSound('correct')
-                  setFeedbackType('correct')
-                  setShowFeedback(true)
-                  setMascotMood('proud')
-                  setTimeout(() => {
-                    setShowFeedback(false)
-                    setCurrentSection(prev => prev + 1)
+            {/* Navigation Buttons - Duolingo Style */}
+            <div className="flex gap-4 mt-6">
+              {/* Previous Button */}
+              {currentSection > 0 && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setCurrentSection(prev => prev - 1)
                     setMascotMood('thinking')
-                  }, 1000)
-                }
-              }}
-              className="w-full mt-6 py-5 rounded-xl font-bold text-xl text-white shadow-lg flex items-center justify-center gap-2 flex-shrink-0"
-              style={{ background: DUOLINGO_COLORS.green }}
-            >
-              {isLastSection ? 'Complete Lesson' : 'Continue'}
-              {!isLastSection && <ChevronRight className="w-6 h-6" />}
-            </motion.button>
+                  }}
+                  className="flex-1 py-4 rounded-xl font-bold text-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 shadow-md flex items-center justify-center gap-2"
+                >
+                  <ChevronRight className="w-5 h-5 rotate-180" />
+                  Previous
+                </motion.button>
+              )}
+
+              {/* Continue/Complete Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (isLastSection) {
+                    // Show completion screen
+                    playSound('levelUp')
+                    setShowCompletion(true)
+                  } else {
+                    // Move to next section (no feedback for lesson content)
+                    setMascotMood('proud')
+                    setTimeout(() => {
+                      setCurrentSection(prev => prev + 1)
+                      setMascotMood('thinking')
+                    }, 300)
+                  }
+                }}
+                className={`${currentSection > 0 ? 'flex-1' : 'w-full'} py-4 rounded-xl font-bold text-lg text-white shadow-lg flex items-center justify-center gap-2`}
+                style={{ background: DUOLINGO_COLORS.green }}
+              >
+                {isLastSection ? 'Complete Lesson' : 'Continue'}
+                {!isLastSection && <ChevronRight className="w-5 h-5" />}
+              </motion.button>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Feedback Overlay - Top Center, No Text Overlap */}
-      <AnimatePresence>
-        {showFeedback && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"
-            style={{ marginTop: '80px' }}
-          >
-            <div 
-              className={`text-6xl font-bold px-8 py-4 rounded-2xl ${
-                feedbackType === 'correct' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'
-              }`}
-              style={{
-                textShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                color: feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red,
-                border: `4px solid ${feedbackType === 'correct' ? DUOLINGO_COLORS.green : DUOLINGO_COLORS.red}`
-              }}
-            >
-              {feedbackType === 'correct' ? '✓ Correct!' : '✗ Try Again'}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Completion Screen with Mascot */}
       <AnimatePresence>
